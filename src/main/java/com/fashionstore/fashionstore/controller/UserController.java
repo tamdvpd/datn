@@ -78,6 +78,7 @@ public class UserController {
         }
     }
 
+    // Cập nhật user
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable Integer id, @RequestBody User user) {
         return ResponseEntity.ok(userService.updateUser(id, user));

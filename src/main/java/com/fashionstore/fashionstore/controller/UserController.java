@@ -40,7 +40,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    // Lấy user theo id
+    //Lấy user theo id
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Integer id) {
         return ResponseEntity.of(userService.getUserById(id));

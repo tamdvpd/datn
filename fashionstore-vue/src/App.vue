@@ -1,25 +1,23 @@
 <template>
-  <Home />
+  <Product />
 </template>
 
 <script>
-import Home from "./views/Home.vue";
+import Product from "./components/Product.vue";
 
 export default {
   name: "App",
   components: {
-    Home,
+    Product,
   },
 };
 </script>
-
-<style>
-/* Bạn có thể giữ hoặc sửa lại style cho phù hợp */
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+<style scoped>
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden; /* Ngăn cuộn ngang không mong muốn */
 }
 </style>

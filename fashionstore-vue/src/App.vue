@@ -1,17 +1,23 @@
 <template>
-  <Product />
+  <div>
+    <Product />
+    <LoginRegister />
+  </div>
 </template>
 
 <script>
 import Product from "./components/Product.vue";
+import LoginRegister from './components/LoginRegister.vue';
 
 export default {
   name: "App",
   components: {
     Product,
-  },
-};
+    LoginRegister
+  }
+}
 </script>
+
 <style scoped>
 body {
   margin: 0;

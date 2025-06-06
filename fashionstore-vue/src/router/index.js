@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-// Import các component trang
 import HomePage from "@/components/views/HomePage.vue";
 import Product from "@/components/views/Product.vue";
 import LoginView from "@/components/views/LoginView.vue";
@@ -19,7 +18,6 @@ import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
-
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },

@@ -1,54 +1,6 @@
 <template>
   <div class="haravan-product-page">
-    <div class="top-bar">
-      <span>Chào mừng bạn đến với website Thời Trang HARAVAN</span>
-    </div>
-
-    <header class="main-header" role="banner">
-      <div class="header-logo">
-        <img
-          alt="Haravan logo with white text on blue background"
-          class="logo-img"
-          src="https://storage.googleapis.com/a1aa/image/e4fab516-e29e-45c6-0c20-87f5d504fe03.jpg"
-        />
-      </div>
-      <form
-        @submit.prevent="onSearch"
-        aria-label="Search products"
-        class="search-form"
-        role="search"
-      >
-        <input
-          v-model="searchQuery"
-          class="search-input"
-          placeholder="Tìm kiếm sản phẩm..."
-          type="text"
-          aria-label="Tìm kiếm sản phẩm"
-        />
-        <button aria-label="Tìm kiếm" class="search-button" type="submit">
-          TÌM KIẾM
-        </button>
-      </form>
-      <div class="header-actions">
-        <button aria-label="Giỏ hàng" class="action-button" type="button">
-          <i class="fas fa-shopping-cart"></i>
-          <span class="action-text">GIỎ HÀNG</span>
-        </button>
-        <button aria-label="Đăng nhập / Đăng ký" class="action-button" type="button">
-          <i class="fas fa-user"></i>
-          <span class="action-text">ĐĂNG NHẬP / ĐĂNG KÝ</span>
-        </button>
-      </div>
-    </header>
-
-    <nav class="main-nav" role="navigation">
-      <a href="#" class="nav-link">TRANG CHỦ</a>
-      <a href="#" class="nav-link">SẢN PHẨM</a>
-      <a href="#" class="nav-link">ÁO</a>
-      <a href="#" class="nav-link">QUẦN</a>
-      <a href="#" class="nav-link">PHỤ KIỆN</a>
-      <a href="#" class="nav-link">SALE</a>
-    </nav>
+    <MainHeader />
 
     <main class="main-content">
       <h2 class="section-title">SẢN PHẨM</h2>
@@ -65,45 +17,20 @@
       </section>
     </main>
 
-    <footer class="main-footer">
-      <div class="footer-section">
-        <h3 class="footer-heading">HỖ TRỢ KHÁCH HÀNG</h3>
-        <p class="footer-text">HOTLINE: 0933.153.834 - MR.HÙNG</p>
-        <p class="footer-text">Email: dochoidientu@gmail.com</p>
-        <p class="footer-text">ĐỊA CHỈ: Số 7A Thương mại Hàng Giang</p>
-        <p class="footer-text">Giờ mở cửa: 08:00 - 21:00 các ngày trong tuần</p>
-        <p class="footer-text footer-sub-heading">TP. HCM:</p>
-        <p class="footer-text">Chi nhánh 01: 79/12 Lê Văn Sỹ</p>
-        <p class="footer-text">Chi nhánh 02: 79/12 Lê Văn Sỹ</p>
-        <p class="footer-text">Quận Phú Nhuận, TP.HCM</p>
-      </div>
-      <div class="footer-section">
-        <h3 class="footer-heading">CHÍNH SÁCH WEBSITE</h3>
-        <ul class="footer-list">
-          <li>Thông tin về sản phẩm</li>
-          <li>Chính sách đổi trả</li>
-          <li>Chính sách bảo mật thông tin</li>
-          <li>Chính sách vận chuyển</li>
-          <li>Chính sách thanh toán</li>
-          <li>Chính sách hoàn tiền</li>
-        </ul>
-      </div>
-      <div class="footer-section">
-        <h3 class="footer-heading">KINH NGHIỆM MUA HÀNG</h3>
-        <ul class="footer-list">
-          <li>Kinh nghiệm nhận biết quần áo</li>
-          <li>Kinh nghiệm chọn trang phục online</li>
-          <li>Kinh nghiệm chọn giày lười</li>
-          <li>Kinh nghiệm chọn quần áo người lớn</li>
-        </ul>
-      </div>
-    </footer>
+    <MainFooter />
   </div>
 </template>
 
 <script>
+import MainHeader from '@/components/MainHeader.vue';
+import MainFooter from '@/components/MainFooter.vue';
+
 export default {
   name: "HaravanProductPage",
+  components: {
+    MainHeader,
+    MainFooter
+  },
   data() {
     return {
       searchQuery: "",
@@ -151,7 +78,6 @@ export default {
             "https://tse2.mm.bing.net/th?id=OIP.lcMFbREe3gjSIdQwrdlWkgHaHa&pid=Api&P=0&h=180",
           alt: "Mũ lưỡi trai màu đen chống tia UV, kiểu dáng thể thao",
         },
-        // Thêm 2 sản phẩm mới
         {
           name: "Áo Khoác Nỉ Form Rộng Unisex",
           price: "380,000 VND",
@@ -179,9 +105,7 @@ export default {
     },
   },
   methods: {
-    onSearch() {
-      // Không cần hành động đặc biệt ở đây vì filteredProducts tự động cập nhật
-    },
+    onSearch() {},
   },
 };
 </script>
@@ -452,75 +376,5 @@ body {
   font-weight: 800; /* extra-bold */
   color: #dc2626; /* Red */
   margin-top: auto; /* Đẩy giá xuống cuối card */
-}
-
-/* Footer */
-.main-footer {
-  background-color: #00c0f1; /* Darker blue */
-  color: white;
-  font-size: 0.875rem; /* 14px */
-  padding: 2rem 1rem; /* 32px 16px */
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem; /* 32px */
-  width: 100%; /* Chiếm full chiều rộng */
-  box-sizing: border-box; /* Bao gồm padding trong chiều rộng */
-}
-
-@media (min-width: 768px) {
-  .main-footer {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 2rem 2rem; /* Tăng padding ngang trên màn hình lớn */
-  }
-}
-
-.footer-section {
-  max-width: 400px; /* Giới hạn chiều rộng của mỗi cột footer */
-  margin: 0 auto; /* Căn giữa mỗi cột trên màn hình nhỏ */
-}
-
-.footer-heading {
-  font-weight: 700; /* bold */
-  margin-bottom: 1rem; /* 16px */
-  font-size: 1rem; /* 16px */
-  text-transform: uppercase;
-  letter-spacing: 0.05em; /* tracking-wide */
-  text-align: center; /* Căn giữa tiêu đề footer trên di động */
-}
-
-@media (min-width: 768px) {
-  .footer-heading {
-    text-align: left; /* Căn trái tiêu đề footer trên desktop */
-  }
-}
-
-.footer-text,
-.footer-list li {
-  margin-bottom: 0.25rem; /* 4px */
-  text-align: center; /* Căn giữa nội dung footer trên di động */
-}
-
-@media (min-width: 768px) {
-  .footer-text,
-  .footer-list li {
-    text-align: left; /* Căn trái nội dung footer trên desktop */
-  }
-}
-
-.footer-sub-heading {
-  margin-top: 0.75rem; /* 12px */
-  font-weight: 600; /* semi-bold */
-}
-
-.footer-list {
-  list-style: disc;
-  list-style-position: inside;
-  padding: 0;
-  margin: 0;
-  line-height: 1.5; /* Increased line-height for better readability */
-}
-
-.footer-list li {
-  margin-bottom: 0.5rem; /* 8px */
 }
 </style>

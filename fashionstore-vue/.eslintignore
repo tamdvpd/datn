@@ -1,0 +1,7 @@
+# Bỏ qua các file cấu hình
+babel.config.js
+.eslintrc.js
+
+# Bỏ qua các thư mục build và thư viện
+/node_modules
+/dist

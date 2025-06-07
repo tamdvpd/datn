@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <teamplate>
     <footer>
       <!-- place footer here -->
@@ -46,6 +47,18 @@
                 <li><a href="#">Kinh nghiệm quản lý website</a></li>
               </ul>
             </div>
+=======
+<template>
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>HỖ TRỢ KHÁCH HÀNG</h4>
+          <div class="footer-logo">
+            <router-link to="/">
+              <img src="@/assets/img/LogoChinh.png" alt="Haravan Logo" class="footer-logo-img" />
+            </router-link>
+>>>>>>> Stashed changes
           </div>
         </div>
       </div>

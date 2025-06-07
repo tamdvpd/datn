@@ -6,5 +6,5 @@
 spring.datasource.username=sa
 spring.datasource.password=123456
 ```
-3. Fontend: npm install
+3. Fontend:
 npm install @vue/cli-service --save-dev

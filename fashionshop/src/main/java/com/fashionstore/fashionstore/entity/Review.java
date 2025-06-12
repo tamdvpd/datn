@@ -13,17 +13,17 @@ public class Review {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name="product_id", nullable=false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Integer rating;
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String comment;
 
     private LocalDateTime createdAt;

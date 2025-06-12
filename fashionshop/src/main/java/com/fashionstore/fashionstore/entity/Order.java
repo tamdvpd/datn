@@ -26,7 +26,7 @@ public class Order {
     @Column(length = 20)
     private String status;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String shippingAddress;
 
     // Thông tin khách hàng ẩn danh

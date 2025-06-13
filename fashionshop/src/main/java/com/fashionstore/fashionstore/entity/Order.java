@@ -3,6 +3,8 @@ package com.fashionstore.fashionstore.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.math.BigDecimal;
 
 @Data
@@ -42,4 +44,7 @@ public class Order {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderDetail> orderDetails = new ArrayList<>();
+    
 }

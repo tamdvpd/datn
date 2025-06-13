@@ -40,4 +40,10 @@ public class OrderController {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/create-with-details")
+    public ResponseEntity<Order> createOrderWithDetails(@RequestBody Order order) {
+        return ResponseEntity.ok(orderService.createOrderWithDetails(order));
+    }
+
 }

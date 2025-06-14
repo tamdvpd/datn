@@ -18,6 +18,7 @@ import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
+import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },
@@ -41,6 +42,10 @@ const routes = [
       {
         path: "orders",
         component: OrderManager,
+      },
+      {
+        path: "coupons",
+        component: AdminCouponPage,
       },
       {
         path: "reports",

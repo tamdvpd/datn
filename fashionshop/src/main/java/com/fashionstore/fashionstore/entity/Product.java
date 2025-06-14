@@ -12,17 +12,17 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable=false, length=100)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name="category_id", nullable=false)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     private LocalDateTime createdAt;

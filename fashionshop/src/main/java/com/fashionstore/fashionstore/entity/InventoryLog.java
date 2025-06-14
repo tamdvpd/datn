@@ -22,7 +22,7 @@ public class InventoryLog {
     @Column(nullable=false)
     private Integer quantity;
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition="NVARCHAR(MAX)")
     private String note;
 
     private LocalDateTime createdAt;

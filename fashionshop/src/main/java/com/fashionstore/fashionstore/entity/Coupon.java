@@ -3,6 +3,7 @@ package com.fashionstore.fashionstore.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Data
@@ -23,8 +24,18 @@ public class Coupon {
     private LocalDate expiryDate;
 
     @Column(name = "created_at")
-    private LocalDate createdAt = LocalDate.now();
+    private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = true)
-    private LocalDate updatedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

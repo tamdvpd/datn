@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin("/")
+@CrossOrigin(origins = "http://localhost:3001/")
 @RestController
 @RequestMapping("/coupons")
 @RequiredArgsConstructor

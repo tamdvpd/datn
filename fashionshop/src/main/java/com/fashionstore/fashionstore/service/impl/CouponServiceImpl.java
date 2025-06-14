@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,8 +41,11 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public Coupon updateCoupon(Integer id, Coupon coupon) {
-        coupon.setId(id);
-        return couponRepository.save(coupon);
+        Coupon existing = couponRepository.findById(id).get();
+        existing.setCode(coupon.getCode());
+        existing.setDiscountPercent(coupon.getDiscountPercent());
+        existing.setExpiryDate(coupon.getExpiryDate());
+        return couponRepository.save(existing);
     }
 
     @Override

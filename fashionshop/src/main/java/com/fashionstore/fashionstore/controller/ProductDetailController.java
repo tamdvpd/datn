@@ -1,12 +1,17 @@
 package com.fashionstore.fashionstore.controller;
 
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.fashionstore.fashionstore.entity.ProductDetail;
 import com.fashionstore.fashionstore.service.ProductDetailService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/productDetails")
@@ -15,29 +20,10 @@ public class ProductDetailController {
 
     private final ProductDetailService productDetailService;
 
-    @GetMapping
-    public ResponseEntity<List<ProductDetail>> getAll() {
-        return ResponseEntity.ok(productDetailService.getAllProductDetails());
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetail> getById(@PathVariable Integer id) {
-        return ResponseEntity.of(productDetailService.getProductDetailById(id));
-    }
-
-    @PostMapping
-    public ResponseEntity<ProductDetail> create(@RequestBody ProductDetail productDetail) {
-        return ResponseEntity.ok(productDetailService.createProductDetail(productDetail));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDetail> update(@PathVariable Integer id, @RequestBody ProductDetail productDetail) {
-        return ResponseEntity.ok(productDetailService.updateProductDetail(id, productDetail));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        productDetailService.deleteProductDetail(id);
-        return ResponseEntity.noContent().build();
+        Optional<ProductDetail> productDetail = productDetailService.getProductDetailById(id);
+        return productDetail.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

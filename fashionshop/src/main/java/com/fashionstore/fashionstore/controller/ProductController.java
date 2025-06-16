@@ -1,13 +1,24 @@
 package com.fashionstore.fashionstore.controller;
 
-import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.service.ProductService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.math.BigDecimal;
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fashionstore.fashionstore.entity.Product;
+import com.fashionstore.fashionstore.service.ProductService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/products")
@@ -18,28 +29,40 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<Product>> getAll() {
-        return ResponseEntity.ok(productService.getAllProducts());
+        List<Product> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getById(@PathVariable Integer id) {
-        return ResponseEntity.of(productService.getProductById(id));
+        return productService.getProductById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)); // Trả về 404 nếu không tìm thấy
     }
 
     @PostMapping
     public ResponseEntity<Product> create(@RequestBody Product product) {
-        return ResponseEntity.ok(productService.createProduct(product));
+        // Xác thực dữ liệu đầu vào có thể thêm ở đây
+        Product createdProduct = productService.createProduct(product);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct); // Trả về 201 khi tạo thành công
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Product> update(@PathVariable Integer id, @RequestBody Product product) {
-        return ResponseEntity.ok(productService.updateProduct(id, product));
+        if (!productService.getProductById(id).isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Trả về 404 nếu không tìm thấy
+        }
+        Product updatedProduct = productService.updateProduct(id, product);
+        return ResponseEntity.ok(updatedProduct); // Trả về 200 khi cập nhật thành công
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        if (!productService.getProductById(id).isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // Trả về 404 nếu không tìm thấy
+        }
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // Trả về 204 khi xóa thành công
     }
 
     @GetMapping("/search")
@@ -48,7 +71,7 @@ public class ProductController {
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.searchProducts(name, categoryId, minPrice, maxPrice));
+        List<Product> products = productService.searchProducts(name, categoryId, minPrice, maxPrice);
+        return ResponseEntity.ok(products);
     }
-
 }

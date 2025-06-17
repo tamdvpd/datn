@@ -1,13 +1,26 @@
 <template>
   <div class="admin-dashboard">
-    <!-- Navbar -->
+    <!-- ✅ Navbar -->
     <nav class="navbar navbar-light bg-white shadow-sm px-4 d-flex justify-content-between align-items-center">
-      <router-link to="/admin" class="navbar-brand">
-        <img src="@/assets/img/LogoChinh.png" alt="Logo" height="40" />
+      <router-link to="/admin" class="navbar-brand d-flex align-items-center">
+        <img src="@/assets/img/LogoChinh.png" alt="Logo" height="40" class="me-2" />
+        <span class="fw-bold">Admin Dashboard</span>
       </router-link>
-      <div>
-        <button class="btn btn-outline-secondary me-2">🔐 Tài khoản</button>
-        <router-link to="/logout" class="btn btn-outline-danger">⬆️ Đăng xuất</router-link>
+      
+      <div v-if="user" class="dropdown">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          👤 {{ user.fullName || user.username }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><router-link class="dropdown-item" to="/profile">Tài khoản của tôi</router-link></li>
+          <li><hr class="dropdown-divider" /></li>
+          <li><a class="dropdown-item" href="#" @click.prevent="logout">⬆️ Đăng xuất</a></li>
+        </ul>
       </div>
     </nav>
 
@@ -43,7 +56,24 @@
 <script>
 export default {
   name: 'AdminDashBoard',
-};
+  data() {
+    return {
+      user: null
+    }
+  },
+  mounted() {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      this.user = JSON.parse(userStr)
+    }
+  },
+  methods: {
+    logout() {
+      localStorage.removeItem('user')
+      this.$router.push('/login')
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -2,23 +2,38 @@
   <div class="auth-container">
     <div class="auth-card">
       <router-link to="/" class="d-inline-block">
-  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
-</router-link>
+        <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+      </router-link>
 
       <h3 class="text-center mb-4">Đăng nhập</h3>
       <form @submit.prevent="handleLogin">
         <div class="form-group mb-3">
-          <input v-model="loginForm.email" type="email" class="form-control" placeholder="Email" required />
+          <input
+            v-model="loginForm.username"
+            type="text"
+            class="form-control"
+            placeholder="Tên đăng nhập"
+            required
+          />
         </div>
         <div class="form-group mb-3">
-          <input v-model="loginForm.password" type="password" class="form-control" placeholder="Mật khẩu" required />
+          <input
+            v-model="loginForm.password"
+            type="password"
+            class="form-control"
+            placeholder="Mật khẩu"
+            required
+          />
         </div>
-        <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+          {{ loading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
+        </button>
       </form>
+
+      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+
       <div class="text-center mt-3">
-        <span>Chưa có tài khoản?
-          <router-link to="/register">Đăng ký</router-link>
-        </span>
+        <span>Chưa có tài khoản? <router-link to="/register">Đăng ký</router-link></span>
       </div>
     </div>
   </div>
@@ -26,15 +41,50 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const loginForm = ref({
-  email: '',
+  username: '',
   password: ''
 })
 
-function handleLogin() {
-  console.log('Login:', loginForm.value)
-  alert('Đăng nhập thành công!')
+const loading = ref(false)
+const error = ref('')
+
+async function handleLogin() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const params = new URLSearchParams()
+    params.append('username', loginForm.value.username)
+    params.append('password', loginForm.value.password)
+
+    const response = await axios.post('http://localhost:8080/users/login', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+
+    const user = response.data
+    localStorage.setItem('user', JSON.stringify(user));
+    window.dispatchEvent(new Event("user-updated"));
+    localStorage.setItem('role', user.role);
+
+    if (user.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
+  } catch (err) {
+    console.error(err)
+    error.value = err.response?.data?.message || 'Đăng nhập thất bại!'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

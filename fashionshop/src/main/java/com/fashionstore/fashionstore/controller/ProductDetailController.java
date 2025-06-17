@@ -1,11 +1,13 @@
 package com.fashionstore.fashionstore.controller;
 
 import com.fashionstore.fashionstore.entity.ProductDetail;
+import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.service.ProductDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -14,6 +16,7 @@ import java.util.List;
 public class ProductDetailController {
 
     private final ProductDetailService productDetailService;
+    private final ProductDetailRepository productDetailRepository;
 
     @GetMapping
     public ResponseEntity<List<ProductDetail>> getAll() {
@@ -23,6 +26,11 @@ public class ProductDetailController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetail> getById(@PathVariable Integer id) {
         return ResponseEntity.of(productDetailService.getProductDetailById(id));
+    }
+
+    @GetMapping("/by-product/{productId}")
+    public ResponseEntity<ProductDetail> getByProductId(@PathVariable Integer productId) {
+        return ResponseEntity.of(productDetailService.getByProductId(productId));
     }
 
     @PostMapping
@@ -40,4 +48,12 @@ public class ProductDetailController {
         productDetailService.deleteProductDetail(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/test-price/{productId}")
+public BigDecimal testGetPrice(@PathVariable Integer productId) {
+    return productDetailRepository
+             .findFirstByProduct_Id(productId)
+             .map(ProductDetail::getPrice)
+             .orElse(BigDecimal.ZERO);
+}
+
 }

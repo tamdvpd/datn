@@ -14,4 +14,6 @@ public interface ProductDetailService {
     ProductDetail createProductDetail(ProductDetail productDetail);
     ProductDetail updateProductDetail(Integer id, ProductDetail productDetail);
     void deleteProductDetail(Integer id);
+    Optional<ProductDetail> getByProductId(Integer productId);
+
 }

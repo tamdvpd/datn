@@ -2,20 +2,22 @@
   <div class="auth-container">
     <div class="auth-card">
       <router-link to="/" class="d-inline-block">
-  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
-</router-link>
+        <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+      </router-link>
 
       <h3 class="text-center mb-4">Đăng ký</h3>
+
       <form @submit.prevent="handleRegister">
         <div class="form-group mb-3">
           <input
-            v-model="registerForm.name"
+            v-model="registerForm.username"
             type="text"
             class="form-control"
-            placeholder="Họ tên"
+            placeholder="Tên đăng nhập"
             required
           />
         </div>
+
         <div class="form-group mb-3">
           <input
             v-model="registerForm.email"
@@ -25,6 +27,7 @@
             required
           />
         </div>
+
         <div class="form-group mb-3">
           <input
             v-model="registerForm.password"
@@ -34,12 +37,17 @@
             required
           />
         </div>
-        <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+
+        <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+          {{ loading ? 'Đang đăng ký...' : 'Đăng ký' }}
+        </button>
       </form>
+
+      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+      <div v-if="success" class="alert alert-success mt-3">{{ success }}</div>
+
       <div class="text-center mt-3">
-        <span>Đã có tài khoản?
-          <router-link to="/login">Đăng nhập</router-link>
-        </span>
+        <span>Đã có tài khoản? <router-link to="/login">Đăng nhập</router-link></span>
       </div>
     </div>
   </div>
@@ -47,16 +55,35 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const registerForm = ref({
-  name: '',
+  username: '',
   email: '',
   password: ''
 })
 
-function handleRegister() {
-  console.log('Register:', registerForm.value)
-  alert('Đăng ký thành công!')
+const loading = ref(false)
+const error = ref('')
+const success = ref('')
+
+async function handleRegister() {
+  loading.value = true
+  error.value = ''
+  success.value = ''
+  try {
+    const response = await axios.post('http://localhost:8080/users/register', registerForm.value)
+    success.value = 'Đăng ký thành công!'
+    setTimeout(() => router.push('/login'), 1500)
+  } catch (err) {
+    console.error(err)
+    error.value = err.response?.data?.message || 'Đăng ký thất bại!'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

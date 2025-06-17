@@ -1,6 +1,7 @@
 package com.fashionstore.fashionstore.service.impl;
 
 import com.fashionstore.fashionstore.entity.Product;
+import com.fashionstore.fashionstore.entity.ProductDetail;
 import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.repository.ProductRepository;
 import com.fashionstore.fashionstore.service.ProductService;
@@ -10,14 +11,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductDetailRepository productDetailRepository;
 
     @Override
     public List<Product> getAllProducts() {
@@ -52,6 +53,34 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
-        return ProductDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
+        List<ProductDetail> details = productDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
+        return details.stream()
+                .map(ProductDetail::getProduct)
+                .distinct()
+                .toList();
     }
+
+    @Override
+    public List<Map<String, Object>> getProductsWithPrice() {
+        List<Product> products = productRepository.findAll();
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        for (Product product : products) {
+            Optional<ProductDetail> detailOpt = productDetailRepository.findFirstByProduct_Id(product.getId());
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", product.getId());
+            map.put("name", product.getName());
+            map.put("imageUrl", product.getImageUrl());
+            map.put("description", product.getDescription());
+
+            BigDecimal price = detailOpt.map(ProductDetail::getPrice).orElse(BigDecimal.ZERO);
+            map.put("price", price);
+
+            result.add(map);
+        }
+
+        return result;
+    }
+
 }

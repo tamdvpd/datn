@@ -47,4 +47,9 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     public void deleteProductDetail(Integer id) {
         productDetailRepository.deleteById(id);
     }
+    @Override
+public Optional<ProductDetail> getByProductId(Integer productId) {
+    return productDetailRepository.findFirstByProduct_Id(productId);
+}
+
 }

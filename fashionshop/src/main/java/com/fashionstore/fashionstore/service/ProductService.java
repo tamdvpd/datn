@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ProductService {
@@ -16,5 +17,6 @@ public interface ProductService {
     Product updateProduct(Integer id, Product product);
     void deleteProduct(Integer id);
     List<Product> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice);
+    List<Map<String, Object>> getProductsWithPrice();
 
 }

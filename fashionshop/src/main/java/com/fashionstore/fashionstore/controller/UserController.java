@@ -40,7 +40,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    //Lấy user theo id
+    // Lấy user theo id
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Integer id) {
         return ResponseEntity.of(userService.getUserById(id));
@@ -67,7 +67,10 @@ public class UserController {
         try {
             Optional<User> userOpt = userService.login(username, password);
             if (userOpt.isPresent()) {
-                return ResponseEntity.ok(userOpt.get());
+                User user = userOpt.get();
+
+                // Trả về user và token giả định (nếu chưa có JWT thì để trống hoặc hardcode)
+                return ResponseEntity.ok(new LoginResponse("fake-token-or-null", user));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new ErrorResponse("Invalid username or password"));
@@ -75,6 +78,25 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Server error: " + e.getMessage()));
+        }
+    }
+
+    // Thêm class phụ cho phản hồi đăng nhập
+    public static class LoginResponse {
+        private String token;
+        private User user;
+
+        public LoginResponse(String token, User user) {
+            this.token = token;
+            this.user = user;
+        }
+
+        public String getToken() {
+            return token;
+        }
+
+        public User getUser() {
+            return user;
         }
     }
 

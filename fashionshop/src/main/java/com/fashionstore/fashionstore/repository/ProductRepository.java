@@ -1,9 +1,10 @@
 package com.fashionstore.fashionstore.repository;
 
 import com.fashionstore.fashionstore.entity.Product;
+import com.fashionstore.fashionstore.entity.ProductDetail;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

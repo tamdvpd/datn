@@ -5,3 +5,6 @@
 ```javascript
 spring.datasource.username=sa
 spring.datasource.password=123456
+```
+3. Fontend:
+npm install

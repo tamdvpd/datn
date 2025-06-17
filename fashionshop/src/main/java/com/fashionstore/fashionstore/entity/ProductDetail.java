@@ -14,22 +14,22 @@ public class ProductDetail {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name="product_id", nullable=false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(length=50)
+    @Column(length = 50)
     private String color;
 
-    @Column(length=50)
+    @Column(length = 50)
     private String size;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private Integer stockQuantity;
 
-    @Column(nullable=false, precision=10, scale=2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(columnDefinition="TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String imageUrl;
 
     private LocalDateTime createdAt;

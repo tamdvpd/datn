@@ -13,11 +13,11 @@ public class Wishlist {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name="user_id", nullable=false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name="product_id", nullable=false)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     private LocalDateTime createdAt;

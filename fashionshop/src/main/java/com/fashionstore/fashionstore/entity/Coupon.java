@@ -2,7 +2,6 @@ package com.fashionstore.fashionstore.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
@@ -17,13 +16,19 @@ public class Coupon {
     @Column(name = "code", unique = true, nullable = false, length = 50)
     private String code;
 
-    @Column(precision = 5, scale = 2)
+    @Column(name = "discount_percent", precision = 5, scale = 2)
     private BigDecimal discountPercent;
 
     @Column(name = "expiry_date", nullable = true)
-    private LocalDate expiryDate;
+    private LocalDateTime expiryDate;
 
-    @Column(name = "created_at")
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false)
+    private Boolean status = true;
+
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

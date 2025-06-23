@@ -3,7 +3,6 @@ package com.fashionstore.fashionstore.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.math.BigDecimal;
 
 @Data
 @Entity
@@ -14,16 +13,16 @@ public class Payment {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name="order_id", nullable=false)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(nullable=false, length=50)
+    @Column(nullable = false, length = 50)
     private String paymentMethod;
 
-    @Column(length=20)
+    @Column(length = 20)
     private String paymentStatus;
 
-    @Column(length=100)
+    @Column(length = 100)
     private String transactionCode;
 
     private LocalDateTime paymentDate;

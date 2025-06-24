@@ -58,4 +58,7 @@ public class ProductDetail {
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    private List<Review> reviews = new ArrayList<>();
 }

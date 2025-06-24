@@ -64,14 +64,14 @@ public class UserServiceImpl implements UserService {
     }
 
     // Đăng nhập bằng username và password thô
-    @Override
-    public Optional<User> login(String username, String rawPassword) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(rawPassword)) {
-            return userOpt;
-        }
-        return Optional.empty();
-    }
+    // @Override
+    // public Optional<User> login(String username, String rawPassword) {
+    // Optional<User> userOpt = userRepository.findByUsername(username);
+    // if (userOpt.isPresent() && userOpt.get().getPassword().equals(rawPassword)) {
+    // return userOpt;
+    // }
+    // return Optional.empty();
+    // }
 
     // Đổi mật khẩu
     @Override
@@ -86,17 +86,30 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    // Tìm kiếm user (ví dụ đơn giản theo username/email)
-    @Override
-    public List<User> searchUsers(String username, String email, int page, int size) {
-        Pageable pageable = Pageable.ofSize(size).withPage(page);
-        // Giả định có method userRepository.searchUsers...
-        return userRepository.searchUsers(username, email, pageable);
-    }
+    // // Tìm kiếm user (ví dụ đơn giản theo username/email)
+    // @Override
+    // public List<User> searchUsers(String username, String email, int page, int
+    // size) {
+    // Pageable pageable = Pageable.ofSize(size).withPage(page);
+    // // Giả định có method userRepository.searchUsers...
+    // return userRepository.searchUsers(username, email, pageable);
+    // }
 
     // Lấy user hiện tại (nếu có security context)
     @Override
     public Optional<User> getCurrentUser() {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<User> login(String username, String password) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'login'");
+    }
+
+    @Override
+    public List<User> searchUsers(String username, String email, int page, int size) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'searchUsers'");
     }
 }

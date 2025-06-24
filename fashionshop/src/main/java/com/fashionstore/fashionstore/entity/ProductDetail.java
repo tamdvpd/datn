@@ -13,7 +13,7 @@ public class ProductDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
@@ -24,13 +24,19 @@ public class ProductDetail {
     private String size;
 
     @Column(nullable = false)
-    private Integer stockQuantity;
+    private Integer quantity;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "discount_price", precision = 12, scale = 2)
+    private BigDecimal discountPrice;
+
+    @Column(name = "image_url", length = 255)
     private String imageUrl;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal weight;
 
     private LocalDateTime createdAt;
 

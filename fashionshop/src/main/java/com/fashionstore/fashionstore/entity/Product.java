@@ -15,13 +15,19 @@ public class Product {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(length = 1000)
     private String description;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "image_url", length = 255)
     private String imageUrl;
 
-    @ManyToOne
+    @Column(length = 100)
+    private String brand;
+
+    @Column(nullable = false)
+    private Boolean status = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 

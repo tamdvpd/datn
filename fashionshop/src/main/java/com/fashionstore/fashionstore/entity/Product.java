@@ -39,4 +39,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductDetail> productDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<Wishlist> wishlists = new ArrayList<>();
 }

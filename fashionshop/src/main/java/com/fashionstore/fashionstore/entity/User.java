@@ -58,4 +58,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Wishlist> wishlists = new ArrayList<>();
+
 }

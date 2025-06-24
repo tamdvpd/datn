@@ -51,14 +51,14 @@ public class UserServiceImpl implements UserService {
     // Đăng ký user mới
     @Override
     public User registerUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Username already exists");
-        }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-        user.setRole("CUSTOMER");
-        user.setStatus(true);
+        // if (userRepository.existsByUsername(user.getUsername())) {
+        // throw new RuntimeException("Username already exists");
+        // }
+        // if (userRepository.existsByEmail(user.getEmail())) {
+        // throw new RuntimeException("Email already exists");
+        // }
+        // user.setRole("CUSTOMER");
+        // user.setStatus(true);
         // Lưu thẳng password (không mã hóa)
         return userRepository.save(user);
     }

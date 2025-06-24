@@ -40,8 +40,10 @@ public class ProductDetail {
     @Column(precision = 10, scale = 2)
     private BigDecimal weight;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)

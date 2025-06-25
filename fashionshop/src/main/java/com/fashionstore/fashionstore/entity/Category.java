@@ -3,6 +3,8 @@ package com.fashionstore.fashionstore.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -15,10 +17,21 @@ public class Category {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(length = 255)
     private String description;
 
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
+
+    @Column(nullable = false)
+    private Boolean status = true;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Product> product = new ArrayList<>();
 }

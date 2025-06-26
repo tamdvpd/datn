@@ -3,6 +3,8 @@ package com.fashionstore.fashionstore.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -16,17 +18,23 @@ public class Review {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    // Sản phẩm được đánh giá (biến thể cụ thể)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_detail_id", nullable = false)
+    private ProductDetail productDetail;
 
     @Column(nullable = false)
-    private Integer rating;
+    private Integer rating;// 1 đến 5
 
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(length = 1000)
     private String comment;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL)
+    private List<ReviewImage> reviewImages = new ArrayList<>();
 }

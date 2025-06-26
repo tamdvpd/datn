@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -21,27 +23,24 @@ public class Category {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Size(max = 255, message = "Mô tả tối đa 255 ký tự")
-    @Column(name = "description")
+    @Column(length = 255)
     private String description;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
+
+    @Column(nullable = false)
+    private Boolean status = true;
+
+    @Column(name = "created_at")
+
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Gán createdAt và updatedAt khi thêm mới
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-    }
 
-    // Gán updatedAt khi cập nhật
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Product> product = new ArrayList<>();
+
 }

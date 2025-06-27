@@ -1,9 +1,14 @@
 package com.fashionstore.fashionstore.service.impl;
 
+import com.fashionstore.fashionstore.dto.CreateOrderRequest;
+import com.fashionstore.fashionstore.entity.Coupon;
 import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.entity.OrderDetail;
+import com.fashionstore.fashionstore.entity.PaymentMethod;
 import com.fashionstore.fashionstore.entity.ProductDetail;
+import com.fashionstore.fashionstore.entity.ShippingProvider;
 import com.fashionstore.fashionstore.entity.User;
+import com.fashionstore.fashionstore.repository.CouponRepository;
 import com.fashionstore.fashionstore.repository.OrderDetailRepository;
 import com.fashionstore.fashionstore.repository.OrderRepository;
 import com.fashionstore.fashionstore.repository.ProductDetailRepository;
@@ -25,10 +30,11 @@ import java.util.Optional;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final ProductDetailRepository productDetailRepository;
-    private final UserRepository userRepository;
-
+    private final OrderRepository orderRepo;
+    private final OrderDetailRepository orderDetailRepo;
+    private final ProductDetailRepository productDetailRepo;
+    private final UserRepository userRepo;
+    private final CouponRepository couponRepo;
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -59,47 +65,75 @@ public class OrderServiceImpl implements OrderService {
     public void deleteOrder(Integer id) {
         orderRepository.deleteById(id);
     }
+    public List<Order> getOrdersByUser(Long userId) {
+        return orderRepo.findByUserId(userId);
+    }
 
-    @Override
-    @Transactional
-    public Order createOrderWithDetails(Order order) {
-        if (order.getUser() != null && order.getUser().getId() != null) {
-            User user = userRepository.findById(order.getUser().getId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            order.setUser(user);
+    public List<Order> getOrdersByUserAndStatus(Long userId, String status) {
+        return orderRepo.findByUserIdAndStatus(userId, status);
+    }
+     @Transactional
+    public Order createOrder(CreateOrderRequest request) {
+        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal discount = BigDecimal.ZERO;
+
+        User user = userRepo.findById(request.getUserId()).orElseThrow();
+        Coupon coupon = null;
+        if (request.getCouponCode() != null) {
+            coupon = couponRepo.findByCode(request.getCouponCode()).orElse(null);
+            if (coupon != null && coupon.getExpiryDate().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Coupon expired");
+            }
         }
 
-        order.setOrderDate(LocalDateTime.now());
-        order.setStatus("PENDING");
+        Order order = new Order();
+        order.setUser(user);
+        order.setShippingProvider(new ShippingProvider(request.getShippingProviderId()));
+        order.setPaymentMethod(new PaymentMethod(request.getPaymentMethodId()));
+        order.setCoupon(coupon);
+        order.setReceiverName(request.getReceiverName());
+        order.setReceiverPhone(request.getReceiverPhone());
+        order.setReceiverAddress(request.getReceiverAddress());
+        order.setNote(request.getNote());
         order.setCreatedAt(LocalDateTime.now());
-        order.setUpdatedAt(LocalDateTime.now());
+        order.setStatus("PENDING");
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        order = orderRepo.save(order);
 
-        Order savedOrder = orderRepository.save(order);
-
-        for (OrderDetail detail : order.getOrderDetails()) {
-            ProductDetail pd = productDetailRepository.findById(detail.getProductDetail().getId())
-                    .orElseThrow(() -> new RuntimeException("Product not found: " + detail.getProductDetail().getId()));
-
-            if (pd.getStockQuantity() < detail.getQuantity()) {
-                throw new RuntimeException("Not enough stock for product ID: " + pd.getId());
+        for (CreateOrderRequest.ProductOrderItem item : request.getProducts()) {
+            ProductDetail detail = productDetailRepo.findById(item.getProductDetailId()).orElseThrow();
+            if (detail.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException("Out of stock");
             }
 
-            pd.setStockQuantity(pd.getStockQuantity() - detail.getQuantity());
-            productDetailRepository.save(pd);
+            BigDecimal itemTotal = detail.getDiscountPrice() != null
+                    ? detail.getDiscountPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                    : detail.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+            total = total.add(itemTotal);
 
-            detail.setOrder(savedOrder);
-            detail.setPrice(pd.getPrice());
+            detail.setQuantity(detail.getQuantity() - item.getQuantity());
+            productDetailRepo.save(detail);
 
-            totalAmount = totalAmount.add(pd.getPrice().multiply(BigDecimal.valueOf(detail.getQuantity())));
-
-            orderDetailRepository.save(detail);
+            OrderDetail orderDetail = new OrderDetail();
+            orderDetail.setOrder(order);
+            orderDetail.setProductDetail(detail);
+            orderDetail.setQuantity(item.getQuantity());
+            orderDetail.setUnitPrice(detail.getDiscountPrice() != null ? detail.getDiscountPrice() : detail.getPrice());
+            orderDetailRepo.save(orderDetail);
         }
 
-        savedOrder.setTotalAmount(totalAmount);
-        savedOrder.setUpdatedAt(LocalDateTime.now());
+        if (coupon != null) {
+            discount = total.multiply(BigDecimal.valueOf(coupon.getDiscountPercent())).divide(BigDecimal.valueOf(100));
+        }
 
-        return orderRepository.save(savedOrder);
+        order.setTotalAmount(total);
+        order.setDiscountAmount(discount);
+        order.setShippingFee(BigDecimal.valueOf(30000)); //phí ship cố định
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepo.save(order);
+
+        return order;
     }
+
 }
+    

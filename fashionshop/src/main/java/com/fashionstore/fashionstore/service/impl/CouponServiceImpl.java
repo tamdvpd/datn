@@ -39,8 +39,11 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public Coupon updateCoupon(Integer id, Coupon coupon) {
-        coupon.setId(id);
-        return couponRepository.save(coupon);
+        Coupon existing = couponRepository.findById(id).get();
+        existing.setCode(coupon.getCode());
+        existing.setDiscountPercent(coupon.getDiscountPercent());
+        existing.setExpiryDate(coupon.getExpiryDate());
+        return couponRepository.save(existing);
     }
 
     @Override

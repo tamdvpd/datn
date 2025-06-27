@@ -1,53 +1,86 @@
 <template>
   <header>
-    <p>Chào mừng đến với Haravan shop</p>
-    <hr />
-    <nav class="navbar navbar-light bg-light">
+    <div class="top-bar py-2 text-center text-white bg-primary">
+      Chào mừng đến với Haravan shop
+    </div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand" href="#">
-          <img
-            src="@/assets/img/LogoChinh.png"
-            alt="Logo"
-            width="300"
-            height="50"
-          />
-        </a>
+        <router-link to="/" class="navbar-brand">
+          <img src="@/assets/img/LogoChinh.png" alt="Logo" width="200" height="50" />
+        </router-link>
 
-        <!-- Form tìm kiếm (nằm bên trái) -->
-        <form class="d-flex">
+        <!-- Tìm kiếm -->
+        <form class="d-flex me-auto ms-5" @submit.prevent="onSearch">
           <input
             class="form-control me-2"
             type="search"
-            placeholder="Search"
+            v-model="searchQuery"
+            placeholder="Tìm kiếm sản phẩm..."
             aria-label="Search"
           />
-          <button class="btn btn-outline-success" type="submit">Search</button>
+          <button class="btn btn-outline-success" type="submit">Tìm</button>
         </form>
 
-        <!-- Nút giỏ hàng và đăng nhập/đăng ký (nằm bên phải) -->
-        <div class="d-flex ms-auto">
-          <button class="btn btn-outline-primary me-2" type="button">
+        <!-- Nút chức năng -->
+        <div class="d-flex">
+          <router-link to="/cart" class="btn btn-outline-primary me-2">
             🛒 Giỏ hàng
-          </button>
-          <button class="btn btn-outline-secondary" type="button">
+          </router-link>
+          <router-link to="/login" class="btn btn-outline-secondary me-2">
             Đăng nhập
-          </button>
-          <span class="mx-1"></span>
-          <button class="btn btn-outline-secondary" type="button">
+          </router-link>
+          <router-link to="/register" class="btn btn-outline-secondary">
             Đăng ký
-          </button>
+          </router-link>
         </div>
       </div>
     </nav>
-    <div id="app">
-      <nav>
-        <router-link to="/">Home</router-link> |
-        <router-link to="/login">Login</router-link> |
-        <router-link to="/register">Register</router-link> |
-        <router-link to="/cart">Cart</router-link>
-      </nav>
-      <router-view></router-view>
-    </div>
   </header>
 </template>
+
+<script>
+export default {
+  name: 'MainHeader',
+  data() {
+    return {
+      searchQuery: '',
+    };
+  },
+  methods: {
+    onSearch() {
+      this.$emit('search', this.searchQuery);
+    },
+  },
+};
+</script>
+
+<style scoped>
+.top-bar {
+  background-color: #00b0f0;
+  font-weight: bold;
+}
+
+.navbar {
+  background-color: #00c0f1 !important;
+}
+
+.navbar .form-control,
+.navbar .btn {
+  border-color: white;
+}
+
+.navbar .btn-outline-success {
+  color: white;
+  border-color: white;
+}
+
+.navbar .btn-outline-success:hover {
+  background-color: white;
+  color: #00c0f1;
+}
+
+.navbar-brand img {
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+</style>

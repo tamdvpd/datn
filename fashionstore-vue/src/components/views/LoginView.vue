@@ -1,7 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+      <router-link to="/" class="d-inline-block">
+  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+</router-link>
+
       <h3 class="text-center mb-4">Đăng nhập</h3>
       <form @submit.prevent="handleLogin">
         <div class="form-group mb-3">

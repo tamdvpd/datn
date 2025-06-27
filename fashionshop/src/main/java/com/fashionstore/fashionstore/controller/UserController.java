@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -43,7 +44,7 @@ public class UserController {
         return ResponseEntity.of(userService.getUserById(id));
     }
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             User createdUser = userService.registerUser(user);
@@ -57,24 +58,26 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-    try {
-        Optional<User> userOpt = userService.login(email, password);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.setPassword(null);  // Ẩn password khi trả về frontend
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("Invalid email or password"));
-        }
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Server error: " + e.getMessage()));
-    }
-}
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
+        String email = loginRequest.get("email");
+        String password = loginRequest.get("password");
 
+        try {
+            Optional<User> userOpt = userService.login(email, password);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                user.setPassword(null); // Ẩn password khi trả về
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorResponse("Invalid email or password"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Server error: " + e.getMessage()));
+        }
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable Integer id, @RequestBody User user) {
@@ -83,8 +86,8 @@ public ResponseEntity<?> login(@RequestParam String email, @RequestParam String 
 
     @PutMapping("/{id}/change-password")
     public ResponseEntity<Void> changePassword(@PathVariable Integer id,
-                                               @RequestParam String oldPassword,
-                                               @RequestParam String newPassword) {
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
         boolean changed = userService.changePassword(id, oldPassword, newPassword);
         return changed ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
     }
@@ -116,32 +119,37 @@ public ResponseEntity<?> login(@RequestParam String email, @RequestParam String 
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(exists);
     }
+
     @GetMapping("/{id}/update")
-public ResponseEntity<?> updateUserInfo(
-        @PathVariable Integer id,
-        @RequestParam(required = false) String fullName,
-        @RequestParam(required = false) String role,
-        @RequestParam(required = false) String address,
-        @RequestParam(required = false) String phoneNumber,
-        @RequestParam(required = false) Boolean status
-) {
-    try {
-        User user = userService.getUserById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public ResponseEntity<?> updateUserInfo(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String phoneNumber,
+            @RequestParam(required = false) Boolean status) {
+        try {
+            User user = userService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (fullName != null) user.setFullName(fullName);
-        if (role != null) user.setRole(role);
-        if (address != null) user.setAddress(address);
-        if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
-        if (status != null) user.setStatus(status);
+            if (fullName != null)
+                user.setFullName(fullName);
+            if (role != null)
+                user.setRole(role);
+            if (address != null)
+                user.setAddress(address);
+            if (phoneNumber != null)
+                user.setPhoneNumber(phoneNumber);
+            if (status != null)
+                user.setStatus(status);
 
-        userService.updateUser(id, user);
-        
-        return ResponseEntity.ok("User updated successfully");
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("Error: " + e.getMessage()));
+            userService.updateUser(id, user);
+
+            return ResponseEntity.ok("User updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Error: " + e.getMessage()));
+        }
     }
-}
 
 }

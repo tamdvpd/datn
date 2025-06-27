@@ -1,6 +1,9 @@
 package com.fashionstore.fashionstore.controller;
 
+import com.fashionstore.fashionstore.dto.CreateOrderRequest;
 import com.fashionstore.fashionstore.entity.Order;
+import com.fashionstore.fashionstore.entity.PaymentMethod;
+import com.fashionstore.fashionstore.entity.ShippingProvider;
 import com.fashionstore.fashionstore.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +28,6 @@ public class OrderController {
         return ResponseEntity.of(orderService.getOrderById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<Order> create(@RequestBody Order order) {
-        return ResponseEntity.ok(orderService.createOrder(order));
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<Order> update(@PathVariable Integer id, @RequestBody Order order) {
         return ResponseEntity.ok(orderService.updateOrder(id, order));
@@ -41,9 +39,20 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/create-with-details")
-    public ResponseEntity<Order> createOrderWithDetails(@RequestBody Order order) {
-        return ResponseEntity.ok(orderService.createOrderWithDetails(order));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Order>> getOrdersByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(orderService.getOrdersByUser(userId));
+    }
+
+    @GetMapping("/user/{userId}/status/{status}")
+    public ResponseEntity<List<Order>> getOrdersByUserAndStatus(@PathVariable Long userId,
+            @PathVariable String status) {
+        return ResponseEntity.ok(orderService.getOrdersByUserAndStatus(userId, status));
+    }
+    @PostMapping
+    public ResponseEntity<Order> createOrder(@RequestBody CreateOrderRequest request) {
+        Order order = orderService.createOrder(request);
+        return ResponseEntity.ok(order);
     }
 
 }

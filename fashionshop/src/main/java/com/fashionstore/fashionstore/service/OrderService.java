@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
+import com.fashionstore.fashionstore.dto.CreateOrderRequest;
 import com.fashionstore.fashionstore.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,4 +15,8 @@ public interface OrderService {
     Order createOrder(Order order);
     Order updateOrder(Integer id, Order order);
     void deleteOrder(Integer id);
+    List<Order> getOrdersByUser(Long userId);
+    List<Order> getOrdersByUserAndStatus(Long userId, String status);
+    Order createOrder(CreateOrderRequest request);
+
 }

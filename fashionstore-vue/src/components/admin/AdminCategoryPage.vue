@@ -14,14 +14,14 @@
     {{ form.id ? '✏️ Cập nhật danh mục' : '➕ Thêm danh mục mới' }}
   </h3>
   <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <input v-model="form.name" placeholder="Tên danh mục" required
+    <input name="name" v-model="form.name" placeholder="Tên danh mục" required
       class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
-    <input v-model="form.description" placeholder="Mô tả"
+    <input name="description" v-model="form.description" placeholder="Mô tả"
       class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
     <!-- Input chọn file ảnh -->
-    <input type="file" accept="image/*" @change="handleImageChange"
+    <input name="image" type="file" accept="image/*" @change="handleImageChange"
       class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
     <!-- Ảnh xem trước -->
@@ -32,10 +32,10 @@
     <div class="flex items-center gap-2">
       <label class="text-gray-700 font-medium">Trạng thái:</label>
       <label class="inline-flex items-center">
-        <input type="radio" value="true" v-model="form.status" class="mr-1" /> Hiển thị
+        <input type="radio" name="status" value="true" v-model="form.status" class="mr-1" /> Hiển thị
       </label>
       <label class="inline-flex items-center ml-4">
-        <input type="radio" value="false" v-model="form.status" class="mr-1" /> Ẩn
+        <input type="radio" name="status" value="false" v-model="form.status" class="mr-1" /> Ẩn
       </label>
     </div>
 
@@ -72,7 +72,7 @@
             <td class="px-4 py-2 border font-medium">{{ category.name }}</td>
             <td class="px-4 py-2 border">{{ category.description }}</td>
             <td class="px-4 py-2 border">
-              <img v-if="category.imageUrl" :src="category.imageUrl" class="w-12 h-12 rounded object-cover" />
+              <img v-if="category.imageUrl" :src="category.imageUrl" class="w-12 h-12 rounded object-cover" style="max-width: 48px; max-height: 48px"/>
             </td>
             <td class="px-4 py-2 border">
               <span :class="category.status ? 'text-green-600' : 'text-red-600'">
@@ -121,44 +121,40 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
 
+      this.form.image = file; // lưu tạm file ảnh
+
       const reader = new FileReader();
       reader.onload = e => {
         this.imagePreview = e.target.result;
       };
       reader.readAsDataURL(file);
-
-      // Upload ảnh lên server
-      const formData = new FormData();
-      formData.append('file', file);
-
-      fetch('http://localhost:8080/api/categories/upload-image', {
-        method: 'POST',
-        body: formData
-      })
-        .then(res => res.text()) // hoặc .json() nếu server trả JSON
-        .then(url => {
-          this.form.imageUrl = url;
-        })
-        .catch(err => console.error("Upload image error:", err));
     },
     handleSubmit() {
-      const method = this.form.id ? 'PUT' : 'POST';
-      const url = this.form.id
-        ? `http://localhost:8080/api/categories/${this.form.id}`
-        : 'http://localhost:8080/api/categories';
+        const isUpdate = this.form.id !== null;
+        const url = isUpdate
+          ? `http://localhost:8080/api/categories/${this.form.id}`
+          : 'http://localhost:8080/api/categories';
+        const method = isUpdate ? 'PUT' : 'POST';
 
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.form)
-      })
-        .then(() => {
-          this.fetchCategories();
-          this.resetForm();
-          this.showForm = false;
+        const formData = new FormData();
+        formData.append("name", this.form.name);
+        formData.append("description", this.form.description);
+        formData.append("status", this.form.status);
+        if (this.form.image) {
+          formData.append("image", this.form.image);
+        }
+
+        fetch(url, {
+          method,
+          body: formData
         })
-        .catch(err => console.error("Submit error:", err));
-    },
+          .then(() => {
+            this.fetchCategories();
+            this.resetForm();
+            this.showForm = false;
+          })
+          .catch(err => console.error("Submit error:", err));
+      },
     editCategory(category) {
       this.form = { ...category };
       this.imagePreview = category.imageUrl || null;
@@ -177,7 +173,9 @@ export default {
         name: '',
         description: '',
         imageUrl: '',
-        status: true
+        status: true,
+        image: null,
+        imageUrl: ''
       };
       this.imagePreview = null;
     },

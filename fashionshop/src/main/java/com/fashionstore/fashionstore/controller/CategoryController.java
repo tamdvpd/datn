@@ -4,6 +4,9 @@ import com.fashionstore.fashionstore.entity.Category;
 import com.fashionstore.fashionstore.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +31,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategorys());
     }
 
-    //  Lấy danh mục theo ID
+    // Lấy danh mục theo ID
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Integer id) {
         return categoryService.getCategoryById(id)
@@ -37,29 +40,40 @@ public class CategoryController {
     }
 
     // Thêm mới danh mục
-    @PostMapping
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
-        if (category.getStatus() == null) {
-            category.setStatus(true); // Mặc định là hiển thị
-        }
-        Category created = categoryService.createCategory(category);
-        return ResponseEntity.status(201).body(created);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Category> createCategory(@RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "status", required = false) Boolean status,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile) {
+        Category category = new Category();
+        category.setName(name);
+        category.setDescription(description);
+        category.setStatus(status != null ? status : true);
+        Category created = categoryService.createCategory(category, imageFile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // Cập nhật danh mục
-    @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Integer id, @Valid @RequestBody Category category) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Category> updateCategory(@PathVariable Integer id,
+            @RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "status", required = false) Boolean status,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile) {
         Optional<Category> existing = categoryService.getCategoryById(id);
         if (existing.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        Category category = existing.get();
+        category.setName(name);
+        category.setDescription(description);
+        category.setStatus(status != null ? status : true);
 
-        category.setId(id); // Cập nhật đúng ID
-        Category updated = categoryService.updateCategory(id, category);
+        Category updated = categoryService.createCategory(category, imageFile); // dùng chung createCategory để lưu ảnh
         return ResponseEntity.ok(updated);
     }
 
-    //  Xoá danh mục
+    // Xoá danh mục
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Integer id) {
         Optional<Category> existing = categoryService.getCategoryById(id);
@@ -68,24 +82,5 @@ public class CategoryController {
         }
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // Upload ảnh đại diện cho danh mục
-    @PostMapping("/upload-image")
-    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            String uploadDir = "uploads/categories"; 
-            File dir = new File(uploadDir);
-            if (!dir.exists()) dir.mkdirs();
-
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            File dest = new File(dir, filename);
-            file.transferTo(dest);
-
-            String imageUrl = "/uploads/categories/" + filename; // nếu có cấu hình static
-            return ResponseEntity.ok(imageUrl);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Upload thất bại: " + e.getMessage());
-        }
     }
 }

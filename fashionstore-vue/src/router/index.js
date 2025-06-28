@@ -20,6 +20,7 @@ import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
 import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
 import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
+import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -78,6 +79,10 @@ const routes = [
       {
         path: "inventory",
         component: AdminInventoryPage,
+      },
+      {
+        path: "invoice",
+        component: AdminImportInvoicePage,
       },
       {
         path: "users",

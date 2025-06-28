@@ -24,6 +24,7 @@
             <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 QUẢN LÝ THANH TOÁN</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 QUẢN LÝ VẬN CHUYỂN</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 QUẢN LÝ KHO HÀNG</router-link></li>
+            <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 QUẢN LÝ PHIẾU NHẬP</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 QUẢN LÝ NGƯỜI DÙNG</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 QUẢN LÝ GIAO DIỆN</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 QUẢN LÝ NHÀ CUNG CẤP</router-link></li>

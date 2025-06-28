@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:3001") 
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/api/suppliers")
 @RequiredArgsConstructor
@@ -18,13 +18,13 @@ public class SupplierController {
 
     private final SupplierService supplierService;
 
-    //  Lấy tất cả nhà cung cấp
+    // ✅ Lấy tất cả nhà cung cấp
     @GetMapping
     public ResponseEntity<List<Supplier>> getAllSuppliers() {
         return ResponseEntity.ok(supplierService.getAllSuppliers());
     }
 
-    //  Lấy theo ID
+    // ✅ Lấy theo ID
     @GetMapping("/{id}")
     public ResponseEntity<Supplier> getSupplierById(@PathVariable Integer id) {
         Optional<Supplier> supplier = supplierService.getSupplierById(id);
@@ -32,7 +32,7 @@ public class SupplierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //  Thêm mới
+    // ✅ Thêm mới (có kiểm tra định dạng email, số điện thoại)
     @PostMapping
     public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody Supplier supplier) {
         if (supplier.getStatus() == null)
@@ -41,7 +41,7 @@ public class SupplierController {
         return ResponseEntity.status(201).body(created);
     }
 
-    // Cập nhật
+    // ✅ Cập nhật (có kiểm tra định dạng email, số điện thoại)
     @PutMapping("/{id}")
     public ResponseEntity<Supplier> updateSupplier(@PathVariable Integer id,
             @Valid @RequestBody Supplier supplier) {
@@ -54,7 +54,7 @@ public class SupplierController {
         return ResponseEntity.ok(updated);
     }
 
-    // Xoá mềm (hoặc xoá cứng tuỳ bạn)
+    // ✅ Xoá
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Integer id) {
         if (supplierService.getSupplierById(id).isEmpty()) {

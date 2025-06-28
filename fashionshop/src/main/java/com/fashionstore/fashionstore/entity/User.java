@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -15,22 +17,22 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true, nullable = false, length = 50)
-    private String username;
-
     @Column(nullable = false, length = 255)
     private String password;
 
-    @Column(unique = true, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(length = 100)
+    @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
+
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String address;
 
-    @Column(length = 20)
+    @Column(name = "phone_number", length = 15)
     private String phoneNumber;
 
     @Column(nullable = false, length = 20)
@@ -39,6 +41,12 @@ public class User {
     @Column(nullable = false)
     private Boolean status = true;
 
+    @Column(length = 50)
+    private String provider; // LOCAL, GOOGLE, FACEBOOK,...
+
+    @Column(name = "provider_id", length = 100)
+    private String providerId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -46,4 +54,20 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Wishlist> wishlists = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Cart> carts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Review> reviews = new ArrayList<>();
+
 }

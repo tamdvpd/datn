@@ -1,24 +1,24 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import HomePage from "@/components/views/HomePage.vue";
-import Product from "@/components/views/Product.vue";
-import LoginView from "@/components/views/LoginView.vue";
-import RegisterView from "@/components/views/RegisterView.vue";
-import Cart from "@/components/views/Cart.vue";
-import ProductDetail from "@/components/views/ProductDetail.vue";
+import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
+import AdminCouponPage from "@/components/admin/AdminCouponPage.vue";
 import AdminDashBoard from "@/components/admin/AdminDashBoard.vue";
 import AdminHomePage from '@/components/admin/AdminHomePage.vue';
-import ProductManager from '@/components/admin/AdminProductPage.vue';
+import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import OrderManager from '@/components/admin/AdminOrderPage.vue';
-import ReportPage from '@/components/admin/AdminReportPage.vue';
-import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
 import PaymentPage from "@/components/admin/AdminPaymentPage.vue";
+import ProductManager from '@/components/admin/AdminProductPage.vue';
+import ReportPage from '@/components/admin/AdminReportPage.vue';
 import AdminShippingPage from "@/components/admin/AdminShippingPage.vue";
 import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
-import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
-import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
+import Cart from "@/components/views/Cart.vue";
+import HomePage from "@/components/views/HomePage.vue";
+import LoginView from "@/components/views/LoginView.vue";
+import Product from "@/components/views/Product.vue";
+import ProductDetail from "@/components/views/ProductDetail.vue"; // Đảm bảo đường dẫn đúng
+import RegisterView from "@/components/views/RegisterView.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },
@@ -28,11 +28,17 @@ const routes = [
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
   {
+    path: "/productDetails/:id",
+    name: "ProductDetails",
+    component: ProductDetail
+  },
+
+  {
     path: "/admin",
     component: AdminDashBoard,
     children: [
       {
-        path: "", 
+        path: "",
         component: AdminHomePage,
       },
       {
@@ -82,6 +88,7 @@ const routes = [
     ],
   },
 ];
+
 
 const router = createRouter({
   history: createWebHistory(),

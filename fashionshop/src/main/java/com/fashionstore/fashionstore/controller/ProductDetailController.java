@@ -3,6 +3,7 @@ package com.fashionstore.fashionstore.controller;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +14,7 @@ import com.fashionstore.fashionstore.service.ProductDetailService;
 
 import lombok.RequiredArgsConstructor;
 
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/productDetails")
 @RequiredArgsConstructor

@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.repository.ProductRepository;
 import com.fashionstore.fashionstore.service.ProductService;
 
@@ -20,14 +19,12 @@ import lombok.RequiredArgsConstructor;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductDetailRepository productDetailRepository;
 
     @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    @Override
     public Page<Product> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
@@ -55,6 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
-        return productDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
+        return com.fashionstore.fashionstore.repository.ProductDetailRepository.searchProducts(name, categoryId,
+                minPrice, maxPrice);
     }
 }

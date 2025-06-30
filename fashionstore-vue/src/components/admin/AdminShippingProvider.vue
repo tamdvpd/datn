@@ -2,7 +2,7 @@
   <div>
     <h2>🚚 Danh Sách Đơn Vị Vận Chuyển</h2>
 
-    <!-- FORM THÊM / SỬA -->
+    <!-- FORM HIỂN THỊ THÊM / SỬA / XOÁ ĐƠN VỊ VẬN CHUYỂN -->
     <div class="form-section">
       <h3>{{ form.id ? "✏️ Chỉnh sửa" : "➕ Thêm" }} Đơn Vị Vận Chuyển</h3>
       <input v-model="form.name" placeholder="Tên đơn vị" />

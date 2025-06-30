@@ -19,6 +19,7 @@ import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
 import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
+import AdminShippingProvider from "@/components/admin/AdminShippingProvider.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },
@@ -32,7 +33,7 @@ const routes = [
     component: AdminDashBoard,
     children: [
       {
-        path: "", 
+        path: "",
         component: AdminHomePage,
       },
       {
@@ -60,10 +61,6 @@ const routes = [
         component: PaymentPage,
       },
       {
-        path: "shipping",
-        component: AdminShippingPage,
-      },
-      {
         path: "support",
         component: AdminSupportPage,
       },
@@ -78,6 +75,10 @@ const routes = [
       {
         path: "users",
         component: AdminUserPage,
+      },
+      {
+        path: "shipping",
+        component: AdminShippingProvider,
       },
     ],
   },

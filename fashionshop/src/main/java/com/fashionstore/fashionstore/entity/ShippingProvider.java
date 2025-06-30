@@ -18,20 +18,21 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "ShippingProviders")
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
+@Data
 public class ShippingProvider {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false, length = 100)
-    private String name; // Tên đơn vị vận chuyển
+    private String name;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code; // Mã viết tắt: GHN, GHTK...
+    @Column(nullable = false, length = 50, unique = true)
+    private String code;
 
     @Column(length = 255)
     private String description;
@@ -42,21 +43,28 @@ public class ShippingProvider {
     @Column(nullable = false)
     private Boolean status = true;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @PrePersist
-    protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    // getters & setters
+    @PrePersist
+    public void prePersist() {
+        if (this.shippingFee == null) {
+            this.shippingFee = BigDecimal.ZERO;
+        }
+        if (this.status == null) {
+            this.status = true;
+        }
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
+
 }

@@ -8,8 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class UserController {
             this.message = message;
         }
     }
-
+    @RequestMapping({"","/"})
     @GetMapping
     public ResponseEntity<List<User>> getAll() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -116,32 +117,38 @@ public ResponseEntity<?> login(@RequestParam String email, @RequestParam String 
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(exists);
     }
-    @GetMapping("/{id}/update")
+    @PutMapping("/{id}/update")
 public ResponseEntity<?> updateUserInfo(
-        @PathVariable Integer id,
-        @RequestParam(required = false) String fullName,
-        @RequestParam(required = false) String role,
-        @RequestParam(required = false) String address,
-        @RequestParam(required = false) String phoneNumber,
-        @RequestParam(required = false) Boolean status
+    @PathVariable Integer id,
+    @RequestBody Map<String, Object> updates
 ) {
     try {
         User user = userService.getUserById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (fullName != null) user.setFullName(fullName);
-        if (role != null) user.setRole(role);
-        if (address != null) user.setAddress(address);
-        if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
-        if (status != null) user.setStatus(status);
+        if (updates.containsKey("fullName")) 
+            user.setFullName((String) updates.get("fullName"));
+
+        if (updates.containsKey("role")) 
+            user.setRole((String) updates.get("role"));
+
+        if (updates.containsKey("address")) 
+            user.setAddress((String) updates.get("address"));
+
+        if (updates.containsKey("phoneNumber")) 
+            user.setPhoneNumber((String) updates.get("phoneNumber"));
+
+        if (updates.containsKey("status")) 
+            user.setStatus(Boolean.valueOf(updates.get("status").toString()));
 
         userService.updateUser(id, user);
-        
+
         return ResponseEntity.ok("User updated successfully");
     } catch (Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Error: " + e.getMessage()));
     }
 }
+
 
 }

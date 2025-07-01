@@ -1,48 +1,108 @@
 <template>
-  <div class="p-6 bg-white rounded-xl shadow-lg max-w-7xl mx-auto">
+  <div class="p-6 bg-white rounded-xl shadow-lg max-w-[1400px] w-full mx-auto">
+    <!-- Header -->
     <div class="flex justify-between items-center mb-6 border-b pb-2">
       <h2 class="text-2xl font-bold text-gray-800">🏭 Quản lý Nhà cung cấp</h2>
-      <button @click="toggleForm" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-semibold">
+      <button
+        @click="toggleForm"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-semibold"
+      >
         {{ showForm ? 'Đóng' : 'Thêm mới' }}
       </button>
     </div>
 
-    <!-- Form thêm/sửa -->
-    <div v-if="showForm" class="mb-10 bg-gray-50 p-6 rounded-xl shadow">
-      <h3 class="text-xl font-semibold text-gray-800 mb-4">
+    <div v-if="showForm" class="mb-10 bg-white p-8 rounded-xl shadow-md w-full max-w-none mx-auto">
+      <h3 class="text-2xl font-semibold text-gray-800 mb-6">
         {{ form.id ? '✏️ Cập nhật nhà cung cấp' : '➕ Thêm nhà cung cấp mới' }}
       </h3>
-      <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <input v-model="form.name" placeholder="Tên nhà cung cấp" class="border p-3 rounded-lg w-full" required />
-          <p v-if="errors.name" class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+
+      <form @submit.prevent="handleSubmit" class="space-y-5">
+        <!-- Tên nhà cung cấp -->
+        <div class="flex items-start gap-4">
+  <label class="w-48 pt-2 text-gray-700 font-medium">Tên nhà cung cấp</label>
+  <div class="flex-1">
+    <input
+      v-model="form.name"
+      placeholder="Nhập tên nhà cung cấp"
+      class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      required
+    />
+    <p v-if="errors.name" class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+  </div>
+</div>
+
+        <!-- Email -->
+        <div class="flex items-start gap-4">
+          <label class="w-48 pt-2 text-gray-700 font-medium">Email</label>
+          <div class="flex-1">
+            <input
+              v-model="form.email"
+              placeholder="Nhập email"
+              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
         </div>
 
-        <div>
-          <input v-model="form.email" placeholder="Email" class="border p-3 rounded-lg w-full" />
-          <p v-if="errors.email" class="text-red-600 text-sm mt-1">{{ errors.email }}</p>
+        <!-- Số điện thoại -->
+        <div class="flex items-start gap-4">
+          <label class="w-48 pt-2 text-gray-700 font-medium">Số điện thoại</label>
+          <div class="flex-1">
+            <input
+              v-model="form.phoneNumber"
+              placeholder="Nhập số điện thoại"
+              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
         </div>
 
-        <div>
-          <input v-model="form.phoneNumber" placeholder="Số điện thoại" class="border p-3 rounded-lg w-full" />
-          <p v-if="errors.phoneNumber" class="text-red-600 text-sm mt-1">{{ errors.phoneNumber }}</p>
+        <!-- Địa chỉ -->
+        <div class="flex items-start gap-4">
+          <label class="w-48 pt-2 text-gray-700 font-medium">Địa chỉ</label>
+          <div class="flex-1">
+            <input
+              v-model="form.address"
+              placeholder="Nhập địa chỉ"
+              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
         </div>
 
-        <div>
-          <input v-model="form.address" placeholder="Địa chỉ" class="border p-3 rounded-lg w-full" />
-          <p v-if="errors.address" class="text-red-600 text-sm mt-1">{{ errors.address }}</p>
+        <!-- Trạng thái -->
+        <div class="flex items-start gap-4">
+          <label class="w-48 pt-2 text-gray-700 font-medium">Trạng thái</label>
+          <div class="flex-1">
+            <select
+              v-model="form.status"
+              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <option :value="true">Hoạt động</option>
+              <option :value="false">Ngừng hoạt động</option>
+            </select>
+          </div>
         </div>
 
-        <div class="md:col-span-2 flex gap-3 mt-2">
-          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
-            {{ form.id ? 'Cập nhật' : 'Thêm' }}
-          </button>
-          <button type="button" @click="resetForm" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-semibold">
-            Huỷ
-          </button>
-        </div>
+    
+        <div class="pt-6 border-t mt-6">
+          <div class="flex justify-between items-center w-full">
+            <button
+              type="button"
+              @click="resetForm"
+              class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold"
+            >
+              Quay lại
+            </button>
+
+            <button
+              type="submit"
+              class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold shadow-md"
+            >
+              {{ form.id ? 'Cập nhật' : 'Thêm' }}
+            </button>
+          </div>
+       </div>
       </form>
     </div>
+
 
     <!-- Bảng dữ liệu -->
     <div class="overflow-x-auto">
@@ -172,5 +232,14 @@ export default {
 <style scoped>
 input:invalid {
   border-color: red;
+}input, select {
+  min-width: 90%;
+  max-width: 90%;
 }
+
+button {
+  background-color: white !important;
+  color: black !important;
+}
+
 </style>

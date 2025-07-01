@@ -21,6 +21,7 @@ import AdminUserPage from "@/components/admin/AdminUserPage.vue";
 import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
 import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
 import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
+import ProfilePage from "@/components/views/ProfilePage.vue";
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -28,6 +29,7 @@ const routes = [
   { path: "/register", name: "Register", component: RegisterView },
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
+  { path: "/profile", name: "Profile", component: ProfilePage },
   {
     path: "/admin",
     component: AdminDashBoard,
@@ -95,6 +97,21 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (to.path.startsWith('/admin')) {
+    if (user && user.role === 'ADMIN') {
+      next();
+    } else {
+      alert('Bạn không có quyền truy cập trang quản trị!');
+      next('/');
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

@@ -6,8 +6,15 @@
     <div class="form-section">
       <h3>{{ form.id ? "✏️ Chỉnh sửa" : "➕ Thêm" }} Đơn Vị Vận Chuyển</h3>
       <input v-model="form.name" placeholder="Tên đơn vị" />
-      <input v-model="form.code" placeholder="Mã (GHN...)" />
-      <input type="number" v-model.number="form.shippingFee" placeholder="Phí vận chuyển" />
+     <input v-model="form.code" placeholder="Mã (GHN...)" maxlength="10" />
+      <input
+      type="number"
+      v-model.number="form.shippingFee"
+      min="1000"
+      max="100000000"
+      placeholder="Phí vận chuyển (≥ 1.000đ, ≤ 100.000.000đ)"
+    />
+
       <textarea v-model="form.description" placeholder="Mô tả"></textarea>
       <select v-model="form.status">
         <option :value="true">Hoạt động</option>
@@ -87,16 +94,29 @@ export default {
     },
 
     // Lưu hoặc cập nhật
-   save() {
-  const { id, ...payload } = this.form;
-  
-  if (!this.form.name || !this.form.code || this.form.shippingFee === null || this.form.shippingFee === '') {
-    alert("Vui lòng nhập đủ tên, mã và phí vận chuyển.");
+  save() {
+  const { id, name, code, description, shippingFee, status } = this.form;
+
+  // Kiểm tra các trường bắt buộc
+  if (!name || !code || shippingFee === null || shippingFee === "") {
+    alert("Vui lòng nhập đầy đủ Tên, Mã và Phí vận chuyển.");
     return;
   }
 
+  // Kiểm tra giới hạn phí vận chuyển
+  if (shippingFee < 1000) {
+    alert("Phí vận chuyển phải từ 1.000đ trở lên.");
+    return;
+  }
+  if (shippingFee > 100000000) {
+    alert("Phí vận chuyển không được vượt quá 100.000.000đ.");
+    return;
+  }
+
+  const payload = { name, code, description, shippingFee, status };
+
   const req = id
-    ? axios.put(`http://localhost:8080/shipping-providers/${id}`, this.form)
+    ? axios.put(`http://localhost:8080/shipping-providers/${id}`, { id, ...payload })
     : axios.post("http://localhost:8080/shipping-providers", payload);
 
   req

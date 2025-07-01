@@ -19,8 +19,8 @@
       <form @submit.prevent="handleSubmit" class="space-y-5">
         <!-- Tên nhà cung cấp -->
         <div class="flex items-start gap-4">
-  <label class="w-48 pt-2 text-gray-700 font-medium">Tên nhà cung cấp</label>
-  <div class="flex-1">
+       <label class="w-48 pt-2 text-gray-700 font-medium">Tên nhà cung cấp</label>
+       <div class="flex-1">
     <input
       v-model="form.name"
       placeholder="Nhập tên nhà cung cấp"
@@ -76,7 +76,7 @@
               class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option :value="true">Hoạt động</option>
-              <option :value="false">Ngừng hoạt động</option>
+              <option :value="false">Ngừng hợp tác</option>
             </select>
           </div>
         </div>

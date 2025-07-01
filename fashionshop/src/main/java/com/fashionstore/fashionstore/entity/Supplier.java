@@ -1,5 +1,7 @@
 package com.fashionstore.fashionstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore; 
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -25,7 +27,6 @@ public class Supplier {
     private String name;
 
     @Email(message = "Email không đúng định dạng")
-    @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@gmail\\.com$", message = "Email phải là địa chỉ Gmail hợp lệ")
     @Column(length = 100)
     private String email;
 
@@ -58,5 +59,6 @@ public class Supplier {
     }
 
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
+    @JsonIgnore // ✅ thêm dòng này để tránh lỗi JSON vòng lặp
     private List<ImportInvoice> importInvoices = new ArrayList<>();
 }

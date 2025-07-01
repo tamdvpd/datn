@@ -45,6 +45,10 @@
             <input v-model="editUser.fullName" type="text" class="form-control" required />
           </div>
           <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input v-model="editUser.email" type="email" class="form-control" disabled />
+          </div>
+          <div class="mb-3">
             <label class="form-label">Vai trò</label>
             <select v-model="editUser.role" class="form-control">
               <option value="USER">USER</option>
@@ -55,6 +59,17 @@
           <div class="mb-3">
             <label class="form-label">Số điện thoại</label>
             <input v-model="editUser.phoneNumber" type="text" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ</label>
+            <input v-model="editUser.address" type="text" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Trạng thái hoạt động</label>
+            <select v-model="editUser.status" class="form-control">
+              <option :value="true">Hoạt động</option>
+              <option :value="false">Khóa</option>
+            </select>
           </div>
           <div class="text-end">
             <button type="submit" class="btn btn-success me-2">
@@ -82,8 +97,11 @@ export default {
       editUser: {
         id: null,
         fullName: '',
+        email: '',
         role: 'USER',
-        phoneNumber: ''
+        phoneNumber: '',
+        address: '',
+        status: true
       }
     };
   },
@@ -118,11 +136,17 @@ export default {
       this.showEditForm = true;
     },
     updateUser() {
-      axios.put(`http://localhost:8080/users/${this.editUser.id}/update`, this.editUser)
+      axios.put(`http://localhost:8080/users/${this.editUser.id}/update`, {
+        fullName: this.editUser.fullName,
+        role: this.editUser.role,
+        phoneNumber: this.editUser.phoneNumber,
+        address: this.editUser.address,
+        status: this.editUser.status
+      })
       .then(() => {
         alert('Cập nhật thành công');
         this.showEditForm = false;
-        this.fetchUsers();
+        setTimeout(() => this.fetchUsers(), 100); // Đảm bảo fetch dữ liệu sau khi đóng form
       })
       .catch(error => {
         console.error('Lỗi khi cập nhật:', error);

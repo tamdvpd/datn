@@ -2,8 +2,8 @@
   <div class="auth-container">
     <div class="auth-card">
       <router-link to="/" class="d-inline-block">
-  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
-</router-link>
+        <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+      </router-link>
 
       <h3 class="text-center mb-4">Đăng nhập</h3>
       <form @submit.prevent="handleLogin">
@@ -16,25 +16,48 @@
         <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
       </form>
       <div class="text-center mt-3">
-        <span>Chưa có tài khoản?
-          <router-link to="/register">Đăng ký</router-link>
-        </span>
+        <span>Chưa có tài khoản? <router-link to="/register">Đăng ký</router-link></span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import axios from "axios";
+
+const router = useRouter();
 
 const loginForm = ref({
-  email: '',
-  password: ''
-})
+  email: "",
+  password: "",
+});
+
+onMounted(() => {
+  const user = localStorage.getItem("user");
+  if (user) {
+    router.push("/");
+  }
+});
 
 function handleLogin() {
-  console.log('Login:', loginForm.value)
-  alert('Đăng nhập thành công!')
+  axios
+    .post("http://localhost:8080/users/login", null, {
+      params: {
+        email: loginForm.value.email,
+        password: loginForm.value.password,
+      },
+    })
+    .then((response) => {
+      alert("Đăng nhập thành công!");
+      localStorage.setItem("user", JSON.stringify(response.data));
+      router.push("/");
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("Đăng nhập thất bại! Vui lòng kiểm tra thông tin.");
+    });
 }
 </script>
 

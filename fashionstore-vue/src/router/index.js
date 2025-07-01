@@ -22,6 +22,7 @@ import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
 import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
 import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
 import ProfilePage from "@/components/views/ProfilePage.vue";
+import ChangePassword from "@/components/views/ChangePassword.vue";
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -30,6 +31,7 @@ const routes = [
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
   { path: "/profile", name: "Profile", component: ProfilePage },
+  { path: "/change-password", name: "ChangePassword", component: ChangePassword },
   {
     path: "/admin",
     component: AdminDashBoard,

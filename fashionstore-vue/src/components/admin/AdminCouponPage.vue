@@ -1,6 +1,6 @@
 <template>
   <div class="p-4">
-    <h2 class="d-inline-block me-2">🏷️ Quản lý mã giảm giá</h2>
+    <h2 ref="pageTop" class="d-inline-block me-2">🏷️ Quản lý mã giảm giá</h2>
     <button class="btn btn-outline-primary mb-3" @click="showAdd()">
       <i class="bi bi-plus-square-fill"></i>
     </button>
@@ -143,6 +143,10 @@ export default {
       this.formCoupon = { ...coupon };
       this.showForm = true;
       this.isEditing = true;
+      // Cuộn lên tiêu đề
+      this.$nextTick(() => {
+        this.$refs.pageTop?.scrollIntoView({ behavior: 'smooth' });
+      });
     },
     submitForm() {
       if (this.isEditing) {

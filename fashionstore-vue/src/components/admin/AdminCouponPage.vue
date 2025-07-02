@@ -2,7 +2,7 @@
   <div>
     <h2 class="text-center d-block">🏷️ Quản lý mã giảm giá</h2>
     <!-- ✅ FORM GỘP: Thêm & Sửa -->
-     <transition name="fade-slide">
+    <transition name="fade-slide">
       <div v-if="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
         <div class="card-header" :class="isEditing ? 'bg-warning text-dark' : 'bg-primary text-white'">
           <h5 class="mb-0">
@@ -20,8 +20,10 @@
               </div>
               <div class="col-md-6">
                 <label class="form-label">Giảm (%)</label>
-                <input v-model="formCoupon.discountPercent" type="number" min="1" max="100" step="1" class="form-control" required />
-                <div class="text-danger mt-1" v-if="validationErrors.discountPercent">{{ validationErrors.discountPercent }}</div>
+                <input v-model="formCoupon.discountPercent" type="number" min="1" max="100" step="1"
+                  class="form-control" required />
+                <div class="text-danger mt-1" v-if="validationErrors.discountPercent">{{
+                  validationErrors.discountPercent }}</div>
               </div>
             </div>
 
@@ -40,7 +42,8 @@
             <div class="mb-3">
               <label class="form-label">Trạng thái</label>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="statusSwitch" v-model="formCoupon.status" :true-value="true" :false-value="false" />
+                <input class="form-check-input" type="checkbox" id="statusSwitch" v-model="formCoupon.status"
+                  :true-value="true" :false-value="false" />
                 <label class="form-check-label" for="statusSwitch">
                   {{ formCoupon.status ? 'Bật' : 'Tắt' }}
                 </label>
@@ -68,65 +71,68 @@
         <i class="bi bi-plus-square-fill"></i>
       </button>
     </div>
-  <div class="table-responsive">
-    <table class="table table-hover table-bordered text-center align-middle mx-auto">
-      <thead class="bg-gray-200">
-        <tr>
-          <th class="border px-4 py-2">Mã</th>
-          <th class="border px-4 py-2">Giảm giá (%)</th>
-          <th class="border px-4 py-2">Ngày tạo</th>
-          <th class="border px-4 py-2">Ngày hết hạn</th>
-          <th class="border px-4 py-2">Số lượng</th>
-          <th class="border px-4 py-2">Trạng thái</th>
-          <th class="border px-4 py-2">Cập nhật</th>
-          <th class="border px-4 py-2">Sửa</th>
-          <th class="border px-4 py-2">Xóa</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="coupon in coupons" :key="coupon.id">
-          <td class="border px-4 py-2">{{ coupon.code }}</td>
-          <td class="border px-4 py-2">{{ coupon.discountPercent }}</td>
-          <td class="border px-4 py-2">{{ formatDateTime(coupon.createdAt) }}</td>
-          <td class="border px-4 py-2">{{ formatDateTime(coupon.expiryDate) }}</td>
-          <td class="border px-4 py-2">{{ coupon.quantity }}</td>
-          <td class="border px-4 py-2">
-            <span :class="coupon.status ? 'badge bg-success' : 'badge bg-danger'">
-              {{ coupon.status ? 'Hoạt động' : 'Không hoạt động' }}
-            </span>
-          </td>
-          <td class="border px-4 py-2">{{ formatDateTime(coupon.updatedAt) }}</td>
-          <td class="border px-4 py-2">
-            <button class="btn btn-outline-warning" @click="showEdit(coupon)">
-              <i class="bi bi-pencil-square"></i>
-            </button>
-          </td>
-          <td class="border px-4 py-2">
-            <button class="btn btn-outline-danger" @click="deleteCoupon(coupon.id)">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-    <nav aria-label="Page navigation example" class="mt-4">
-      <ul class="pagination justify-content-center">
-        <li class="page-item disabled">
-          <a class="page-link">Previous</a>
-        </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-          <a class="page-link" href="#">Next</a>
-        </li>
-      </ul>
-    </nav>
-    <div v-if="showNotification" class="notification" :class="notificationType">
-      {{ notificationMessage }}
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered text-center align-middle mx-auto">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border px-4 py-2">Mã</th>
+            <th class="border px-4 py-2">Giảm giá (%)</th>
+            <th class="border px-4 py-2">Ngày tạo</th>
+            <th class="border px-4 py-2">Ngày hết hạn</th>
+            <th class="border px-4 py-2">Số lượng</th>
+            <th class="border px-4 py-2">Trạng thái</th>
+            <th class="border px-4 py-2">Cập nhật</th>
+            <th class="border px-4 py-2">Sửa</th>
+            <th class="border px-4 py-2">Xóa</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="coupon in coupons" :key="coupon.id">
+            <td class="border px-4 py-2">{{ coupon.code }}</td>
+            <td class="border px-4 py-2">{{ coupon.discountPercent }}</td>
+            <td class="border px-4 py-2">{{ formatDateTime(coupon.createdAt) }}</td>
+            <td class="border px-4 py-2">{{ formatDateTime(coupon.expiryDate) }}</td>
+            <td class="border px-4 py-2">{{ coupon.quantity }}</td>
+            <td class="border px-4 py-2">
+              <span :class="coupon.status ? 'badge bg-success' : 'badge bg-danger'">
+                {{ coupon.status ? 'Hoạt động' : 'Không hoạt động' }}
+              </span>
+            </td>
+            <td class="border px-4 py-2">{{ formatDateTime(coupon.updatedAt) }}</td>
+            <td class="border px-4 py-2">
+              <button class="btn btn-outline-warning" @click="showEdit(coupon)">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+            </td>
+            <td class="border px-4 py-2">
+              <button class="btn btn-outline-danger" @click="deleteCoupon(coupon.id)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <<<<<<< HEAD </div>
+        <nav aria-label="Page navigation example" class="mt-4">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+              <a class="page-link">Previous</a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+              <a class="page-link" href="#">Next</a>
+            </li>
+          </ul>
+        </nav>
+        =======
+
+        >>>>>>> master
+        <div v-if="showNotification" class="notification" :class="notificationType">
+          {{ notificationMessage }}
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -146,7 +152,7 @@ export default {
       },
       isEditing: false,
       showForm: false,
-      validationErrors : {},
+      validationErrors: {},
       showNotification: false,
       notificationMessage: '',
       notificationType: 'success'
@@ -157,17 +163,23 @@ export default {
       this.resetForm();
       this.showForm = true;
       this.isEditing = false;
+<<<<<<< HEAD
       this.$nextTick(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+=======
+>>>>>>> master
     },
     showEdit(coupon) {
       this.formCoupon = { ...coupon };
       this.showForm = true;
       this.isEditing = true;
+<<<<<<< HEAD
       this.$nextTick(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+=======
+>>>>>>> master
     },
     submitForm() {
       if (this.isEditing) {
@@ -232,7 +244,7 @@ export default {
           this.coupons = response.data;
         })
         .catch(error => {
-        this.showNotify('Tải danh sách mã giảm giá thất bại!');
+          this.showNotify('Tải danh sách mã giảm giá thất bại!');
           console.error('Error fetching coupons:', error);
         });
     },
@@ -255,17 +267,23 @@ export default {
 </script>
 
 <style scoped>
-.fade-slide-enter-active, .fade-slide-leave-active {
+.fade-slide-enter-active,
+.fade-slide-leave-active {
   transition: all 0.5s ease;
 }
-.fade-slide-enter-from, .fade-slide-leave-to {
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
   opacity: 0;
   transform: translateY(-10px);
 }
-.fade-slide-enter-to, .fade-slide-leave-from {
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
   opacity: 1;
   transform: translateY(0);
 }
+
 .notification {
   position: fixed;
   bottom: 20px;
@@ -290,14 +308,17 @@ export default {
     opacity: 0;
     transform: translateY(20px);
   }
+
   10% {
     opacity: 1;
     transform: translateY(0);
   }
+
   90% {
     opacity: 1;
     transform: translateY(0);
   }
+
   100% {
     opacity: 0;
     transform: translateY(20px);

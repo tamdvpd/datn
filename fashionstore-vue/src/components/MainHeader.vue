@@ -26,6 +26,7 @@
             <img src="@/assets/img/default-avatar.png" alt="Avatar" width="40" height="40" class="rounded-circle me-2 dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer;" />
             <ul class="dropdown-menu dropdown-menu-end">
               <li><router-link to="/profile" class="dropdown-item">👤 Thông tin cá nhân</router-link></li>
+              <li><router-link to="/change-password" class="dropdown-item">Đổi mật khẩu</router-link></li>
               <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item" @click="handleLogout">🚪 Đăng xuất</a></li>
               <li v-if="currentUser.role === 'ADMIN'">

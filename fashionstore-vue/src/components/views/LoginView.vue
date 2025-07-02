@@ -43,7 +43,7 @@ onMounted(() => {
 
 function handleLogin() {
   axios
-    .post("http://localhost:8080/users/login", null, {
+    .post("http://localhost:8080/users/auth/login", null, {
       params: {
         email: loginForm.value.email,
         password: loginForm.value.password,

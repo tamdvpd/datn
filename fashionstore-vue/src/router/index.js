@@ -13,13 +13,16 @@ import OrderManager from '@/components/admin/AdminOrderPage.vue';
 import ReportPage from '@/components/admin/AdminReportPage.vue';
 import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
 import PaymentPage from "@/components/admin/AdminPaymentPage.vue";
-import AdminShippingPage from "@/components/admin/AdminShippingPage.vue";
 import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
 import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
 import AdminShippingProvider from "@/components/admin/AdminShippingProvider.vue";
+import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
+import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
+import ProfilePage from "@/components/views/ProfilePage.vue";
+import ChangePassword from "@/components/views/ChangePassword.vue";
 
 const routes = [
   { path: "/", name: "Home", component: HomePage },
@@ -28,6 +31,8 @@ const routes = [
   { path: "/register", name: "Register", component: RegisterView },
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
+  { path: "/profile", name: "Profile", component: ProfilePage },
+  { path: "/change-password", name: "ChangePassword", component: ChangePassword },
   {
     path: "/admin",
     component: AdminDashBoard,
@@ -61,6 +66,14 @@ const routes = [
         component: PaymentPage,
       },
       {
+        path: "shipping",
+        component: AdminShippingProvider,
+      },
+      {
+        path: "supplier",
+        component: SupplierPage,
+      },
+      {
         path: "support",
         component: AdminSupportPage,
       },
@@ -73,13 +86,13 @@ const routes = [
         component: AdminInventoryPage,
       },
       {
-        path: "users",
-        component: AdminUserPage,
+        path: "invoice",
+        component: AdminImportInvoicePage,
       },
       {
-        path: "shipping",
-        component: AdminShippingProvider,
-      },
+        path: "users",
+        component: AdminUserPage,
+      }
     ],
   },
 ];
@@ -87,6 +100,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+
+router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (to.path.startsWith('/admin')) {
+    if (user && user.role === 'ADMIN') {
+      next();
+    } else {
+      alert('Bạn không có quyền truy cập trang quản trị!');
+      next('/');
+    }
+  } else {
+    next();
+  }
 });
 
 export default router;

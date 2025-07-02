@@ -8,8 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class UserController {
         }
     }
 
+    @RequestMapping({ "", "/" })
     @GetMapping
     public ResponseEntity<List<User>> getAll() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -43,7 +46,7 @@ public class UserController {
         return ResponseEntity.of(userService.getUserById(id));
     }
 
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             User createdUser = userService.registerUser(user);
@@ -57,24 +60,23 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-    try {
-        Optional<User> userOpt = userService.login(email, password);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            user.setPassword(null);  // Ẩn password khi trả về frontend
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("Invalid email or password"));
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
+        try {
+            Optional<User> userOpt = userService.login(email, password);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                user.setPassword(null); // Ẩn password khi trả về frontend
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorResponse("Invalid email or password"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Server error: " + e.getMessage()));
         }
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Server error: " + e.getMessage()));
     }
-}
-
 
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable Integer id, @RequestBody User user) {
@@ -82,11 +84,16 @@ public ResponseEntity<?> login(@RequestParam String email, @RequestParam String 
     }
 
     @PutMapping("/{id}/change-password")
-    public ResponseEntity<Void> changePassword(@PathVariable Integer id,
-                                               @RequestParam String oldPassword,
-                                               @RequestParam String newPassword) {
+    public ResponseEntity<?> changePassword(@PathVariable Integer id,
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
         boolean changed = userService.changePassword(id, oldPassword, newPassword);
-        return changed ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+
+        if (changed) {
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
+        } else {
+            return ResponseEntity.badRequest().body("Mật khẩu hiện tại không chính xác");
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -116,32 +123,37 @@ public ResponseEntity<?> login(@RequestParam String email, @RequestParam String 
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(exists);
     }
-    @GetMapping("/{id}/update")
-public ResponseEntity<?> updateUserInfo(
-        @PathVariable Integer id,
-        @RequestParam(required = false) String fullName,
-        @RequestParam(required = false) String role,
-        @RequestParam(required = false) String address,
-        @RequestParam(required = false) String phoneNumber,
-        @RequestParam(required = false) Boolean status
-) {
-    try {
-        User user = userService.getUserById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (fullName != null) user.setFullName(fullName);
-        if (role != null) user.setRole(role);
-        if (address != null) user.setAddress(address);
-        if (phoneNumber != null) user.setPhoneNumber(phoneNumber);
-        if (status != null) user.setStatus(status);
+    @PutMapping("/{id}/update")
+    public ResponseEntity<?> updateUserInfo(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> updates) {
+        try {
+            User user = userService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        userService.updateUser(id, user);
-        
-        return ResponseEntity.ok("User updated successfully");
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("Error: " + e.getMessage()));
+            if (updates.containsKey("fullName"))
+                user.setFullName((String) updates.get("fullName"));
+
+            if (updates.containsKey("role"))
+                user.setRole((String) updates.get("role"));
+
+            if (updates.containsKey("address"))
+                user.setAddress((String) updates.get("address"));
+
+            if (updates.containsKey("phoneNumber"))
+                user.setPhoneNumber((String) updates.get("phoneNumber"));
+
+            if (updates.containsKey("status"))
+                user.setStatus(Boolean.valueOf(updates.get("status").toString()));
+
+            userService.updateUser(id, user);
+
+            return ResponseEntity.ok("User updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Error: " + e.getMessage()));
+        }
     }
-}
 
 }

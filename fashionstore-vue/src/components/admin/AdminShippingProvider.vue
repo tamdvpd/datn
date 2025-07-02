@@ -93,7 +93,7 @@ export default {
         );
     },
 
-    // Lưu hoặc cập nhật
+    // Lưu hoặc cập nhật 
   save() {
   const { id, name, code, description, shippingFee, status } = this.form;
 
@@ -111,7 +111,7 @@ export default {
   if (shippingFee > 100000000) {
     alert("Phí vận chuyển không được vượt quá 100.000.000đ.");
     return;
-  }
+  } 
 
   const payload = { name, code, description, shippingFee, status };
 
@@ -132,9 +132,12 @@ export default {
 
 
     // Chỉnh sửa
-    edit(item) {
-      this.form = { ...item };
-    },
+   edit(item) {
+  this.form = {
+    ...item,
+    description: item.description || ""  // Nếu null thì gán chuỗi rỗng
+  };
+},
 
     // Reset form
     resetForm() {

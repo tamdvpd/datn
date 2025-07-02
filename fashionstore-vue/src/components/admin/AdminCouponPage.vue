@@ -1,69 +1,75 @@
 <template>
-  <div class="p-4">
-    <h2 ref="pageTop" class="d-inline-block me-2">🏷️ Quản lý mã giảm giá</h2>
-    <button class="btn btn-outline-primary mb-3" @click="showAdd()">
-      <i class="bi bi-plus-square-fill"></i>
-    </button>
-
+  <div>
+    <h2 class="text-center d-block">🏷️ Quản lý mã giảm giá</h2>
     <!-- ✅ FORM GỘP: Thêm & Sửa -->
-    <div v-show="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
-      <div class="card-header" :class="isEditing ? 'bg-warning text-dark' : 'bg-primary text-white'">
-        <h5 class="mb-0">
-          <i :class="isEditing ? 'bi bi-pencil-square me-2' : 'bi bi-plus-circle me-2'"></i>
-          {{ isEditing ? 'Cập nhật Mã Giảm Giá' : 'Thêm Mã Giảm Giá' }}
-        </h5>
+     <transition name="fade-slide">
+      <div v-if="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
+        <div class="card-header" :class="isEditing ? 'bg-warning text-dark' : 'bg-primary text-white'">
+          <h5 class="mb-0">
+            <i :class="isEditing ? 'bi bi-pencil-square me-2' : 'bi bi-plus-circle me-2'"></i>
+            {{ isEditing ? 'Cập nhật Mã Giảm Giá' : 'Thêm Mã Giảm Giá' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form @submit.prevent="submitForm">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Mã</label>
+                <input v-model="formCoupon.code" type="text" class="form-control" required />
+                <div class="text-danger mt-1" v-if="validationErrors.code">{{ validationErrors.code }}</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Giảm (%)</label>
+                <input v-model="formCoupon.discountPercent" type="number" min="1" max="100" step="1" class="form-control" required />
+                <div class="text-danger mt-1" v-if="validationErrors.discountPercent">{{ validationErrors.discountPercent }}</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Ngày hết hạn</label>
+              <input v-model="formCoupon.expiryDate" type="datetime-local" class="form-control" />
+              <div class="text-danger mt-1" v-if="validationErrors.expiryDate">{{ validationErrors.expiryDate }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Số lượng</label>
+              <input v-model="formCoupon.quantity" type="number" min="1" class="form-control" />
+              <div class="text-danger mt-1" v-if="validationErrors.quantity">{{ validationErrors.quantity }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Trạng thái</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="statusSwitch" v-model="formCoupon.status" :true-value="true" :false-value="false" />
+                <label class="form-check-label" for="statusSwitch">
+                  {{ formCoupon.status ? 'Bật' : 'Tắt' }}
+                </label>
+              </div>
+            </div>
+
+            <div class="text-end">
+              <button type="submit" :class="['me-2 btn', isEditing ? 'btn-warning' : 'btn-primary']">
+                <i class="bi bi-save me-1"></i>{{ isEditing ? 'Cập nhật' : 'Thêm' }}
+              </button>
+              <button type="button" class="btn btn-secondary" @click="showForm = false">
+                <i class="bi bi-x-circle me-1"></i>Hủy
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-      <div class="card-body">
-        <form @submit.prevent="submitForm">
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label class="form-label">Mã</label>
-              <input v-model="formCoupon.code" type="text" class="form-control" required />
-              <div class="text-danger mt-1" v-if="validationErrors.code">{{ validationErrors.code }}</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Giảm (%)</label>
-              <input v-model="formCoupon.discountPercent" type="number" min="1" max="100" step="1" class="form-control" required />
-              <div class="text-danger mt-1" v-if="validationErrors.discountPercent">{{ validationErrors.discountPercent }}</div>
-            </div>
-          </div>
+    </transition>
 
-          <div class="mb-3">
-            <label class="form-label">Ngày hết hạn</label>
-            <input v-model="formCoupon.expiryDate" type="datetime-local" class="form-control" />
-            <div class="text-danger mt-1" v-if="validationErrors.expiryDate">{{ validationErrors.expiryDate }}</div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Số lượng</label>
-            <input v-model="formCoupon.quantity" type="number" min="1" class="form-control" />
-            <div class="text-danger mt-1" v-if="validationErrors.quantity">{{ validationErrors.quantity }}</div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Trạng thái</label>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="statusSwitch" v-model="formCoupon.status" :true-value="true" :false-value="false" />
-              <label class="form-check-label" for="statusSwitch">
-                {{ formCoupon.status ? 'Bật' : 'Tắt' }}
-              </label>
-            </div>
-          </div>
-
-          <div class="text-end">
-            <button type="submit" :class="['me-2 btn', isEditing ? 'btn-warning' : 'btn-primary']">
-              <i class="bi bi-save me-1"></i>{{ isEditing ? 'Cập nhật' : 'Thêm' }}
-            </button>
-            <button type="button" class="btn btn-secondary" @click="showForm = false">
-              <i class="bi bi-x-circle me-1"></i>Hủy
-            </button>
-          </div>
-        </form>
-      </div>
+    <div class="d-flex align-items-center justify-content-between mb-3 mt-4">
+      <h3 class="mb-0">
+        <i class="bi bi-tags-fill text-primary me-2"></i> Danh sách mã giảm giá
+      </h3>
+      <button class="btn btn-outline-primary" @click="showAdd()">
+        <i class="bi bi-plus-square-fill"></i>
+      </button>
     </div>
-
-    <h3 class="mt-4 mb-3"><i class="bi bi-tags-fill text-primary me-2"></i> Danh sách mã giảm giá</h3>
-    <table class="table-auto w-fit border border-gray-300 mx-auto">
+  <div class="table-responsive">
+    <table class="table table-hover table-bordered text-center align-middle mx-auto">
       <thead class="bg-gray-200">
         <tr>
           <th class="border px-4 py-2">Mã</th>
@@ -103,7 +109,20 @@
         </tr>
       </tbody>
     </table>
-
+  </div>
+    <nav aria-label="Page navigation example" class="mt-4">
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link">Previous</a>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+          <a class="page-link" href="#">Next</a>
+        </li>
+      </ul>
+    </nav>
     <div v-if="showNotification" class="notification" :class="notificationType">
       {{ notificationMessage }}
     </div>
@@ -138,15 +157,17 @@ export default {
       this.resetForm();
       this.showForm = true;
       this.isEditing = false;
+      this.$nextTick(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
     },
     showEdit(coupon) {
       this.formCoupon = { ...coupon };
       this.showForm = true;
       this.isEditing = true;
-      // Cuộn lên tiêu đề
       this.$nextTick(() => {
-        this.$refs.pageTop?.scrollIntoView({ behavior: 'smooth' });
-      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
     },
     submitForm() {
       if (this.isEditing) {
@@ -234,6 +255,17 @@ export default {
 </script>
 
 <style scoped>
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-slide-enter-to, .fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
 .notification {
   position: fixed;
   bottom: 20px;

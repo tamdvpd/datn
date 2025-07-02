@@ -7,7 +7,6 @@
         {{ showForm ? 'Đóng' : 'Thêm mới' }}
       </button>
     </div>
-
  <!-- Form thêm/sửa danh mục -->
 <div v-if="showForm" class="mb-10 bg-gray-50 p-6 rounded-xl shadow">
   <h3 class="text-xl font-semibold text-gray-800 mb-4">
@@ -62,7 +61,7 @@
             <th class="px-4 py-2 border">Trạng thái</th>
             <th class="px-4 py-2 border">Ngày tạo</th>
             <th class="px-4 py-2 border">Ngày cập nhật</th>
-<th class="px-4 py-2 border">Sửa</th>
+            <th class="px-4 py-2 border">Sửa</th>
             <th class="px-4 py-2 border">Xoá</th>
           </tr>
         </thead>
@@ -135,7 +134,6 @@ export default {
           ? `http://localhost:8080/api/categories/${this.form.id}`
           : 'http://localhost:8080/api/categories';
         const method = isUpdate ? 'PUT' : 'POST';
-
         const formData = new FormData();
         formData.append("name", this.form.name);
         formData.append("description", this.form.description);

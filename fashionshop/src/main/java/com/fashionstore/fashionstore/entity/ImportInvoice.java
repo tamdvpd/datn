@@ -45,9 +45,13 @@ public class ImportInvoice {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.importDate == null) {
+            this.importDate = LocalDate.now(); // ✅ Gán mặc định ngày nhập là ngày hiện tại
+        }
     }
 
     // ✅ Một phiếu nhập có nhiều dòng chi tiết

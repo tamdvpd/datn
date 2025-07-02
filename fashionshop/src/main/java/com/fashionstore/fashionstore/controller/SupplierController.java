@@ -4,6 +4,7 @@ import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,26 +33,39 @@ public class SupplierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ✅ Thêm mới (có kiểm tra định dạng email, số điện thoại)
+    // ✅ Thêm mới
     @PostMapping
-    public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody Supplier supplier) {
-        if (supplier.getStatus() == null)
-            supplier.setStatus(true); // Mặc định hoạt động
-        Supplier created = supplierService.createSupplier(supplier);
-        return ResponseEntity.status(201).body(created);
+    public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
+        try {
+            if (supplier.getStatus() == null)
+                supplier.setStatus(true); // Mặc định hoạt động
+
+            Supplier created = supplierService.createSupplier(supplier);
+            return ResponseEntity.status(201).body(created);
+        } catch (DataIntegrityViolationException ex) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("❌ Email hoặc số điện thoại đã tồn tại!");
+        }
     }
 
-    // ✅ Cập nhật (có kiểm tra định dạng email, số điện thoại)
+    // ✅ Cập nhật
     @PutMapping("/{id}")
-    public ResponseEntity<Supplier> updateSupplier(@PathVariable Integer id,
+    public ResponseEntity<?> updateSupplier(@PathVariable Integer id,
             @Valid @RequestBody Supplier supplier) {
         if (supplierService.getSupplierById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        supplier.setId(id);
-        Supplier updated = supplierService.updateSupplier(id, supplier);
-        return ResponseEntity.ok(updated);
+        try {
+            supplier.setId(id);
+            Supplier updated = supplierService.updateSupplier(id, supplier);
+            return ResponseEntity.ok(updated);
+        } catch (DataIntegrityViolationException ex) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("❌ Email hoặc số điện thoại đã tồn tại!");
+        }
     }
 
     // ✅ Xoá

@@ -2,6 +2,7 @@ package com.fashionstore.fashionstore.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fashionstore.fashionstore.entity.ShippingProvider;
 import com.fashionstore.fashionstore.service.ShippingProviderService;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 import lombok.RequiredArgsConstructor;
 
 @CrossOrigin(origins = "http://localhost:3001/")
@@ -38,16 +41,32 @@ public class ShippingProviderController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody ShippingProvider provider) {
-        System.out.println("==> Received provider: " + provider);
-        if (provider.getShippingFee() == null) {
-            return ResponseEntity.badRequest().body("Phí vận chuyển không được để trống");
+    public ResponseEntity<?> create(@RequestBody @Valid ShippingProvider provider, BindingResult result) {
+        if (result.hasErrors()) {
+            List<String> errors = result.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            return ResponseEntity.badRequest().body(errors);
         }
+
         return ResponseEntity.ok(shippingProviderService.create(provider));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ShippingProvider> update(@PathVariable Integer id, @RequestBody ShippingProvider provider) {
+    public ResponseEntity<?> update(
+            @PathVariable Integer id,
+            @RequestBody @Valid ShippingProvider provider,
+            BindingResult result) {
+
+        if (result.hasErrors()) {
+            System.out.println("❌ Validation lỗi nè!"); // ← Dòng để test log
+            List<String> errors = result.getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+
+            return ResponseEntity.badRequest().body(errors);
+        }
+
         return ResponseEntity.ok(shippingProviderService.update(id, provider));
     }
 

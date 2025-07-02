@@ -4,7 +4,9 @@ import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.dao.DataIntegrityViolationException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +35,7 @@ public class SupplierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
     // ✅ Thêm mới
     @PostMapping
     public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
@@ -52,10 +55,12 @@ public class SupplierController {
     // ✅ Cập nhật
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSupplier(@PathVariable Integer id,
+
             @Valid @RequestBody Supplier supplier) {
         if (supplierService.getSupplierById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
 
         try {
             supplier.setId(id);
@@ -66,6 +71,7 @@ public class SupplierController {
                     .badRequest()
                     .body("❌ Email hoặc số điện thoại đã tồn tại!");
         }
+
     }
 
     // ✅ Xoá

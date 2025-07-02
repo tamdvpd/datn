@@ -2,14 +2,14 @@
   <div class="auth-container">
     <div class="auth-card">
       <router-link to="/" class="d-inline-block">
-  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
-</router-link>
+        <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+      </router-link>
 
       <h3 class="text-center mb-4">Đăng ký</h3>
       <form @submit.prevent="handleRegister">
         <div class="form-group mb-3">
           <input
-            v-model="registerForm.name"
+            v-model="registerForm.fullName"
             type="text"
             class="form-control"
             placeholder="Họ tên"
@@ -37,9 +37,7 @@
         <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
       </form>
       <div class="text-center mt-3">
-        <span>Đã có tài khoản?
-          <router-link to="/login">Đăng nhập</router-link>
-        </span>
+        <span>Đã có tài khoản? <router-link to="/login">Đăng nhập</router-link></span>
       </div>
     </div>
   </div>
@@ -47,16 +45,38 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
 
 const registerForm = ref({
-  name: '',
+  fullName: '',
   email: '',
   password: ''
 })
 
 function handleRegister() {
-  console.log('Register:', registerForm.value)
-  alert('Đăng ký thành công!')
+  if (!registerForm.value.fullName || !registerForm.value.email || !registerForm.value.password) {
+    alert('Vui lòng nhập đầy đủ thông tin!')
+    return
+  }
+
+  axios.post('http://localhost:8080/users/auth/register', {
+    fullName: registerForm.value.fullName,
+    email: registerForm.value.email,
+    password: registerForm.value.password,
+    role: 'USER', // Mặc định là tài khoản USER
+    status: true  // Mặc định hoạt động luôn
+  })
+  .then(() => {
+    alert('Đăng ký thành công! Vui lòng đăng nhập.')
+    router.push('/login')
+  })
+  .catch(err => {
+    console.error(err)
+    alert('Đăng ký thất bại! Có thể email đã tồn tại.')
+  })
 }
 </script>
 

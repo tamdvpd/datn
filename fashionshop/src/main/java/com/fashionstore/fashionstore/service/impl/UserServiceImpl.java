@@ -5,7 +5,9 @@ import com.fashionstore.fashionstore.repository.UserRepository;
 import com.fashionstore.fashionstore.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder; // TIÊM PasswordEncoder chính xác
 
     @Override
     public List<User> getAllUsers() {
@@ -34,13 +37,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Mã hóa mật khẩu
         return userRepository.save(user);
     }
 
     @Override
     public User updateUser(Integer id, User user) {
-        user.setId(id);
-        return userRepository.save(user);
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        existing.setFullName(user.getFullName());
+        existing.setImageUrl(user.getImageUrl());
+        existing.setAddress(user.getAddress());
+        existing.setPhoneNumber(user.getPhoneNumber());
+        existing.setStatus(user.getStatus());
+        existing.setRole(user.getRole());
+
+        return userRepository.save(existing);
     }
 
     @Override
@@ -48,68 +64,65 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    // Đăng ký user mới
     @Override
     public User registerUser(User user) {
-        // if (userRepository.existsByUsername(user.getUsername())) {
-        // throw new RuntimeException("Username already exists");
-        // }
-        // if (userRepository.existsByEmail(user.getEmail())) {
-        // throw new RuntimeException("Email already exists");
-        // }
-        // user.setRole("CUSTOMER");
-        // user.setStatus(true);
-        // Lưu thẳng password (không mã hóa)
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        user.setRole("USER");
+        user.setStatus(true);
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Mã hóa mật khẩu
         return userRepository.save(user);
     }
 
-    // Đăng nhập bằng username và password thô
-    // @Override
-    // public Optional<User> login(String username, String rawPassword) {
-    // Optional<User> userOpt = userRepository.findByUsername(username);
-    // if (userOpt.isPresent() && userOpt.get().getPassword().equals(rawPassword)) {
-    // return userOpt;
-    // }
-    // return Optional.empty();
-    // }
-
-    // Đổi mật khẩu
     @Override
-    public boolean changePassword(Integer userId, String oldPassword, String newPassword) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(oldPassword)) {
-            User user = userOpt.get();
-            user.setPassword(newPassword);
-            userRepository.save(user);
-            return true;
-        }
-        return false;
+    public Optional<User> login(String email, String password) {
+        return userRepository.findByEmail(email)
+                .filter(u -> passwordEncoder.matches(password, u.getPassword()));
     }
 
-    // // Tìm kiếm user (ví dụ đơn giản theo username/email)
-    // @Override
-    // public List<User> searchUsers(String username, String email, int page, int
-    // size) {
-    // Pageable pageable = Pageable.ofSize(size).withPage(page);
-    // // Giả định có method userRepository.searchUsers...
-    // return userRepository.searchUsers(username, email, pageable);
-    // }
+    @Override
+    public boolean changePassword(Integer id, String oldPassword, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    // Lấy user hiện tại (nếu có security context)
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            return false;
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public List<User> searchUsers(String fullName, String email, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size);
+        return userRepository.findAll(pageable).getContent()
+                .stream()
+                .filter(u -> (fullName == null || u.getFullName().toLowerCase().contains(fullName.toLowerCase())) &&
+                        (email == null || u.getEmail().toLowerCase().contains(email.toLowerCase())))
+                .toList();
+    }
+
     @Override
     public Optional<User> getCurrentUser() {
-        return Optional.empty();
+        return Optional.empty(); // Để trống, cần tích hợp Spring Security để lấy user từ token
     }
 
     @Override
-    public Optional<User> login(String username, String password) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'login'");
+    public long countUsers() {
+        return userRepository.count();
     }
 
     @Override
-    public List<User> searchUsers(String username, String email, int page, int size) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchUsers'");
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
 }

@@ -43,13 +43,14 @@ public class ImportInvoiceController {
         return ResponseEntity.status(201).body(created);
     }
 
+
     //  Cập nhật phiếu nhập (cập nhật cả chi tiết nếu cần)
+
     @PutMapping("/{id}")
     public ResponseEntity<ImportInvoice> update(@PathVariable Integer id, @Valid @RequestBody ImportInvoice invoice) {
         if (importInvoiceService.getImportInvoiceById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
         invoice.setId(id);
 
         if (invoice.getImportInvoiceDetails() != null) {

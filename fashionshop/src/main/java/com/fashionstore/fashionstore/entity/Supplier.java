@@ -34,6 +34,7 @@ public class Supplier {
 
     @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số")
     @Column(name = "phone_number", length = 15, unique = true)
+
     private String phoneNumber;
 
     @Column(length = 255)

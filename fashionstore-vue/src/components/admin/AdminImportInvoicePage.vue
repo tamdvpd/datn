@@ -19,13 +19,13 @@
         <input
           v-model.number="form.totalAmount"
           type="number"
-          step="10000"
-          min="1000"
+          step="0.01"
+          min="0"
           placeholder="Tổng tiền (VNĐ)"
           class="border p-2 rounded"
           required
         />
-        <!-- ❌ Đã xoá ô nhập ngày -->
+        <input v-model="form.importDate" type="date" class="border p-2 rounded" required />
         <input v-model="form.note" placeholder="Ghi chú" class="border p-2 rounded" />
         <div class="md:col-span-2 flex gap-3 mt-2">
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
@@ -90,6 +90,7 @@ export default {
         id: null,
         supplierId: '',
         totalAmount: '',
+        importDate: '',
         note: ''
       }
     };
@@ -122,12 +123,10 @@ export default {
       }
     },
     async handleSubmit() {
-      const today = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
-
       const invoiceData = {
         supplier: { id: this.form.supplierId },
         totalAmount: this.form.totalAmount,
-        importDate: today,
+        importDate: this.form.importDate,
         note: this.form.note
       };
 
@@ -146,7 +145,6 @@ export default {
 
         await this.fetchInvoices();
         this.resetForm();
-        this.showForm = false;
       } catch (err) {
         alert('❌ ' + err.message);
       }
@@ -156,6 +154,7 @@ export default {
         id: inv.id,
         supplierId: inv.supplier?.id || '',
         totalAmount: inv.totalAmount,
+        importDate: inv.importDate,
         note: inv.note
       };
       this.isEditing = true;
@@ -181,15 +180,14 @@ export default {
         id: null,
         supplierId: '',
         totalAmount: '',
+        importDate: '',
         note: ''
       };
       this.isEditing = false;
     },
     toggleForm() {
       this.showForm = !this.showForm;
-      if (!this.showForm) {
-        this.resetForm();
-      }
+      if (!this.showForm) this.resetForm();
     },
     formatDate(dateStr) {
       if (!dateStr) return '';

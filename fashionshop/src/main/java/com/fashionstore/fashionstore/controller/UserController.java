@@ -3,14 +3,15 @@ package com.fashionstore.fashionstore.controller;
 import com.fashionstore.fashionstore.entity.User;
 import com.fashionstore.fashionstore.service.UserService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -34,26 +35,23 @@ public class UserController {
         }
     }
 
-    // Lấy tất cả user
+    @RequestMapping({ "", "/" })
     @GetMapping
     public ResponseEntity<List<User>> getAll() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    //Lấy user theo id
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Integer id) {
         return ResponseEntity.of(userService.getUserById(id));
     }
 
-    // Tạo mới user (đăng ký)
-    @PostMapping("/register")
+    @PostMapping("/auth/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
             User createdUser = userService.registerUser(user);
             return ResponseEntity.ok(createdUser);
         } catch (RuntimeException e) {
-            // Bắt lỗi runtime và trả về lỗi 400 với thông báo
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Registration failed: " + e.getMessage()));
         } catch (Exception e) {
@@ -62,15 +60,17 @@ public class UserController {
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password) {
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
         try {
-            Optional<User> userOpt = userService.login(username, password);
+            Optional<User> userOpt = userService.login(email, password);
             if (userOpt.isPresent()) {
-                return ResponseEntity.ok(userOpt.get());
+                User user = userOpt.get();
+                user.setPassword(null); // Ẩn password khi trả về frontend
+                return ResponseEntity.ok(user);
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErrorResponse("Invalid username or password"));
+                        .body(new ErrorResponse("Invalid email or password"));
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -78,46 +78,82 @@ public class UserController {
         }
     }
 
-    // Cập nhật user
     @PutMapping("/{id}")
     public ResponseEntity<User> update(@PathVariable Integer id, @RequestBody User user) {
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
-    // Đổi mật khẩu
     @PutMapping("/{id}/change-password")
-    public ResponseEntity<Void> changePassword(@PathVariable Integer id,
+    public ResponseEntity<?> changePassword(@PathVariable Integer id,
             @RequestParam String oldPassword,
             @RequestParam String newPassword) {
         boolean changed = userService.changePassword(id, oldPassword, newPassword);
+
         if (changed) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Đổi mật khẩu thành công");
         } else {
-            return ResponseEntity.status(400).build();
+            return ResponseEntity.badRequest().body("Mật khẩu hiện tại không chính xác");
         }
     }
 
-    // Xóa user
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Tìm kiếm user theo username, email, phân trang
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(
-            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String fullName,
             @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.searchUsers(username, email, page, size));
+        return ResponseEntity.ok(userService.searchUsers(fullName, email, page, size));
     }
 
-    // Lấy thông tin user hiện tại (ví dụ dựa trên token hoặc session)
     @GetMapping("/profile")
     public ResponseEntity<User> getCurrentUser() {
         Optional<User> userOpt = userService.getCurrentUser();
         return ResponseEntity.of(userOpt);
     }
+
+    // API check trùng email, hỗ trợ frontend
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        boolean exists = userService.existsByEmail(email);
+        return ResponseEntity.ok(exists);
+    }
+
+    @PutMapping("/{id}/update")
+    public ResponseEntity<?> updateUserInfo(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> updates) {
+        try {
+            User user = userService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (updates.containsKey("fullName"))
+                user.setFullName((String) updates.get("fullName"));
+
+            if (updates.containsKey("role"))
+                user.setRole((String) updates.get("role"));
+
+            if (updates.containsKey("address"))
+                user.setAddress((String) updates.get("address"));
+
+            if (updates.containsKey("phoneNumber"))
+                user.setPhoneNumber((String) updates.get("phoneNumber"));
+
+            if (updates.containsKey("status"))
+                user.setStatus(Boolean.valueOf(updates.get("status").toString()));
+
+            userService.updateUser(id, user);
+
+            return ResponseEntity.ok("User updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Error: " + e.getMessage()));
+        }
+    }
+
 }

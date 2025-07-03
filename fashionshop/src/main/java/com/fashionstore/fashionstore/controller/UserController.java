@@ -5,6 +5,7 @@ import com.fashionstore.fashionstore.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     public static class ErrorResponse {
         private String message;
@@ -61,21 +63,35 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
-    public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-        try {
-            Optional<User> userOpt = userService.login(email, password);
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                user.setPassword(null); // Ẩn password khi trả về frontend
-                return ResponseEntity.ok(user);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErrorResponse("Invalid email or password"));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Server error: " + e.getMessage()));
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
+        String email = loginData.get("email");
+        String password = loginData.get("password");
+
+        if (email == null || password == null) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Thiếu email hoặc mật khẩu."));
         }
+
+        Optional<User> userOpt = userService.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Email hoặc mật khẩu không chính xác."));
+        }
+
+        User user = userOpt.get();
+
+        if (Boolean.FALSE.equals(user.getStatus())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse("Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên."));
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Email hoặc mật khẩu không chính xác."));
+        }
+
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{id}")

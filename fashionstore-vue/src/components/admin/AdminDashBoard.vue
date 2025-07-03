@@ -2,14 +2,15 @@
   <div class="admin-dashboard">
     <!-- Navbar -->
     <nav class="navbar navbar-light bg-white shadow-sm px-4 d-flex justify-content-between align-items-center">
-      <router-link to="/admin" class="navbar-brand">
-        <img src="@/assets/img/LogoChinh.png" alt="Logo" height="40" />
-      </router-link>
-      <div>
-        <button class="btn btn-outline-secondary me-2">🔐 Tài khoản</button>
-        <router-link to="/logout" class="btn btn-outline-danger">⬆️ Đăng xuất</router-link>
-      </div>
-    </nav>
+  <router-link to="/admin" class="navbar-brand">
+    <img src="@/assets/img/LogoChinh.png" alt="Logo" height="40" />
+  </router-link>
+  <div>
+    <router-link to="/profile" class="btn btn-outline-secondary me-2">🔐 Tài khoản</router-link>
+    <button @click="handleLogout" class="btn btn-outline-danger">⬆️ Đăng xuất</button>
+  </div>
+</nav>
+
 
     <div class="container-fluid">
       <div class="row">
@@ -45,6 +46,12 @@
 <script>
 export default {
   name: 'AdminDashBoard',
+  methods: {
+    handleLogout() {
+      localStorage.removeItem('user'); // Xóa token hoặc dữ liệu user
+      this.$router.push('/login');     // Điều hướng về trang Login
+    }
+  }
 };
 </script>
 

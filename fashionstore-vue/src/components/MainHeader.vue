@@ -6,31 +6,67 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
         <router-link to="/" class="navbar-brand">
-          <img src="@/assets/img/LogoChinh.png" alt="Logo" width="200" height="50" />
+          <img
+            src="@/assets/img/LogoChinh.png"
+            alt="Logo"
+            width="200"
+            height="50"
+          />
         </router-link>
 
         <form class="d-flex me-auto ms-5" @submit.prevent="onSearch">
-          <input class="form-control me-2" type="search" v-model="searchQuery" placeholder="Tìm kiếm sản phẩm..." />
+          <input
+            class="form-control me-2"
+            type="search"
+            v-model="searchQuery"
+            placeholder="Tìm kiếm sản phẩm..."
+          />
           <button class="btn btn-outline-success" type="submit">Tìm</button>
         </form>
 
         <div class="d-flex align-items-center">
-          <router-link to="/cart" class="btn btn-outline-primary me-2">🛒 Giỏ hàng</router-link>
+          <router-link to="/cart" class="btn btn-outline-primary me-2"
+            >🛒 Giỏ hàng</router-link
+          >
 
           <div v-if="!currentUser">
-            <router-link to="/login" class="btn btn-outline-secondary me-2">Đăng nhập</router-link>
-            <router-link to="/register" class="btn btn-outline-secondary">Đăng ký</router-link>
+            <router-link to="/login" class="btn btn-outline-secondary me-2"
+              >Đăng nhập</router-link
+            >
+            <router-link to="/register" class="btn btn-outline-secondary"
+              >Đăng ký</router-link
+            >
           </div>
 
           <div v-else class="dropdown">
-            <img src="@/assets/img/default-avatar.png" alt="Avatar" width="40" height="40" class="rounded-circle me-2 dropdown-toggle" data-bs-toggle="dropdown" style="cursor: pointer;" />
+            <img
+              src="@/assets/img/default-avatar.png"
+              alt="Avatar"
+              width="40"
+              height="40"
+              class="rounded-circle me-2 dropdown-toggle"
+              data-bs-toggle="dropdown"
+              style="cursor: pointer"
+            />
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><router-link to="/profile" class="dropdown-item">👤 Thông tin cá nhân</router-link></li>
-              <li><router-link to="/change-password" class="dropdown-item">Đổi mật khẩu</router-link></li>
+              <li>
+                <router-link to="/profile" class="dropdown-item"
+                  >👤 Thông tin cá nhân</router-link
+                >
+              </li>
               <li><hr class="dropdown-divider" /></li>
-              <li><a class="dropdown-item" @click="handleLogout">🚪 Đăng xuất</a></li>
+              <li>
+                <router-link to="/change-password" class="dropdown-item"
+                  >Đổi mật khẩu</router-link
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" @click="handleLogout">🚪 Đăng xuất</a>
+              </li>
               <li v-if="currentUser.role === 'ADMIN'">
-                <router-link to="/admin" class="dropdown-item">🛠️ Quản lý Admin</router-link>
+                <router-link to="/admin" class="dropdown-item"
+                  >🛠️ Quản lý Admin</router-link
+                >
               </li>
             </ul>
           </div>
@@ -42,11 +78,11 @@
 
 <script>
 export default {
-  name: 'MainHeader',
+  name: "MainHeader",
   data() {
     return {
-      searchQuery: '',
-      currentUser: null
+      searchQuery: "",
+      currentUser: null,
     };
   },
   created() {
@@ -54,20 +90,20 @@ export default {
   },
   methods: {
     onSearch() {
-      this.$emit('search', this.searchQuery);
+      this.$emit("search", this.searchQuery);
     },
     loadCurrentUser() {
-      const user = localStorage.getItem('user');
+      const user = localStorage.getItem("user");
       if (user) {
         this.currentUser = JSON.parse(user);
       }
     },
     handleLogout() {
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
       this.currentUser = null;
-      this.$router.push('/');
-    }
-  }
+      this.$router.push("/");
+    },
+  },
 };
 </script>
 

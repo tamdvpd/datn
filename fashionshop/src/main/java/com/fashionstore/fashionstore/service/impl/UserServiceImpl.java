@@ -76,10 +76,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> login(String email, String password) {
-        return userRepository.findByEmail(email)
-                .filter(u -> passwordEncoder.matches(password, u.getPassword()));
+public Optional<User> login(String email, String password) {
+    Optional<User> userOpt = userRepository.findByEmail(email);
+    
+    if (userOpt.isPresent()) {
+        User user = userOpt.get();
+
+        if (Boolean.FALSE.equals(user.getStatus())) {
+            // Vẫn trả Optional để Controller biết tài khoản bị khóa
+            return Optional.of(user); 
+        }
+
+        if (passwordEncoder.matches(password, user.getPassword())) {
+            return Optional.of(user);
+        }
     }
+    
+    return Optional.empty();
+}
+
 
     @Override
     public boolean changePassword(Integer id, String oldPassword, String newPassword) {

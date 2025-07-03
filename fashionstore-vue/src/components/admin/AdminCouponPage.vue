@@ -15,7 +15,7 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <label class="form-label">Mã</label>
-                <input v-model="formCoupon.code" type="text" class="form-control" required />
+                <input v-model="formCoupon.code" type="text" class="form-control" :disabled="isEditing" required />
                 <div class="text-danger mt-1" v-if="validationErrors.code">{{ validationErrors.code }}</div>
               </div>
               <div class="col-md-6">
@@ -112,27 +112,24 @@
           </tr>
         </tbody>
       </table>
-      <<<<<<< HEAD </div>
-        <nav aria-label="Page navigation example" class="mt-4">
-          <ul class="pagination justify-content-center">
-            <li class="page-item disabled">
-              <a class="page-link">Previous</a>
-            </li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item">
-              <a class="page-link" href="#">Next</a>
-            </li>
-          </ul>
-        </nav>
-        =======
-
-        >>>>>>> master
-        <div v-if="showNotification" class="notification" :class="notificationType">
-          {{ notificationMessage }}
-        </div>
     </div>
+    <nav aria-label="Page navigation example" class="mt-4">
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link">Previous</a>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+          <a class="page-link" href="#">Next</a>
+        </li>
+      </ul>
+    </nav>
+    <div v-if="showNotification" class="notification" :class="notificationType">
+      {{ notificationMessage }}
+    </div>
+  </div>
 </template>
 
 <script>
@@ -163,23 +160,17 @@ export default {
       this.resetForm();
       this.showForm = true;
       this.isEditing = false;
-<<<<<<< HEAD
       this.$nextTick(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-=======
->>>>>>> master
     },
     showEdit(coupon) {
       this.formCoupon = { ...coupon };
       this.showForm = true;
       this.isEditing = true;
-<<<<<<< HEAD
       this.$nextTick(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
-=======
->>>>>>> master
     },
     submitForm() {
       if (this.isEditing) {
@@ -187,11 +178,17 @@ export default {
           .then(() => {
             this.showNotify('Cập nhật mã giảm giá thành công!');
             this.resetForm();
+            this.validationErrors = {};
             this.fetchCoupons();
           })
           .catch(error => {
             console.error('Lỗi khi cập nhật mã:', error);
-            this.showNotify('Cập nhật mã giảm giá thất bại!', 'error');
+            if (error.response && error.response.status === 400) {
+              this.validationErrors = error.response.data;
+              this.showNotify('Vui lòng kiểm tra lại các trường!', 'error');
+            } else {
+              this.showNotify('Cập nhật mã giảm giá thất bại!', 'error');
+            }
           });
       } else {
         axios.post('http://localhost:8080/api/coupons', this.formCoupon)

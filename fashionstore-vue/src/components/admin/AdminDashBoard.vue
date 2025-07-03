@@ -4,12 +4,8 @@
     <nav class="navbar navbar-light bg-white shadow-sm px-4 d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center">
         <!-- Nút mở sidebar trên màn hình nhỏ -->
-        <button
-          class="btn btn-outline-primary d-md-none me-3"
-          type="button"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#sidebarMenu"
-        >
+        <button class="btn btn-outline-primary d-md-none me-3" type="button" data-bs-toggle="offcanvas"
+          data-bs-target="#sidebarMenu">
           ☰
         </button>
         <router-link to="/admin" class="navbar-brand">
@@ -37,21 +33,21 @@
               <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 VẬN CHUYỂN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 KHO HÀNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
+                  CHỈNH</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 GIAO DIỆN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 NHÀ CUNG CẤP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link>
+              </li>
             </ul>
           </div>
         </div>
 
         <!-- Offcanvas Sidebar (mobile) -->
-        <div
-          class="offcanvas offcanvas-start d-md-none admin-sidebar"
-          tabindex="-1"
-          id="sidebarMenu"
-        >
+        <div class="offcanvas offcanvas-start d-md-none admin-sidebar" tabindex="-1" id="sidebarMenu">
           <div class="offcanvas-header">
             <h5 class="offcanvas-title">📋 Menu</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
@@ -59,19 +55,31 @@
           <div class="offcanvas-body p-0">
             <ul class="nav flex-column px-2">
               <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 QUẢN LÝ DANH MỤC</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕 QUẢN LÝ SẢN PHẨM</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 QUẢN LÝ ĐƠN HÀNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/coupons">🏷️ QUẢN LÝ MÃ GIẢM GIÁ</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 QUẢN LÝ THANH TOÁN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 QUẢN LÝ VẬN CHUYỂN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 QUẢN LÝ KHO HÀNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 QUẢN LÝ PHIẾU NHẬP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 QUẢN LÝ NGƯỜI DÙNG</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 QUẢN LÝ DANH
+                  MỤC</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕 QUẢN LÝ SẢN PHẨM</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 QUẢN LÝ ĐƠN HÀNG</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/coupons">🏷️ QUẢN LÝ MÃ GIẢM
+                  GIÁ</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 QUẢN LÝ THANH
+                  TOÁN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 QUẢN LÝ VẬN
+                  CHUYỂN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 QUẢN LÝ KHO HÀNG</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 QUẢN LÝ PHIẾU NHẬP</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 QUẢN LÝ NGƯỜI DÙNG</router-link>
+              </li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 QUẢN LÝ GIAO DIỆN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 QUẢN LÝ NHÀ CUNG CẤP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 QUẢN LÝ NHÀ CUNG
+                  CẤP</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
+              </li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link>
+              </li>
             </ul>
           </div>
         </div>

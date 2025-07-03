@@ -17,16 +17,21 @@
           <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
         </select>
         <input
-          v-model.number="form.totalAmount"
-          type="number"
-          step="0.01"
-          min="0"
-          placeholder="Tổng tiền (VNĐ)"
-          class="border p-2 rounded"
-          required
-        />
-        <input v-model="form.importDate" type="date" class="border p-2 rounded" required />
+         v-model.number="form.totalAmount"
+         type="number"
+         min="100000"   
+         inputmode="decimal"
+         placeholder="Tổng tiền (VNĐ)"
+         class="border p-2 rounded appearance-none"
+         required
+         @wheel.prevent
+/>
+        <p v-if="errors.totalAmount" class="text-red-600 text-sm mt-1">
+          {{ errors.totalAmount }}
+        </p>
+
         <input v-model="form.note" placeholder="Ghi chú" class="border p-2 rounded" />
+
         <div class="md:col-span-2 flex gap-3 mt-2">
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
@@ -86,11 +91,11 @@ export default {
       suppliers: [],
       showForm: false,
       isEditing: false,
+      errors: {},
       form: {
         id: null,
         supplierId: '',
         totalAmount: '',
-        importDate: '',
         note: ''
       }
     };
@@ -123,38 +128,47 @@ export default {
       }
     },
     async handleSubmit() {
-      const invoiceData = {
-        supplier: { id: this.form.supplierId },
-        totalAmount: this.form.totalAmount,
-        importDate: this.form.importDate,
-        note: this.form.note
-      };
+  this.errors = {};
+  const amount = parseFloat(this.form.totalAmount);
+  if (amount < 100000) {
+  this.errors.totalAmount = 'Tổng tiền phải lớn hơn hoặc bằng 100.000 VNĐ';
+  return;
+}
 
-      try {
-        const url = this.isEditing
-          ? `http://localhost:8080/api/import-invoices/${this.form.id}`
-          : 'http://localhost:8080/api/import-invoices';
+  const today = new Date().toISOString().split('T')[0];
 
-        const res = await fetch(url, {
-          method: this.isEditing ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(invoiceData)
-        });
+  const invoiceData = {
+    supplier: { id: this.form.supplierId },
+    totalAmount: amount,
+    importDate: today,
+    note: this.form.note
+  };
 
-        if (!res.ok) throw new Error('Lưu phiếu nhập thất bại');
+  try {
+    const url = this.isEditing
+      ? `http://localhost:8080/api/import-invoices/${this.form.id}`
+      : 'http://localhost:8080/api/import-invoices';
 
-        await this.fetchInvoices();
-        this.resetForm();
-      } catch (err) {
-        alert('❌ ' + err.message);
-      }
-    },
+    const res = await fetch(url, {
+      method: this.isEditing ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(invoiceData)
+    });
+
+    if (!res.ok) throw new Error('Lưu phiếu nhập thất bại');
+
+    await this.fetchInvoices();
+    this.resetForm();
+    this.showForm = false;
+  } catch (err) {
+    alert('❌ ' + err.message);
+  }
+},
     editInvoice(inv) {
       this.form = {
         id: inv.id,
         supplierId: inv.supplier?.id || '',
         totalAmount: inv.totalAmount,
-        importDate: inv.importDate,
         note: inv.note
       };
       this.isEditing = true;
@@ -180,14 +194,16 @@ export default {
         id: null,
         supplierId: '',
         totalAmount: '',
-        importDate: '',
         note: ''
       };
+      this.errors = {};
       this.isEditing = false;
     },
     toggleForm() {
       this.showForm = !this.showForm;
-      if (!this.showForm) this.resetForm();
+      if (!this.showForm) {
+        this.resetForm();
+      }
     },
     formatDate(dateStr) {
       if (!dateStr) return '';
@@ -205,3 +221,16 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* Loại bỏ nút tăng giảm cho input number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+</style>

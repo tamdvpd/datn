@@ -11,53 +11,50 @@
       </button>
     </div>
 
+    <!-- Form -->
     <div v-if="showForm" class="mb-10 bg-white p-8 rounded-xl shadow-md w-full max-w-none mx-auto">
       <h3 class="text-2xl font-semibold text-gray-800 mb-6">
         {{ form.id ? '✏️ Cập nhật nhà cung cấp' : '➕ Thêm nhà cung cấp mới' }}
       </h3>
 
       <form @submit.prevent="handleSubmit" class="space-y-5">
-        <!-- Tên nhà cung cấp -->
         <div class="flex items-start gap-4">
+          <label class="w-48 pt-2 text-gray-700 font-medium">Tên nhà cung cấp</label>
+          <div class="flex-1">
+            <input
+              v-model="form.name"
+              placeholder="Nhập tên nhà cung cấp"
+              :class="['w-full border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400', errors.name ? 'border-red-500' : 'border-gray-300']"
+              required
+            />
+            <p v-if="errors.name" class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+          </div>
+        </div>
 
-       <label class="w-48 pt-2 text-gray-700 font-medium">Tên nhà cung cấp</label>
-       <div class="flex-1">
-
-    <input
-      v-model="form.name"
-      placeholder="Nhập tên nhà cung cấp"
-      class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-      required
-    />
-    <p v-if="errors.name" class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
-  </div>
-</div>
-
-        <!-- Email -->
         <div class="flex items-start gap-4">
           <label class="w-48 pt-2 text-gray-700 font-medium">Email</label>
           <div class="flex-1">
             <input
               v-model="form.email"
               placeholder="Nhập email"
-              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              :class="['w-full border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400', errors.email ? 'border-red-500' : 'border-gray-300']"
             />
+            <p v-if="errors.email" class="text-red-600 text-sm mt-1">{{ errors.email }}</p>
           </div>
         </div>
 
-        <!-- Số điện thoại -->
         <div class="flex items-start gap-4">
           <label class="w-48 pt-2 text-gray-700 font-medium">Số điện thoại</label>
           <div class="flex-1">
             <input
               v-model="form.phoneNumber"
               placeholder="Nhập số điện thoại"
-              class="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              :class="['w-full border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400', errors.phoneNumber ? 'border-red-500' : 'border-gray-300']"
             />
+            <p v-if="errors.phoneNumber" class="error-message">{{ errors.phoneNumber }}</p>
           </div>
         </div>
 
-        <!-- Địa chỉ -->
         <div class="flex items-start gap-4">
           <label class="w-48 pt-2 text-gray-700 font-medium">Địa chỉ</label>
           <div class="flex-1">
@@ -69,7 +66,6 @@
           </div>
         </div>
 
-        <!-- Trạng thái -->
         <div class="flex items-start gap-4">
           <label class="w-48 pt-2 text-gray-700 font-medium">Trạng thái</label>
           <div class="flex-1">
@@ -83,7 +79,8 @@
           </div>
         </div>
 
-    
+        <p v-if="errors.general" class="text-red-600 text-sm">{{ errors.general }}</p>
+
         <div class="pt-6 border-t mt-6">
           <div class="flex justify-between items-center w-full">
             <button
@@ -93,7 +90,6 @@
             >
               Quay lại
             </button>
-
             <button
               type="submit"
               class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold shadow-md"
@@ -101,10 +97,9 @@
               {{ form.id ? 'Cập nhật' : 'Thêm' }}
             </button>
           </div>
-       </div>
+        </div>
       </form>
     </div>
-
 
     <!-- Bảng dữ liệu -->
     <div class="overflow-x-auto">
@@ -143,6 +138,11 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Toast Notification -->
+    <div v-if="showNotification" class="notification" :class="notificationType">
+      {{ notificationMessage }}
+    </div>
   </div>
 </template>
 
@@ -160,43 +160,67 @@ export default {
         address: '',
         status: true
       },
-      errors: {}
+      errors: {},
+      showNotification: false,
+      notificationMessage: '',
+      notificationType: 'success'
     };
   },
   methods: {
+    showNotify(message, type = 'success', duration = 3000) {
+      this.notificationMessage = message;
+      this.notificationType = type;
+      this.showNotification = true;
+      setTimeout(() => {
+        this.showNotification = false;
+      }, duration);
+    },
     fetchSuppliers() {
       fetch('http://localhost:8080/api/suppliers')
         .then(res => res.json())
         .then(data => this.suppliers = data)
-        .catch(err => console.error('Lỗi tải nhà cung cấp:', err));
+        .catch(err => {
+          console.error('Lỗi tải nhà cung cấp:', err);
+          this.showNotify('Không thể tải danh sách nhà cung cấp!', 'error');
+        });
     },
-    handleSubmit() {
+    async handleSubmit() {
+      this.errors = {};
       const method = this.form.id ? 'PUT' : 'POST';
       const url = this.form.id
         ? `http://localhost:8080/api/suppliers/${this.form.id}`
-        : 'http://localhost:8080/api/suppliers';
+        : `http://localhost:8080/api/suppliers`;
 
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.form)
-      })
-        .then(async res => {
-          if (!res.ok) {
-            const errorData = await res.json();
-            this.errors = errorData;
-            throw new Error("Validation failed");
-          }
-          return res.json();
-        })
-        .then(() => {
-          this.fetchSuppliers();
-          this.resetForm();
-          this.showForm = false;
-        })
-        .catch(err => {
-          console.error("Lỗi xử lý:", err);
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.form)
         });
+
+        const responseBody = await response.text();
+        if (!response.ok) {
+          try {
+            const errorData = JSON.parse(responseBody);
+            if (errorData.email) this.errors.email = errorData.email;
+            if (errorData.phoneNumber) this.errors.phoneNumber = errorData.phoneNumber;
+            if (errorData.name) this.errors.name = errorData.name;
+          } catch {
+            this.errors.general = responseBody;
+          }
+          this.showNotify('Thêm hoặc cập nhật thất bại!', 'error');
+          throw new Error(responseBody);
+        }
+
+        this.fetchSuppliers();
+        this.resetForm();
+        this.showForm = false;
+        this.showNotify(this.form.id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+      } catch (err) {
+        console.error('❌ Lỗi xử lý:', err);
+      }
     },
     editSupplier(supplier) {
       this.form = { ...supplier };
@@ -206,7 +230,14 @@ export default {
     deleteSupplier(id) {
       if (confirm('Bạn có chắc muốn xoá nhà cung cấp này?')) {
         fetch(`http://localhost:8080/api/suppliers/${id}`, { method: 'DELETE' })
-          .then(() => this.fetchSuppliers());
+          .then(() => {
+            this.fetchSuppliers();
+            this.showNotify('Xoá nhà cung cấp thành công!');
+          })
+          .catch(err => {
+            console.error('Lỗi xoá nhà cung cấp:', err);
+            this.showNotify('Xoá thất bại!', 'error');
+          });
       }
     },
     resetForm() {
@@ -234,14 +265,53 @@ export default {
 <style scoped>
 input:invalid {
   border-color: red;
-}input, select {
+}
+input, select {
   min-width: 90%;
   max-width: 90%;
 }
-
 button {
   background-color: white !important;
   color: black !important;
 }
-
+.error-message {
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 5px;
+  color: white;
+  z-index: 1000;
+  animation: fadeInOut 3s ease forwards;
+}
+.notification.success {
+  background-color: #4CAF50;
+}
+.notification.error {
+  background-color: #f44336;
+}
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
 </style>

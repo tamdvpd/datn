@@ -4,14 +4,10 @@ import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.dao.DataIntegrityViolationException;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @CrossOrigin(origins = "http://localhost:3001")
 @RestController
@@ -27,51 +23,48 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getAllSuppliers());
     }
 
-    // ✅ Lấy theo ID
+    // ✅ Lấy nhà cung cấp theo ID
     @GetMapping("/{id}")
     public ResponseEntity<Supplier> getSupplierById(@PathVariable Integer id) {
-        Optional<Supplier> supplier = supplierService.getSupplierById(id);
-        return supplier.map(ResponseEntity::ok)
+        return supplierService.getSupplierById(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // ✅ Lấy danh sách nhà cung cấp đang hoạt động
+    @GetMapping("/active")
+    public ResponseEntity<List<Supplier>> getActiveSuppliers() {
+        return ResponseEntity.ok(supplierService.getActiveSuppliers());
+    }
 
-    // ✅ Thêm mới
+    // ✅ Tạo mới
     @PostMapping
     public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
         try {
-            if (supplier.getStatus() == null)
-                supplier.setStatus(true); // Mặc định hoạt động
-
+            if (supplier.getStatus() == null) {
+                supplier.setStatus(true); // Mặc định là hoạt động nếu không truyền
+            }
             Supplier created = supplierService.createSupplier(supplier);
             return ResponseEntity.status(201).body(created);
-        } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("❌ Email hoặc số điện thoại đã tồn tại!");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
     // ✅ Cập nhật
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSupplier(@PathVariable Integer id,
-
-            @Valid @RequestBody Supplier supplier) {
+    public ResponseEntity<?> updateSupplier(@PathVariable Integer id, @Valid @RequestBody Supplier supplier) {
         if (supplierService.getSupplierById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-
 
         try {
             supplier.setId(id);
             Supplier updated = supplierService.updateSupplier(id, supplier);
             return ResponseEntity.ok(updated);
-        } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("❌ Email hoặc số điện thoại đã tồn tại!");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
-
     }
 
     // ✅ Xoá

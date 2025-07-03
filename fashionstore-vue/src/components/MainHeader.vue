@@ -40,7 +40,10 @@
 
           <div v-else class="dropdown">
             <img
-              src="@/assets/img/default-avatar.png"
+              :src="
+                currentUser.imageUrl ||
+                require('@/assets/img/default-avatar.png')
+              "
               alt="Avatar"
               width="40"
               height="40"

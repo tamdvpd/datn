@@ -163,6 +163,9 @@ public class UserController {
             if (updates.containsKey("status"))
                 user.setStatus(Boolean.valueOf(updates.get("status").toString()));
 
+            if (updates.containsKey("imageUrl"))
+                user.setImageUrl((String) updates.get("imageUrl"));
+
             userService.updateUser(id, user);
 
             return ResponseEntity.ok("User updated successfully");

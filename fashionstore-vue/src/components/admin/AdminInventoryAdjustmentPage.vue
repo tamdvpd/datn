@@ -91,16 +91,20 @@
                 </table>
             </div>
         </div>
-        <nav aria-label="Page navigation example" class="mt-4">
+        <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
-                <li class="page-item disabled">
-                    <a class="page-link">Previous</a>
+                <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                    <a class="page-link" href="#"
+                        @click.prevent="fetchInventoryAdjustment(currentPage - 1)">Previous</a>
                 </li>
-                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#">Next</a>
+                <li v-for="page in visiblePages" :key="page" class="page-item"
+                    :class="{ active: currentPage === page }">
+                    <a class="page-link" href="#" @click.prevent="fetchInventoryAdjustment(page)">
+                        {{ page + 1 }}
+                    </a>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage === totalPages - 1 }">
+                    <a class="page-link" href="#" @click.prevent="fetchInventoryAdjustment(currentPage + 1)">Next</a>
                 </li>
             </ul>
         </nav>
@@ -124,13 +128,18 @@ export default {
             isEditing: false,
             showForm: false,
             showNotification: false,
+            currentPage: 0,
+            totalPages: 0,
             validationErrors: {}
         }
     },
     methods: {
-        fetchInventoryAdjustment() {
-            axios.get('http://localhost:8080/api/inventory_adjustment').then(Response => {
-                this.inventoryAdjustments = Response.data;
+        fetchInventoryAdjustment(page) {
+            const pageNumber = page !== undefined ? page : 0; // fix lỗi
+            axios.get(`http://localhost:8080/api/inventory_adjustment?page=${pageNumber}`).then(response => {
+                this.inventoryAdjustments = response.data.content;
+                this.currentPage = response.data.number;
+                this.totalPages = response.data.totalPages;
             }).catch(error => {
                 this.showNotify('Tải dữ liệu không thành công')
             })
@@ -205,8 +214,27 @@ export default {
             return dateStr ? new Date(dateStr).toLocaleString() : 'N/A';
         },
     },
+    computed: {
+        visiblePages() {
+            const maxPagesToShow = 5;
+            const pages = [];
+            let start = Math.max(0, this.currentPage - Math.floor(maxPagesToShow / 2));
+            let end = start + maxPagesToShow;
+
+            if (end > this.totalPages) {
+                end = this.totalPages;
+                start = Math.max(0, end - maxPagesToShow);
+            }
+
+            for (let i = start; i < end; i++) {
+                pages.push(i);
+            }
+
+            return pages;
+        }
+    },
     mounted() {
-        this.fetchInventoryAdjustment();
+        this.fetchInventoryAdjustment(this.currentPage);
     }
 }
 </script>

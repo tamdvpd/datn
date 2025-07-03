@@ -2,6 +2,8 @@ package com.fashionstore.fashionstore.service.impl;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.fashionstore.fashionstore.entity.InventoryAdjustment;
@@ -17,8 +19,8 @@ public class InventoryAdjustmentServiceImpl implements InventoryAdjustmentServic
     private final InventoryAdjustmentRepository inventoryAdjustmentRepository;
 
     @Override
-    public List<InventoryAdjustment> getAllInventoryAdjustment() {
-        return inventoryAdjustmentRepository.findAll();
+    public Page<InventoryAdjustment> getAllInventoryAdjustment(Pageable pageable) {
+        return inventoryAdjustmentRepository.findAll(pageable);
     }
 
     @Override

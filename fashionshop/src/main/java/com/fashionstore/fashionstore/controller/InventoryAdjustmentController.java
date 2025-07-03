@@ -2,6 +2,9 @@ package com.fashionstore.fashionstore.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fashionstore.fashionstore.entity.InventoryAdjustment;
@@ -28,8 +32,11 @@ public class InventoryAdjustmentController {
     private final InventoryAdjustmentService inventoryAdjustmentService;
 
     @GetMapping
-    public ResponseEntity<List<InventoryAdjustment>> getAll() {
-        return ResponseEntity.ok(inventoryAdjustmentService.getAllInventoryAdjustment());
+    public ResponseEntity<Page<InventoryAdjustment>> getAll(@RequestParam(defaultValue = "0") int page) {
+        int pageSize = 6;
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<InventoryAdjustment> result = inventoryAdjustmentService.getAllInventoryAdjustment(pageable);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping

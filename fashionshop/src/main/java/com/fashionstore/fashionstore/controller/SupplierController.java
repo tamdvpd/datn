@@ -17,13 +17,13 @@ public class SupplierController {
 
     private final SupplierService supplierService;
 
-    // ✅ Lấy tất cả nhà cung cấp
+    // Lấy tất cả nhà cung cấp
     @GetMapping
     public ResponseEntity<List<Supplier>> getAllSuppliers() {
         return ResponseEntity.ok(supplierService.getAllSuppliers());
     }
 
-    // ✅ Lấy nhà cung cấp theo ID
+    // Lấy nhà cung cấp theo ID
     @GetMapping("/{id}")
     public ResponseEntity<Supplier> getSupplierById(@PathVariable Integer id) {
         return supplierService.getSupplierById(id)
@@ -31,13 +31,13 @@ public class SupplierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ✅ Lấy danh sách nhà cung cấp đang hoạt động
+    // Lấy danh sách nhà cung cấp đang hoạt động
     @GetMapping("/active")
     public ResponseEntity<List<Supplier>> getActiveSuppliers() {
         return ResponseEntity.ok(supplierService.getActiveSuppliers());
     }
 
-    // ✅ Tạo mới
+    // Tạo mới
     @PostMapping
     public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
         try {
@@ -51,7 +51,7 @@ public class SupplierController {
         }
     }
 
-    // ✅ Cập nhật
+    // Cập nhật
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSupplier(@PathVariable Integer id, @Valid @RequestBody Supplier supplier) {
         if (supplierService.getSupplierById(id).isEmpty()) {
@@ -67,7 +67,7 @@ public class SupplierController {
         }
     }
 
-    // ✅ Xoá
+    // Xoá
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Integer id) {
         if (supplierService.getSupplierById(id).isEmpty()) {

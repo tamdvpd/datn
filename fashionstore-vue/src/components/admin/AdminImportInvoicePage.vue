@@ -120,7 +120,7 @@ export default {
     },
     async fetchSuppliers() {
       try {
-        const res = await fetch('http://localhost:8080/api/suppliers/active');git add .
+        const res = await fetch('http://localhost:8080/api/suppliers/active');
         const data = await res.json();
         this.suppliers = data;
       } catch (err) {

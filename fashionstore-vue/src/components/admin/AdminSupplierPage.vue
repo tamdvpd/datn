@@ -32,16 +32,20 @@
         </div>
 
         <div class="flex items-start gap-4">
-          <label class="w-48 pt-2 text-gray-700 font-medium">Email</label>
-          <div class="flex-1">
-            <input
-              v-model="form.email"
-              placeholder="Nhập email"
-              :class="['w-full border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400', errors.email ? 'border-red-500' : 'border-gray-300']"
-            />
-            <p v-if="errors.email" class="text-red-600 text-sm mt-1">{{ errors.email }}</p>
-          </div>
-        </div>
+  <label class="w-48 pt-2 text-gray-700 font-medium">Email</label>
+  <div class="flex-1">
+    <input
+      v-model="form.email"
+      placeholder="Nhập email"
+      :class="[
+        'w-full border rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400',
+        errors.email ? 'border-red-500' : 'border-gray-300'
+      ]"
+    />
+    
+    <p v-if="errors.email" class="text-red-600 text-sm mt-1">{{ errors.email }}</p>
+  </div>
+</div>
 
         <div class="flex items-start gap-4">
           <label class="w-48 pt-2 text-gray-700 font-medium">Số điện thoại</label>
@@ -191,36 +195,40 @@ export default {
         ? `http://localhost:8080/api/suppliers/${this.form.id}`
         : `http://localhost:8080/api/suppliers`;
 
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(this.form)
-        });
+        try {
+  const response = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(this.form)
+  });
 
-        const responseBody = await response.text();
-        if (!response.ok) {
-          try {
-            const errorData = JSON.parse(responseBody);
-            if (errorData.email) this.errors.email = errorData.email;
-            if (errorData.phoneNumber) this.errors.phoneNumber = errorData.phoneNumber;
-            if (errorData.name) this.errors.name = errorData.name;
-          } catch {
-            this.errors.general = responseBody;
-          }
-          this.showNotify('Thêm hoặc cập nhật thất bại!', 'error');
-          throw new Error(responseBody);
-        }
+  const text = await response.text();
 
-        this.fetchSuppliers();
-        this.resetForm();
-        this.showForm = false;
-        this.showNotify(this.form.id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
-      } catch (err) {
-        console.error('❌ Lỗi xử lý:', err);
-      }
+  if (!response.ok) {
+    try {
+      const json = JSON.parse(text);
+      this.errors = {
+        email: json.email || '',
+        phoneNumber: json.phoneNumber || '',
+        name: json.name || '',
+        address: json.address || '',
+        general: json.general || json.error || ''
+      };
+    } catch {
+      this.errors = { general: text || 'Đã xảy ra lỗi không xác định.' };
+    }
+
+    this.showNotify('Thêm hoặc cập nhật thất bại!', 'error');
+    throw new Error(text);
+  }
+
+  this.fetchSuppliers();
+  this.resetForm();
+  this.showForm = false;
+  this.showNotify(this.form.id ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+} catch (err) {
+  console.error('❌ Lỗi xử lý:', err.message);
+}
     },
     editSupplier(supplier) {
       this.form = { ...supplier };

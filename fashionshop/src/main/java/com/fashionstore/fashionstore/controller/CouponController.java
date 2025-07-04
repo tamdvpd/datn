@@ -35,7 +35,7 @@ public class CouponController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Coupon> update(@PathVariable Integer id, @Valid @RequestBody Coupon coupon) {
-        return ResponseEntity.ok(couponService.updateCoupon(id, coupon));
+        return ResponseEntity.status(201).body(couponService.updateCoupon(id, coupon));
     }
 
     @DeleteMapping("/{id}")

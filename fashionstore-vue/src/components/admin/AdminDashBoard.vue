@@ -18,8 +18,10 @@
         <aside class="col-md-2 bg-light pt-3 admin-sidebar">
           <ul class="nav flex-column">
             <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 QUẢN LÝ DANH MỤC</router-link></li>
-            <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕 QUẢN LÝ SẢN PHẨM</router-link></li>
+            <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 QUẢN LÝ DANH MỤC</router-link>
+            </li>
+            <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕 QUẢN LÝ SẢN PHẨM</router-link>
+            </li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 QUẢN LÝ ĐƠN HÀNG</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/coupons">🏷️ QUẢN LÝ MÃ GIẢM GIÁ</router-link></li>
             <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 QUẢN LÝ THANH TOÁN</router-link></li>
@@ -62,6 +64,7 @@ export default {
   color: #000;
   margin-bottom: 5px;
 }
+
 .admin-sidebar .nav-link.router-link-exact-active,
 .admin-sidebar .nav-link:hover {
   background-color: #e0f7fa;

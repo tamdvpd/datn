@@ -13,12 +13,12 @@ import OrderManager from '@/components/admin/AdminOrderPage.vue';
 import ReportPage from '@/components/admin/AdminReportPage.vue';
 import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
 import PaymentPage from "@/components/admin/AdminPaymentPage.vue";
-import AdminShippingPage from "@/components/admin/AdminShippingPage.vue";
 import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
 import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
+import AdminShippingProvider from "@/components/admin/AdminShippingProvider.vue";
 import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
 import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
 import ProfilePage from "@/components/views/ProfilePage.vue";
@@ -38,7 +38,7 @@ const routes = [
     component: AdminDashBoard,
     children: [
       {
-        path: "", 
+        path: "",
         component: AdminHomePage,
       },
       {
@@ -67,7 +67,7 @@ const routes = [
       },
       {
         path: "shipping",
-        component: AdminShippingPage,
+        component: AdminShippingProvider,
       },
       {
         path: "supplier",
@@ -96,7 +96,7 @@ const routes = [
       {
         path: "users",
         component: AdminUserPage,
-      },
+      }
     ],
   },
 ];
@@ -105,6 +105,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+
 
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'));

@@ -21,10 +21,10 @@ public class GlobalExceptionHandler {
     }
 
     // Ánh xạ tên constraint từ DB -> tên field trong entity
-    private static final Map<String, String> constraintToFieldMap = Map.of(
-            "uq__coupons__code", "code",
-            "uq__users__email", "email"
-    // bạn có thể thêm các constraint khác tại đây
+    private static final Map<String, String> constraintToFieldMap = Map.ofEntries(
+            Map.entry("uq__coupons__code", "code"),
+            Map.entry("uq__users__email", "email"),
+            Map.entry("uq__suppliers__phone_number", "phoneNumber") 
     );
 
     // Xử lý lỗi vi phạm UNIQUE constraint
@@ -39,6 +39,7 @@ public class GlobalExceptionHandler {
                 String friendlyMessage = switch (field) {
                     case "code" -> "Mã giảm giá đã tồn tại";
                     case "email" -> "Email đã được sử dụng";
+                    case "phoneNumber" -> "Số điện thoại đã tồn tại"; 
                     default -> "Dữ liệu đã tồn tại";
                 };
                 errors.put(field, friendlyMessage);
@@ -49,5 +50,4 @@ public class GlobalExceptionHandler {
         errors.put("error", "Dữ liệu đã tồn tại hoặc vi phạm ràng buộc");
         return ResponseEntity.badRequest().body(errors);
     }
-
 }

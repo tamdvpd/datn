@@ -43,11 +43,9 @@ onMounted(() => {
 
 function handleLogin() {
   axios
-    .post("http://localhost:8080/users/auth/login", null, {
-      params: {
-        email: loginForm.value.email,
-        password: loginForm.value.password,
-      },
+    .post("http://localhost:8080/users/auth/login", {
+      email: loginForm.value.email,
+      password: loginForm.value.password
     })
     .then((response) => {
       alert("Đăng nhập thành công!");
@@ -55,10 +53,23 @@ function handleLogin() {
       router.push("/");
     })
     .catch((error) => {
+      if (error.response) {
+        if (error.response.status === 403) {
+          alert(error.response.data?.message || "Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên.");
+        } else if (error.response.status === 401) {
+          alert(error.response.data?.message || "Email hoặc mật khẩu không chính xác.");
+        } else {
+          alert(error.response.data?.message || "Đăng nhập thất bại! Vui lòng thử lại sau.");
+        }
+      } else {
+        alert("Không thể kết nối tới máy chủ.");
+      }
       console.error(error);
-      alert("Đăng nhập thất bại! Vui lòng kiểm tra thông tin.");
     });
 }
+
+
+
 </script>
 
 <style scoped>

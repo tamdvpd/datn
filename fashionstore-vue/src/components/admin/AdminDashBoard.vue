@@ -55,27 +55,19 @@
           <div class="offcanvas-body p-0">
             <ul class="nav flex-column px-2">
               <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 QUẢN LÝ DANH
-                  MỤC</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕 QUẢN LÝ SẢN PHẨM</router-link>
-              </li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 QUẢN LÝ ĐƠN HÀNG</router-link>
-              </li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/coupons">🏷️ QUẢN LÝ MÃ GIẢM
-                  GIÁ</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 QUẢN LÝ THANH
-                  TOÁN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 QUẢN LÝ VẬN
-                  CHUYỂN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 QUẢN LÝ KHO HÀNG</router-link>
-              </li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 QUẢN LÝ PHIẾU NHẬP</router-link>
-              </li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 QUẢN LÝ NGƯỜI DÙNG</router-link>
-              </li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 QUẢN LÝ GIAO DIỆN</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 QUẢN LÝ NHÀ CUNG
-                  CẤP</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂DANH MỤC</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕SẢN PHẨM</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 ĐƠN HÀNG</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/coupons">🏷️ MÃ GIẢM GIÁ</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/payments">💳 THANH TOÁN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 VẬN CHUYỂN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 KHO HÀNG</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
+                  CHỈNH</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨GIAO DIỆN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭NHÀ CUNG CẤP</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
               </li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link>
@@ -83,7 +75,6 @@
             </ul>
           </div>
         </div>
-
         <!-- Main Content -->
         <main class="col-md-10 ms-auto p-4">
           <router-view></router-view>
@@ -96,6 +87,12 @@
 <script>
 export default {
   name: 'AdminDashBoard',
+  methods: {
+    handleLogout() {
+      localStorage.removeItem('user'); // Xóa token hoặc dữ liệu user
+      this.$router.push('/login');     // Điều hướng về trang Login
+    }
+  }
 };
 </script>
 

@@ -148,23 +148,50 @@ public class UserController {
             User user = userService.getUserById(id)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            if (updates.containsKey("fullName"))
+            // Cập nhật họ tên
+            if (updates.containsKey("fullName") && updates.get("fullName") instanceof String)
                 user.setFullName((String) updates.get("fullName"));
 
-            if (updates.containsKey("role"))
-                user.setRole((String) updates.get("role"));
-
-            if (updates.containsKey("address"))
+            // Cập nhật địa chỉ
+            if (updates.containsKey("address") && updates.get("address") instanceof String)
                 user.setAddress((String) updates.get("address"));
 
-            if (updates.containsKey("phoneNumber"))
+            // Cập nhật số điện thoại
+            if (updates.containsKey("phoneNumber") && updates.get("phoneNumber") instanceof String)
                 user.setPhoneNumber((String) updates.get("phoneNumber"));
 
-            if (updates.containsKey("status"))
-                user.setStatus(Boolean.valueOf(updates.get("status").toString()));
+            // Cập nhật avatar
+            if (updates.containsKey("imageUrl") && updates.get("imageUrl") instanceof String) {
+                String imageUrl = (String) updates.get("imageUrl");
 
-            if (updates.containsKey("imageUrl"))
-                user.setImageUrl((String) updates.get("imageUrl"));
+                // Kiểm tra nếu là base64, có thể từ chối hoặc xử lý riêng
+                if (imageUrl.startsWith("data:image/")) {
+                    throw new RuntimeException(
+                            "Không hỗ trợ lưu ảnh dạng base64 vào database. Vui lòng upload ảnh trước.");
+                }
+
+                user.setImageUrl(imageUrl);
+            }
+
+            // Cập nhật trạng thái
+            if (updates.containsKey("status") && updates.get("status") != null) {
+                Object statusObj = updates.get("status");
+                if (statusObj instanceof Boolean) {
+                    user.setStatus((Boolean) statusObj);
+                } else {
+                    user.setStatus(Boolean.parseBoolean(statusObj.toString()));
+                }
+            }
+
+            // Cập nhật provider nếu cần
+            if (updates.containsKey("provider") && updates.get("provider") instanceof String)
+                user.setProvider((String) updates.get("provider"));
+
+            // Không cho phép sửa role từ phía user nếu không cần thiết
+            if (updates.containsKey("role")) {
+                // Bỏ qua hoặc cho phép cập nhật nếu cần
+                // user.setRole((String) updates.get("role"));
+            }
 
             userService.updateUser(id, user);
 

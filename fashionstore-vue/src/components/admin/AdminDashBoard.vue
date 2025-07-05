@@ -14,7 +14,7 @@
       </div>
       <div>
         <button class="btn btn-outline-secondary me-2">🔐 Tài khoản</button>
-        <router-link to="/logout" class="btn btn-outline-danger">⬆️ Đăng xuất</router-link>
+        <button class="btn btn-outline-danger" @click="handleLogout">⬆️ Đăng xuất</button>
       </div>
     </nav>
 

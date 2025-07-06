@@ -1,17 +1,20 @@
 package com.fashionstore.fashionstore.service.impl;
 
-import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.repository.ProductDetailRepository;
-import com.fashionstore.fashionstore.repository.ProductRepository;
-import com.fashionstore.fashionstore.service.ProductService;
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import com.fashionstore.fashionstore.entity.Product;
+import com.fashionstore.fashionstore.repository.ProductDetailRepository;
+import com.fashionstore.fashionstore.repository.ProductRepository;
+import com.fashionstore.fashionstore.service.ProductService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -36,12 +39,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(Product product) {
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
         return productRepository.save(product);
     }
 
     @Override
     public Product updateProduct(Integer id, Product product) {
         product.setId(id);
+        product.setUpdatedAt(LocalDateTime.now());
         return productRepository.save(product);
     }
 

@@ -23,29 +23,74 @@
             />
           </div>
         </div>
+
         <div class="section-title">SẢN PHẨM BÁN CHẠY</div>
 
         <div class="row g-3">
-          <div class="col-md-3" v-for="n in 4" :key="'top-' + n">
-            <div class="position-relative product-card">
-              <img :src="require(`@/assets/img/img${n}.jpg`)" class="img-fluid" alt="Product Image" />
+          <div
+            class="col-md-3"
+            v-for="prod in products.slice(0, 4)"
+            :key="prod.id"
+          >
+            <div class="position-relative product-card p-2 border rounded">
+              <img
+                :src="getImageUrl(prod.imageUrl)"
+                class="img-fluid"
+                alt="Product Image"
+              />
               <div class="mt-2">
-                <div class="product-name">Sản phẩm {{ n }}</div>
-                <div class="product-price">Giá: {{ 200000 + n * 50000 }} VNĐ</div>
+                <div class="product-name">{{ prod.name }}</div>
+                <div class="product-price">Giá: {{ formatPrice(prod.price) }}</div>
+              </div>
+              <div class="mt-2 d-flex justify-content-between">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  @click="addToWishlist(prod)"
+                >
+                  ❤️ Yêu thích
+                </button>
+                <router-link
+                  :to="`/products/${prod.id}`"
+                  class="btn btn-sm btn-outline-success"
+                >
+                  🔍 Xem chi tiết
+                </router-link>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="section-title">SẢN PHẨM SALE</div>
+        <div class="section-title">TẤT CẢ SẢN PHẨM</div>
 
         <div class="row g-3">
-          <div class="col-md-3" v-for="n in 4" :key="'sale-' + n">
-            <div class="position-relative product-card">
-              <img :src="require(`@/assets/img/img${5 - n}.jpg`)" class="img-fluid" alt="Product Image" />
+          <div
+            class="col-md-3"
+            v-for="prod in products"
+            :key="'all-' + prod.id"
+          >
+            <div class="position-relative product-card p-2 border rounded">
+              <img
+                :src="getImageUrl(prod.imageUrl)"
+                class="img-fluid"
+                alt="Product Image"
+              />
               <div class="mt-2">
-                <div class="product-name">Sản phẩm sale {{ n }}</div>
-                <div class="product-price">Giá: {{ 150000 + n * 30000 }} VNĐ</div>
+                <div class="product-name">{{ prod.name }}</div>
+                <div class="product-price">Giá: {{ formatPrice(prod.price) }}</div>
+              </div>
+              <div class="mt-2 d-flex justify-content-between">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  @click="addToWishlist(prod)"
+                >
+                  ❤️ Yêu thích
+                </button>
+                <router-link
+                  :to="`/products/${prod.id}`"
+                  class="btn btn-sm btn-outline-success"
+                >
+                  🔍 Xem chi tiết
+                </router-link>
               </div>
             </div>
           </div>
@@ -65,6 +110,34 @@ export default {
   components: {
     MainHeader,
     MainFooter,
+  },
+  data() {
+    return {
+      products: [],
+    };
+  },
+  methods: {
+    getImageUrl(path) {
+      if (!path) return require('@/assets/img/default-avatar.png');
+      if (path.startsWith('http')) return path;
+      return `http://localhost:8080${path}`;
+    },
+    formatPrice(value) {
+      if (!value) return 'Liên hệ';
+      return new Intl.NumberFormat('vi-VN').format(value) + ' VNĐ';
+    },
+    addToWishlist(product) {
+      alert(`Đã thêm "${product.name}" vào mục yêu thích!`);
+      // Hoặc lưu vào Vuex/store nếu bạn muốn
+    },
+  },
+  mounted() {
+    fetch('http://localhost:8080/products')
+      .then(res => res.json())
+      .then(data => {
+        this.products = data;
+      })
+      .catch(err => console.error('Lỗi tải sản phẩm:', err));
   },
 };
 </script>

@@ -4,6 +4,7 @@ import com.fashionstore.fashionstore.entity.Product;
 import com.fashionstore.fashionstore.entity.ProductDetail;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductDetailRepository extends JpaRepository<ProductDetail, Integer> {
+     List<ProductDetail> findByProductId(Integer productId);
 
     @Query("SELECT DISTINCT pd.product FROM ProductDetail pd WHERE " +
            "(:name IS NULL OR LOWER(pd.product.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
@@ -28,4 +30,83 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     ) {
         throw new UnsupportedOperationException("Unimplemented method 'searchProducts'");
     }
+    public static ProductDetailBuilder builder() {
+        return new ProductDetailBuilder();
+    }
+
+    public static class ProductDetailBuilder {
+        private Integer id;
+        private Product product;
+        private String color;
+        private String size;
+        private Integer quantity;
+        private BigDecimal price;
+        private BigDecimal discountPrice;
+        private String imageUrl;
+        private BigDecimal weight;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public ProductDetailBuilder id(Integer id) {
+            this.id = id;
+            return this;
+        }
+        public ProductDetailBuilder product(Product product) {
+            this.product = product;
+            return this;
+        }
+        public ProductDetailBuilder color(String color) {
+            this.color = color;
+            return this;
+        }
+        public ProductDetailBuilder size(String size) {
+            this.size = size;
+            return this;
+        }
+        public ProductDetailBuilder quantity(Integer quantity) {
+            this.quantity = quantity;
+            return this;
+        }
+        public ProductDetailBuilder price(BigDecimal price) {
+            this.price = price;
+            return this;
+        }
+        public ProductDetailBuilder discountPrice(BigDecimal discountPrice) {
+            this.discountPrice = discountPrice;
+            return this;
+        }
+        public ProductDetailBuilder imageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+            return this;
+        }
+        public ProductDetailBuilder weight(BigDecimal weight) {
+            this.weight = weight;
+            return this;
+        }
+        public ProductDetailBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+        public ProductDetailBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public ProductDetail build() {
+            ProductDetail productDetail = new ProductDetail();
+            productDetail.setId(id);
+            productDetail.setProduct(product);
+            productDetail.setColor(color);
+            productDetail.setSize(size);
+            productDetail.setQuantity(quantity);
+            productDetail.setPrice(price);
+            productDetail.setDiscountPrice(discountPrice);
+            productDetail.setImageUrl(imageUrl);
+            productDetail.setWeight(weight);
+            productDetail.setCreatedAt(createdAt);
+            productDetail.setUpdatedAt(updatedAt);
+            return productDetail;
+        }
+    }
+// ...existing code...
 }

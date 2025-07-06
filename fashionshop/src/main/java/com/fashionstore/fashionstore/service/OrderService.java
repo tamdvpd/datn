@@ -10,13 +10,22 @@ import java.util.Optional;
 
 public interface OrderService {
     List<Order> getAllOrders();
+
     Page<Order> getAllOrders(Pageable pageable);
+
     Optional<Order> getOrderById(Integer id);
+
     Order createOrder(Order order);
+
     Order updateOrder(Integer id, Order order);
+
     void deleteOrder(Integer id);
+
     List<Order> getOrdersByUser(Long userId);
+
     List<Order> getOrdersByUserAndStatus(Long userId, String status);
+
     Order createOrder(CreateOrderRequest request);
 
+    Integer quickBuy(Long userId, QuickBuyRequest req);
 }

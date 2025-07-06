@@ -1,9 +1,12 @@
 package com.fashionstore.fashionstore.service.impl;
 
 import com.fashionstore.fashionstore.dto.CreateOrderRequest;
+import com.fashionstore.fashionstore.dto.QuickBuyRequest;
 import com.fashionstore.fashionstore.entity.*;
 import com.fashionstore.fashionstore.repository.*;
 import com.fashionstore.fashionstore.service.OrderService;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +30,6 @@ public class OrderServiceImpl implements OrderService {
     private final InventoryLogRepository inventoryLogRepo;
     private final ShippingProviderRepository shippingProviderRepo;
     private final PaymentMethodRepository paymentMethodRepo;
-
     @Override
     public List<Order> getAllOrders() {
         return orderRepo.findAll();
@@ -67,6 +69,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepo.findByUserIdAndStatus(userId, status);
     }
 
+    @Override
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
         BigDecimal total = BigDecimal.ZERO;
@@ -154,5 +157,47 @@ public class OrderServiceImpl implements OrderService {
         order = orderRepo.save(order);
 
         return order;
+    }
+    @Override
+    public Integer quickBuy(Long userId, QuickBuyRequest req) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        ProductDetail detail = productDetailRepo.findById(req.getProductDetailId())
+                .orElseThrow(() -> new EntityNotFoundException("Variant not found"));
+
+        if (detail.getQuantity() < req.getQuantity()) {
+            throw new IllegalStateException("Không đủ số lượng sản phẩm trong kho");
+        }
+
+        detail.setQuantity(detail.getQuantity() - req.getQuantity());
+        productDetailRepo.save(detail);
+
+        Order order = new Order();
+        order.setUser(user);
+        order.setStatus("PENDING");
+        order.setCreatedAt(LocalDateTime.now());
+
+        OrderDetail od = new OrderDetail();
+        od.setOrder(order);
+        od.setProductDetail(detail);
+        od.setQuantity(req.getQuantity());
+        od.setUnitPrice(detail.getDiscountPrice());
+
+        order.setDetails(List.of(od));
+        order.setTotalAmount(detail.getDiscountPrice()
+                .multiply(BigDecimal.valueOf(req.getQuantity())));
+
+        orderRepo.save(order);
+
+        InventoryLog log = new InventoryLog();
+        log.setProductDetail(detail);
+        log.setAction("EXPORT");
+        log.setQuantity(-req.getQuantity());
+        log.setReferenceType("Order");
+        log.setReferenceId(order.getId());
+        log.setCreatedAt(LocalDateTime.now());
+        inventoryLogRepo.save(log);
+
+        return order.getId();
     }
 }

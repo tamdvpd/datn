@@ -1,12 +1,14 @@
 package com.fashionstore.fashionstore.controller;
 
 import com.fashionstore.fashionstore.dto.CreateOrderRequest;
+import com.fashionstore.fashionstore.dto.QuickBuyRequest;
 import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.entity.PaymentMethod;
 import com.fashionstore.fashionstore.entity.ShippingProvider;
 import com.fashionstore.fashionstore.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,10 +51,22 @@ public class OrderController {
             @PathVariable String status) {
         return ResponseEntity.ok(orderService.getOrdersByUserAndStatus(userId, status));
     }
+
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody CreateOrderRequest request) {
         Order order = orderService.createOrder(request);
         return ResponseEntity.ok(order);
+    }
+
+    @PostMapping("/quick-buy")
+    public ResponseEntity<Integer> quickBuy(@RequestBody QuickBuyRequest req,
+            @AuthenticationPrincipal 
+            com.fashionstore.fashionstore.entity.User user) {
+        Integer orderId = orderService.quickBuy(req, user);
+        if (orderId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(orderId);
     }
 
 }

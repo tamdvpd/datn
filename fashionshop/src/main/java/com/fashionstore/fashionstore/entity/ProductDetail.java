@@ -5,6 +5,9 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fashionstore.fashionstore.repository.ProductDetailRepository;
+
 import java.math.BigDecimal;
 
 @Data
@@ -63,4 +66,5 @@ public class ProductDetail {
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
+    
 }

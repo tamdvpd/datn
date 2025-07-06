@@ -15,6 +15,8 @@ import lombok.*;
 @Builder
 public class ShippingProvider {
 
+    public static Object DEFAULT;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

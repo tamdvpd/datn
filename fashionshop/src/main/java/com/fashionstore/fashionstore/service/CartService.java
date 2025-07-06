@@ -1,5 +1,7 @@
 package com.fashionstore.fashionstore.service;
 
-public interface CartService {
+import com.fashionstore.fashionstore.dto.AddToCartRequest;
 
+public interface CartService {
+    void addToCart(Long userId, AddToCartRequest req);
 }

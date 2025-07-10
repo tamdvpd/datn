@@ -14,6 +14,8 @@
           <input v-model="loginForm.password" type="password" class="form-control" placeholder="Mật khẩu" required />
         </div>
         <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+        <GoogleLogin :onSuccess="onGoogleSuccess" :onError="onGoogleError" />
+
       </form>
       <div class="text-center mt-3">
         <span>Chưa có tài khoản? <router-link to="/register">Đăng ký</router-link></span>
@@ -26,6 +28,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { GoogleLogin } from 'vue3-google-login'  // 👈 THÊM DÒNG NÀY
 
 const router = useRouter();
 
@@ -35,8 +38,8 @@ const loginForm = ref({
 });
 
 onMounted(() => {
-  const user = localStorage.getItem("user");
-  if (user) {
+  const jwt = localStorage.getItem("jwt");
+  if (jwt) {
     router.push("/");
   }
 });
@@ -55,11 +58,11 @@ function handleLogin() {
     .catch((error) => {
       if (error.response) {
         if (error.response.status === 403) {
-          alert(error.response.data?.message || "Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên.");
+          alert(error.response.data?.message || "Tài khoản đã bị khóa.");
         } else if (error.response.status === 401) {
           alert(error.response.data?.message || "Email hoặc mật khẩu không chính xác.");
         } else {
-          alert(error.response.data?.message || "Đăng nhập thất bại! Vui lòng thử lại sau.");
+          alert("Đăng nhập thất bại.");
         }
       } else {
         alert("Không thể kết nối tới máy chủ.");
@@ -68,9 +71,30 @@ function handleLogin() {
     });
 }
 
+// ✅ Hàm xử lý thành công từ Google
+const onGoogleSuccess = async (response) => {
+  const idToken = response.credential;
+  try {
+    const res = await fetch("http://localhost:8080/users/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken })
+    });
+    const data = await res.json();
+    localStorage.setItem("jwt", data.jwt);
+    alert("Đăng nhập Google thành công!");
+    router.push("/");
+  } catch (error) {
+    console.error(error);
+    alert("Đăng nhập Google thất bại.");
+  }
+};
 
-
+const onGoogleError = () => {
+  alert("Google login không thành công.");
+};
 </script>
+
 
 <style scoped>
 .auth-container {

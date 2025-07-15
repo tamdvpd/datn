@@ -12,6 +12,8 @@ import router from './router'
 
 // 👉 Đúng plugin
 import GoogleLogin from 'vue3-google-login'
+// Cài đặt Facebook Login
+import { FacebookLogin } from 'vue-facebook-login-component'
 
 const app = createApp(App)
 app.config.globalProperties.$axios = axios

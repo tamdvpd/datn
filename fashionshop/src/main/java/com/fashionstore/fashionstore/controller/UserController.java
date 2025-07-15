@@ -1,12 +1,26 @@
 package com.fashionstore.fashionstore.controller;
 
 import com.fashionstore.fashionstore.entity.User;
+import com.fashionstore.fashionstore.repository.UserRepository;
+import com.fashionstore.fashionstore.service.JwtService;
 import com.fashionstore.fashionstore.service.UserService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+
+import com.google.api.client.json.jackson2.JacksonFactory;
+
+import jakarta.validation.Payload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
+
+import java.util.Collections;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +34,8 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     public static class ErrorResponse {
         private String message;
@@ -201,5 +217,51 @@ public class UserController {
                     .body(new ErrorResponse("Error: " + e.getMessage()));
         }
     }
+@PostMapping("/auth/google")
+public ResponseEntity<?> loginWithGoogle(@RequestBody Map<String, String> payload) {
+    String idToken = payload.get("idToken");
+
+    GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+            new NetHttpTransport(), JacksonFactory.getDefaultInstance())
+            .setAudience(Collections.singletonList("1084049649244-xxx.apps.googleusercontent.com")) // thay bằng ID thực tế
+            .build();
+
+    try {
+        GoogleIdToken token = verifier.verify(idToken);
+        if (token != null) {
+            GoogleIdToken.Payload googlePayload = token.getPayload();
+
+            String email = googlePayload.getEmail();
+            String name = googlePayload.get("name") != null ? googlePayload.get("name").toString() : "";
+            String picture = googlePayload.get("picture") != null ? googlePayload.get("picture").toString() : "";
+            String providerId = googlePayload.getSubject();
+
+            // Tìm hoặc tạo người dùng
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user == null) {
+                user = new User();
+                user.setEmail(email);
+                user.setFullName(name);
+                user.setImageUrl(picture);
+                user.setPassword(""); // không dùng cho Google
+                user.setProvider("GOOGLE");
+                user.setProviderId(providerId);
+                user.setRole("USER");
+                user.setStatus(true);
+                userRepository.save(user);
+            }
+
+            String jwt = jwtService.generateToken(user.getEmail());
+            return ResponseEntity.ok(Map.of("jwt", jwt));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token không hợp lệ");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Đăng nhập thất bại");
+    }
+}
+
+
 
 }

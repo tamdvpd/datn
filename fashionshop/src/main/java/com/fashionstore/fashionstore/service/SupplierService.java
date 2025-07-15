@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.Supplier;
 
 import java.util.List;
@@ -21,3 +22,8 @@ public interface SupplierService {
     Supplier updateSupplier(Integer id, Supplier supplier);
     void deleteSupplier(Integer id);
 }
+=======
+public interface SupplierService {
+
+}
+>>>>>>> Stashed changes

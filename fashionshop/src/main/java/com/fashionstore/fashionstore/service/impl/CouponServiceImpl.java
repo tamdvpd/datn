@@ -43,8 +43,11 @@ public class CouponServiceImpl implements CouponService {
         existing.setCode(coupon.getCode());
         existing.setDiscountPercent(coupon.getDiscountPercent());
         existing.setExpiryDate(coupon.getExpiryDate());
+<<<<<<< Updated upstream
         existing.setQuantity(coupon.getQuantity());
         existing.setStatus(coupon.getStatus());
+=======
+>>>>>>> Stashed changes
         return couponRepository.save(existing);
     }
 

@@ -30,4 +30,9 @@ public class InventoryLog {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void setProductDetail(Order detail) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setProductDetail'");
+    }
 }

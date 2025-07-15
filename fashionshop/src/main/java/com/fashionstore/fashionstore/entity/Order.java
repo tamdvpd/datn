@@ -67,7 +67,11 @@ public class Order {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+<<<<<<< Updated upstream
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails = new ArrayList<>();
+
+=======
+>>>>>>> Stashed changes
 }

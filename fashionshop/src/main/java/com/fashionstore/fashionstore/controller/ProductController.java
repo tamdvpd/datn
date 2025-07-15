@@ -1,6 +1,5 @@
 package com.fashionstore.fashionstore.controller;
 
-import com.fashionstore.fashionstore.dto.ProductSimpleDTO;
 import com.fashionstore.fashionstore.entity.Product;
 import com.fashionstore.fashionstore.entity.Review;
 import com.fashionstore.fashionstore.service.ProductService;
@@ -56,10 +55,5 @@ public class ProductController {
     @GetMapping("/{id}/reviews")
     public List<Review> getReviews(@PathVariable Integer id) {
         return productService.getReviews(id);
-    }
-
-    @GetMapping("/{id}/suggested")
-    public List<ProductSimpleDTO> getSuggested(@PathVariable Integer id) {
-        return productService.getSuggestedProducts(id);
     }
 }

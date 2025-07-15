@@ -2,6 +2,7 @@
   <div class="p-4">
     <h2>👤 Quản lý người dùng</h2>
     <p>Thông tin tài khoản người dùng và phân quyền.</p>
+<<<<<<< Updated upstream
 
     <table border="1" cellpadding="8" cellspacing="0" style="margin-top: 16px; width: 100%;">
       <thead>
@@ -168,3 +169,12 @@ button {
   cursor: pointer;
 }
 </style>
+=======
+  </div>
+</template>
+<script>
+export default {
+  name: 'AdminUserPage',
+};
+</script>
+>>>>>>> Stashed changes

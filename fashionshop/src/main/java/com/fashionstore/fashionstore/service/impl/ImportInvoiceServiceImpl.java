@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service.impl;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.ImportInvoice;
 import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.repository.ImportInvoiceRepository;
@@ -66,3 +67,8 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
         importInvoiceRepository.deleteById(id);
     }
 }
+=======
+public class ImportInvoiceServiceImpl {
+
+}
+>>>>>>> Stashed changes

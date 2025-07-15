@@ -1,11 +1,13 @@
 package com.fashionstore.fashionstore.repository;
 
+import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.entity.Product;
 import com.fashionstore.fashionstore.entity.ProductDetail;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,6 +32,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     ) {
         throw new UnsupportedOperationException("Unimplemented method 'searchProducts'");
     }
+    
     public static ProductDetailBuilder builder() {
         return new ProductDetailBuilder();
     }
@@ -92,21 +95,6 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
             return this;
         }
 
-        public ProductDetail build() {
-            ProductDetail productDetail = new ProductDetail();
-            productDetail.setId(id);
-            productDetail.setProduct(product);
-            productDetail.setColor(color);
-            productDetail.setSize(size);
-            productDetail.setQuantity(quantity);
-            productDetail.setPrice(price);
-            productDetail.setDiscountPrice(discountPrice);
-            productDetail.setImageUrl(imageUrl);
-            productDetail.setWeight(weight);
-            productDetail.setCreatedAt(createdAt);
-            productDetail.setUpdatedAt(updatedAt);
-            return productDetail;
-        }
+        
     }
-// ...existing code...
 }

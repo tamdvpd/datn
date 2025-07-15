@@ -1,4 +1,5 @@
 <template>
+<<<<<<< Updated upstream
   <div class="p-6 bg-white rounded-xl shadow-lg max-w-7xl mx-auto">
     <!-- Tiêu đề và nút Thêm -->
     <div class="flex justify-between items-center mb-6 border-b pb-2">
@@ -189,3 +190,15 @@ export default {
 </script>
 
 
+=======
+  <div class="p-4">
+    <h2>📂 Quản lý danh mục</h2>
+    <p>Quản lý danh mục sản phẩm tại đây.</p>
+  </div>
+</template>
+<script>
+export default {
+  name: 'AdminCategoryPage',
+};
+</script>
+>>>>>>> Stashed changes

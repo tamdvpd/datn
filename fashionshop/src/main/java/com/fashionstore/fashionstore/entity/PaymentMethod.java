@@ -22,8 +22,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentMethod {
+<<<<<<< Updated upstream
     public static Object COD;
 
+=======
+>>>>>>> Stashed changes
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

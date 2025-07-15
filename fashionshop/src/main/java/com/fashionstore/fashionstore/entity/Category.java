@@ -24,12 +24,18 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+<<<<<<< Updated upstream
     @NotBlank(message = "Tên danh mục không được để trống")
     @Size(max = 100, message = "Tên danh mục tối đa 100 ký tự")
     @Column(nullable = false, length = 100)
     private String name;
 
     @Size(max = 255, message = "Mô tả tối đa 255 ký tự")
+=======
+    @Column(nullable = false, length = 100)
+    private String name;
+
+>>>>>>> Stashed changes
     @Column(length = 255)
     private String description;
 
@@ -39,6 +45,7 @@ public class Category {
     @Column(nullable = false)
     private Boolean status = true;
 
+<<<<<<< Updated upstream
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -59,4 +66,14 @@ public class Category {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+=======
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private List<Product> product = new ArrayList<>();
+>>>>>>> Stashed changes
 }

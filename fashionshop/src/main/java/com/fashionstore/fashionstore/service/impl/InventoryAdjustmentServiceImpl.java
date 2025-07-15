@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service.impl;
 
+<<<<<<< Updated upstream
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -37,5 +38,8 @@ public class InventoryAdjustmentServiceImpl implements InventoryAdjustmentServic
     public void deleteInventoryAdjustment(Integer id) {
         inventoryAdjustmentRepository.deleteById(id);
     }
+=======
+public class InventoryAdjustmentServiceImpl {
+>>>>>>> Stashed changes
 
 }

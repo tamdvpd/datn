@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.ImportInvoice;
 
 import java.util.List;
@@ -15,4 +16,8 @@ public interface ImportInvoiceService {
     ImportInvoice updateImportInvoice(Integer id, ImportInvoice invoice);
 
     void deleteImportInvoice(Integer id);
+=======
+public interface ImportInvoiceService {
+
+>>>>>>> Stashed changes
 }

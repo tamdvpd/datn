@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.controller;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.service.SupplierService;
 import jakarta.validation.Valid;
@@ -76,4 +77,8 @@ public class SupplierController {
         supplierService.deleteSupplier(id);
         return ResponseEntity.noContent().build();
     }
+=======
+public class SupplierController {
+
+>>>>>>> Stashed changes
 }

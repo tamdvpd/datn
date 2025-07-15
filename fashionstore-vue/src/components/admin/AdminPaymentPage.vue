@@ -1,5 +1,6 @@
 <template>
   <div>
+<<<<<<< Updated upstream
     <h2 class="text-center d-block">💳 Quản lý phương thức thanh toán</h2>
     <div class="table-responsive">
       <transition name="fade-slide">
@@ -215,3 +216,9 @@ export default {
   }
 }
 </style>
+=======
+    <h2 class="mb-4">Quản lý thanh toán</h2>
+    <p>Danh sách giao dịch, trạng thái thanh toán, đã thanh toán hay chưa</p>
+  </div>
+</template>
+>>>>>>> Stashed changes

@@ -3,7 +3,10 @@ package com.fashionstore.fashionstore.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+<<<<<<< Updated upstream
 import org.springframework.web.bind.annotation.CrossOrigin;
+=======
+>>>>>>> Stashed changes
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,9 +19,14 @@ import com.fashionstore.fashionstore.service.PaymentMethodService;
 
 import lombok.RequiredArgsConstructor;
 
+<<<<<<< Updated upstream
 @CrossOrigin(origins = "http://localhost:3001/")
 @RestController
 @RequestMapping("/api/payment_method")
+=======
+@RestController
+@RequestMapping("/payment_method")
+>>>>>>> Stashed changes
 @RequiredArgsConstructor
 public class PaymentMethodController {
     private final PaymentMethodService paymentMethodService;

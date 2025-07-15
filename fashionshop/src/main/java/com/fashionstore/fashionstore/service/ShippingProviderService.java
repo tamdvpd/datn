@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
+<<<<<<< Updated upstream
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,8 @@ public interface ShippingProviderService {
     ShippingProvider update(Integer id, ShippingProvider provider);
 
     void delete(Integer id);
+=======
+public interface ShippingProviderService {
+
+>>>>>>> Stashed changes
 }

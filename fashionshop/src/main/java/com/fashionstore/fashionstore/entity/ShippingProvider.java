@@ -11,6 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+<<<<<<< Updated upstream
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+=======
+>>>>>>> Stashed changes
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,12 +31,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
 public class ShippingProvider {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+<<<<<<< Updated upstream
     @NotBlank(message = "Tên đơn vị không được để trống")
     @Size(max = 100, message = "Tên đơn vị tối đa 100 ký tự")
     @Column(nullable = false, length = 100)
@@ -50,6 +59,20 @@ public class ShippingProvider {
     private BigDecimal shippingFee = BigDecimal.ZERO;
 
     @NotNull(message = "Trạng thái không được để trống")
+=======
+    @Column(nullable = false, length = 100)
+    private String name; // Tên đơn vị vận chuyển
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String code; // Mã viết tắt: GHN, GHTK...
+
+    @Column(length = 255)
+    private String description;
+
+    @Column(name = "shipping_fee", nullable = false, precision = 12, scale = 2)
+    private BigDecimal shippingFee;
+
+>>>>>>> Stashed changes
     @Column(nullable = false)
     private Boolean status = true;
 

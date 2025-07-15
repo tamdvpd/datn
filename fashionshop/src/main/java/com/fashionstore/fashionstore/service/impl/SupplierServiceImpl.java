@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service.impl;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.Supplier;
 import com.fashionstore.fashionstore.repository.SupplierRepository;
 import com.fashionstore.fashionstore.service.SupplierService;
@@ -80,4 +81,8 @@ public class SupplierServiceImpl implements SupplierService {
             }
         }
     }
+=======
+public class SupplierServiceImpl {
+
+>>>>>>> Stashed changes
 }

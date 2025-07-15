@@ -5,9 +5,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+<<<<<<< Updated upstream
 
 import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 
+=======
+>>>>>>> Stashed changes
 import java.math.BigDecimal;
 
 @Data
@@ -66,5 +69,8 @@ public class ProductDetail {
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
+<<<<<<< Updated upstream
     
+=======
+>>>>>>> Stashed changes
 }

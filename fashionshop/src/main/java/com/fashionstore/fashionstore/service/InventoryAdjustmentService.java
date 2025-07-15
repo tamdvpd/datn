@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
+<<<<<<< Updated upstream
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -15,4 +16,8 @@ public interface InventoryAdjustmentService {
     InventoryAdjustment updateInventoryAdjustment(Integer id, InventoryAdjustment inventoryAdjustment);
 
     void deleteInventoryAdjustment(Integer id);
+=======
+public interface InventoryAdjustmentService {
+
+>>>>>>> Stashed changes
 }

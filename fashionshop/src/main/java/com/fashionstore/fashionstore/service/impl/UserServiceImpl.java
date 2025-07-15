@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(User user) {
+<<<<<<< Updated upstream
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -86,6 +87,29 @@ public Optional<User> login(String email, String password) {
             // Vẫn trả Optional để Controller biết tài khoản bị khóa
             return Optional.of(user); 
         }
+=======
+        // if (userRepository.existsByUsername(user.getUsername())) {
+        // throw new RuntimeException("Username already exists");
+        // }
+        // if (userRepository.existsByEmail(user.getEmail())) {
+        // throw new RuntimeException("Email already exists");
+        // }
+        // user.setRole("CUSTOMER");
+        // user.setStatus(true);
+        // Lưu thẳng password (không mã hóa)
+        return userRepository.save(user);
+    }
+
+    // Đăng nhập bằng username và password thô
+    // @Override
+    // public Optional<User> login(String username, String rawPassword) {
+    // Optional<User> userOpt = userRepository.findByUsername(username);
+    // if (userOpt.isPresent() && userOpt.get().getPassword().equals(rawPassword)) {
+    // return userOpt;
+    // }
+    // return Optional.empty();
+    // }
+>>>>>>> Stashed changes
 
         if (passwordEncoder.matches(password, user.getPassword())) {
             return Optional.of(user);
@@ -96,6 +120,7 @@ public Optional<User> login(String email, String password) {
 }
 
 
+<<<<<<< Updated upstream
     @Override
     public boolean changePassword(Integer id, String oldPassword, String newPassword) {
         User user = userRepository.findById(id)
@@ -119,6 +144,16 @@ public Optional<User> login(String email, String password) {
                         (email == null || u.getEmail().toLowerCase().contains(email.toLowerCase())))
                 .toList();
     }
+=======
+    // // Tìm kiếm user (ví dụ đơn giản theo username/email)
+    // @Override
+    // public List<User> searchUsers(String username, String email, int page, int
+    // size) {
+    // Pageable pageable = Pageable.ofSize(size).withPage(page);
+    // // Giả định có method userRepository.searchUsers...
+    // return userRepository.searchUsers(username, email, pageable);
+    // }
+>>>>>>> Stashed changes
 
     @Override
     public Optional<User> getCurrentUser() {
@@ -126,6 +161,7 @@ public Optional<User> login(String email, String password) {
     }
 
     @Override
+<<<<<<< Updated upstream
     public long countUsers() {
         return userRepository.count();
     }
@@ -140,4 +176,16 @@ public Optional<User> login(String email, String password) {
         return userRepository.findByEmail(email);
     }
 
+=======
+    public Optional<User> login(String username, String password) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'login'");
+    }
+
+    @Override
+    public List<User> searchUsers(String username, String email, int page, int size) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'searchUsers'");
+    }
+>>>>>>> Stashed changes
 }

@@ -1,4 +1,27 @@
 import { createRouter, createWebHistory } from "vue-router";
+<<<<<<< Updated upstream
+=======
+
+import HomePage from "@/components/views/HomePage.vue";
+import Product from "@/components/views/Product.vue";
+import LoginView from "@/components/views/LoginView.vue";
+import RegisterView from "@/components/views/RegisterView.vue";
+import Cart from "@/components/views/Cart.vue";
+import ProductDetail from "@/components/views/ProductDetail.vue";
+import AdminDashBoard from "@/components/admin/AdminDashBoard.vue";
+import AdminHomePage from '@/components/admin/AdminHomePage.vue';
+import ProductManager from '@/components/admin/AdminProductPage.vue';
+import OrderManager from '@/components/admin/AdminOrderPage.vue';
+import ReportPage from '@/components/admin/AdminReportPage.vue';
+import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
+import PaymentPage from "@/components/admin/AdminPaymentPage.vue";
+import AdminShippingPage from "@/components/admin/AdminShippingPage.vue";
+import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
+import AdminUiPage from "@/components/admin/AdminUiPage.vue";
+import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
+import AdminUserPage from "@/components/admin/AdminUserPage.vue";
+import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
+>>>>>>> Stashed changes
 
 import HomePage from "@/components/views/HomePage.vue";
 import Product from "@/components/views/Product.vue";
@@ -32,14 +55,21 @@ const routes = [
   { path: "/register", name: "Register", component: RegisterView },
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
+<<<<<<< Updated upstream
   { path: "/profile", name: "Profile", component: ProfilePage },
   { path: "/change-password", name: "ChangePassword", component: ChangePassword },
+=======
+>>>>>>> Stashed changes
   {
     path: "/admin",
     component: AdminDashBoard,
     children: [
       {
+<<<<<<< Updated upstream
         path: "",
+=======
+        path: "", 
+>>>>>>> Stashed changes
         component: AdminHomePage,
       },
       {
@@ -68,11 +98,15 @@ const routes = [
       },
       {
         path: "shipping",
+<<<<<<< Updated upstream
         component: AdminShippingProvider,
       },
       {
         path: "supplier",
         component: SupplierPage,
+=======
+        component: AdminShippingPage,
+>>>>>>> Stashed changes
       },
       {
         path: "support",
@@ -83,14 +117,18 @@ const routes = [
         component: AdminUiPage,
       },
       {
+<<<<<<< Updated upstream
         path: "invoicedetails",
         component: AdminImportInvoiceDetail,
       },
       {
+=======
+>>>>>>> Stashed changes
         path: "inventory",
         component: AdminInventoryPage,
       },
       {
+<<<<<<< Updated upstream
         path: "invoice",
         component: AdminImportInvoicePage,
       },
@@ -102,6 +140,11 @@ const routes = [
         path: "inventory_adjustment",
         component: AdminInventoryAdjustmentPage,
       },
+=======
+        path: "users",
+        component: AdminUserPage,
+      },
+>>>>>>> Stashed changes
     ],
   },
 ];
@@ -111,6 +154,7 @@ const router = createRouter({
   routes,
 });
 
+<<<<<<< Updated upstream
 
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -128,3 +172,6 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router;
+=======
+export default router;
+>>>>>>> Stashed changes

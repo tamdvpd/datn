@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.controller;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.ImportInvoice;
 import com.fashionstore.fashionstore.service.ImportInvoiceService;
 import jakarta.validation.Valid;
@@ -70,4 +71,8 @@ public class ImportInvoiceController {
         importInvoiceService.deleteImportInvoice(id);
         return ResponseEntity.noContent().build();
     }
+=======
+public class ImportInvoiceController {
+
+>>>>>>> Stashed changes
 }

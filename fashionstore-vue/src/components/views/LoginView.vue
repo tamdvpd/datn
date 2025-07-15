@@ -2,8 +2,13 @@
   <div class="auth-container">
     <div class="auth-card">
       <router-link to="/" class="d-inline-block">
+<<<<<<< Updated upstream
         <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
       </router-link>
+=======
+  <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
+</router-link>
+>>>>>>> Stashed changes
 
       <h3 class="text-center mb-4">Đăng nhập</h3>
       <form @submit.prevent="handleLogin">

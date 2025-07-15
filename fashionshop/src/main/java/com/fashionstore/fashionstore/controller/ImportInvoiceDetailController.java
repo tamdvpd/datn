@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.controller;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.ImportInvoiceDetail;
 import com.fashionstore.fashionstore.service.ImportInvoiceDetailService;
 import lombok.RequiredArgsConstructor;
@@ -35,4 +36,8 @@ public class ImportInvoiceDetailController {
         importInvoiceDetailService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+=======
+public class ImportInvoiceDetailController {
+
+>>>>>>> Stashed changes
 }

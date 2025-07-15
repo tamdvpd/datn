@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.repository;
 
+<<<<<<< Updated upstream
 import com.fashionstore.fashionstore.entity.Supplier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
@@ -14,3 +15,12 @@ public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
     
     List<Supplier> findByStatusTrue();
 }
+=======
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.fashionstore.fashionstore.entity.Supplier;
+
+public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
+
+}
+>>>>>>> Stashed changes

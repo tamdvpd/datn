@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.controller;
 
+<<<<<<< Updated upstream
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -58,4 +59,8 @@ public class InventoryAdjustmentController {
         return ResponseEntity.noContent().build();
     }
 
+=======
+public class InventoryAdjustmentController {
+
+>>>>>>> Stashed changes
 }

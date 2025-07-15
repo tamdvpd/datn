@@ -1,5 +1,6 @@
 package com.fashionstore.fashionstore.service.impl;
 
+<<<<<<< Updated upstream
 import java.util.List;
 import java.util.Optional;
 
@@ -42,4 +43,8 @@ public class ShippingProviderServiceImpl implements ShippingProviderService {
     public void delete(Integer id) {
         shippingProviderRepository.deleteById(id);
     }
+=======
+public class ShippingProviderServiceImpl {
+
+>>>>>>> Stashed changes
 }

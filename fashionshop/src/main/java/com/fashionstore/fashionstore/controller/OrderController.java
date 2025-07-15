@@ -1,7 +1,4 @@
 package com.fashionstore.fashionstore.controller;
-
-import com.fashionstore.fashionstore.dto.CreateOrderRequest;
-import com.fashionstore.fashionstore.dto.QuickBuyRequest;
 import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.entity.PaymentMethod;
 import com.fashionstore.fashionstore.entity.ShippingProvider;
@@ -52,21 +49,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByUserAndStatus(userId, status));
     }
 
-    @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody CreateOrderRequest request) {
-        Order order = orderService.createOrder(request);
-        return ResponseEntity.ok(order);
-    }
-
-    @PostMapping("/quick-buy")
-    public ResponseEntity<Integer> quickBuy(@RequestBody QuickBuyRequest req,
-            @AuthenticationPrincipal 
-            com.fashionstore.fashionstore.entity.User user) {
-        Integer orderId = orderService.quickBuy(req, user);
-        if (orderId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(orderId);
-    }
+   
 
 }

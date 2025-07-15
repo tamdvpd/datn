@@ -18,6 +18,7 @@ public class Coupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+<<<<<<< Updated upstream
     @NotBlank(message = "Mã giảm giá không được để trống")
     @Size(max = 50, message = "Mã giảm giá không được vượt quá 50 ký tự")
     @Column(name = "code", unique = true, nullable = false, length = 50)
@@ -41,6 +42,22 @@ public class Coupon {
     @NotNull(message = "Trạng thái không được để trống")
     @Column(nullable = false)
     private Boolean status;
+=======
+    @Column(name = "code", unique = true, nullable = false, length = 50)
+    private String code;
+
+    @Column(name = "discount_percent")
+    private Integer discountPercent;
+
+    @Column(name = "expiry_date", nullable = true)
+    private LocalDateTime expiryDate;
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false)
+    private Boolean status = true;
+>>>>>>> Stashed changes
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -51,7 +68,10 @@ public class Coupon {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+<<<<<<< Updated upstream
         this.updatedAt = LocalDateTime.now();
+=======
+>>>>>>> Stashed changes
     }
 
     @PreUpdate

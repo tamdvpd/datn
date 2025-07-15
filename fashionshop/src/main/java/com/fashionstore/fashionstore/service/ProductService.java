@@ -1,6 +1,5 @@
 package com.fashionstore.fashionstore.service;
 
-import com.fashionstore.fashionstore.dto.ProductSimpleDTO;
 import com.fashionstore.fashionstore.entity.Product;
 import com.fashionstore.fashionstore.entity.Review;
 import com.fashionstore.fashionstore.repository.ProductDetailRepository;
@@ -30,6 +29,4 @@ public interface ProductService {
     ProductDetailRepository getProductDetail(Integer productId);
 
     List<Review> getReviews(Integer productId);
-
-    List<ProductSimpleDTO> getSuggestedProducts(Integer productId);
 }

@@ -6,10 +6,13 @@ import java.util.List;
 
 public interface ImportInvoiceDetailService {
 
+    // Lấy tất cả dòng chi tiết phiếu nhập
+    List<ImportInvoiceDetail> findAll();
+
     // Thêm mới hoặc cập nhật 1 dòng chi tiết
     ImportInvoiceDetail save(ImportInvoiceDetail detail);
 
-    // Lấy danh sách dòng chi tiết theo mã phiếu nhập
+    //  Lấy danh sách dòng chi tiết theo mã phiếu nhập
     List<ImportInvoiceDetail> getByImportInvoiceId(Integer importInvoiceId);
 
     // Xóa 1 dòng chi tiết theo ID

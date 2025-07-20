@@ -25,6 +25,7 @@ import ProfilePage from "@/components/views/ProfilePage.vue";
 import ChangePassword from "@/components/views/ChangePassword.vue";
 import AdminInventoryAdjustmentPage from "@/components/admin/AdminInventoryAdjustmentPage.vue";
 import AdminImportInvoiceDetail from "@/components/admin/AdminImportInvoiceDetail.vue";
+import CreateReview from"@/components/views/CreateReview.vue";
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -33,6 +34,7 @@ const routes = [
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
   { path: "/profile", name: "Profile", component: ProfilePage },
+  { path: "/review", name: "CreateReview", component: CreateReview },
   { path: "/change-password", name: "ChangePassword", component: ChangePassword },
   {
     path: "/admin",

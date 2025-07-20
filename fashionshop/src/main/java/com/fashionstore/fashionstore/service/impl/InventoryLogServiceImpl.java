@@ -39,12 +39,22 @@ public class InventoryLogServiceImpl implements InventoryLogService {
 
     @Override
     public InventoryLog updateInventoryLog(Integer id, InventoryLog inventoryLog) {
-        inventoryLog.setId(id);
-        return inventoryLogRepository.save(inventoryLog);
+        // Tìm kiếm và cập nhật nếu tồn tại
+        return inventoryLogRepository.findById(id).map(existingLog -> {
+            existingLog.setAction(inventoryLog.getAction());
+            existingLog.setQuantity(inventoryLog.getQuantity());
+            existingLog.setReferenceType(inventoryLog.getReferenceType());
+            existingLog.setReferenceId(inventoryLog.getReferenceId());
+            // Nếu có thêm trường khác cần cập nhật, thêm vào đây
+            return inventoryLogRepository.save(existingLog);
+        }).orElseThrow(() -> new RuntimeException("Không tìm thấy InventoryLog với id: " + id));
     }
 
     @Override
     public void deleteInventoryLog(Integer id) {
+        if (!inventoryLogRepository.existsById(id)) {
+            throw new RuntimeException("Không tìm thấy InventoryLog với id: " + id);
+        }
         inventoryLogRepository.deleteById(id);
     }
 }

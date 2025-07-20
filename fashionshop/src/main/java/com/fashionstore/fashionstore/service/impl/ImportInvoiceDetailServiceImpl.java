@@ -20,8 +20,13 @@ public class ImportInvoiceDetailServiceImpl implements ImportInvoiceDetailServic
     }
 
     @Override
+    public List<ImportInvoiceDetail> findAll() {
+        return importInvoiceDetailRepository.findAll();
+    }
+
+    @Override
     public List<ImportInvoiceDetail> getByImportInvoiceId(Integer importInvoiceId) {
-        return importInvoiceDetailRepository.findByImportInvoiceId(importInvoiceId);
+        return importInvoiceDetailRepository.findAllByImportInvoice_Id(importInvoiceId);
     }
 
     @Override

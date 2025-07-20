@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface ImportInvoiceDetailRepository extends JpaRepository<ImportInvoiceDetail, Integer> {
 
-    // Thêm dòng này để fix lỗi
-    List<ImportInvoiceDetail> findByImportInvoiceId(Integer importInvoiceId);
+    // Lấy tất cả dòng chi tiết theo mã phiếu nhập
+    List<ImportInvoiceDetail> findAllByImportInvoice_Id(Integer importInvoiceId);
 }

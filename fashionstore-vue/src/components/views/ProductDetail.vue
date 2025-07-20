@@ -1,8 +1,10 @@
 <template>
   <div>
     <MainHeader />
+
     <div class="product-detail container py-4">
       <div class="row">
+        <!-- Hình ảnh sản phẩm -->
         <div class="col-md-5">
           <img src="@/assets/img/img1.jpg" class="img-fluid rounded" alt="Áo sơ mi" />
           <div class="d-flex gap-2 mt-3">
@@ -11,10 +13,11 @@
             <img src="@/assets/img/img4.jpg" class="img-thumbnail" width="60" />
           </div>
         </div>
+
+        <!-- Thông tin sản phẩm -->
         <div class="col-md-7">
           <h2>Áo sơ mi nam dài tay Café-Dris khử mùi – Xanh nhạt</h2>
           <p class="text-danger h4">390,000 VNĐ <span class="text-muted small">(FreeShip đơn hàng > 400k)</span></p>
-
           <p>Mã sản phẩm: TMS003 | Tình trạng: <span class="text-success">CÒN HÀNG</span></p>
 
           <div class="mb-2">
@@ -39,6 +42,7 @@
 
       <hr />
 
+      <!-- Mô tả sản phẩm -->
       <div class="mt-4">
         <h4>MÔ TẢ SẢN PHẨM</h4>
         <p>
@@ -51,6 +55,18 @@
         <img src="@/assets/img/banner.jpg" class="img-fluid rounded my-3" alt="Banner" />
       </div>
 
+      <!-- Đánh giá sản phẩm -->
+      <div class="mt-5">
+        <h4>VIẾT ĐÁNH GIÁ SẢN PHẨM</h4>
+        <div v-if="currentUser">
+          <CreateReview :productDetailId="productDetailId" :userId="currentUser.id" />
+        </div>
+        <div v-else class="alert alert-info">
+          Vui lòng <router-link to="/login">đăng nhập</router-link> để viết đánh giá.
+        </div>
+      </div>
+
+      <!-- Sản phẩm liên quan -->
       <div class="mt-5">
         <h4>SẢN PHẨM LIÊN QUAN</h4>
         <div class="row g-3">
@@ -66,6 +82,7 @@
         </div>
       </div>
     </div>
+
     <MainFooter />
   </div>
 </template>
@@ -73,13 +90,25 @@
 <script>
 import MainHeader from '@/components/MainHeader.vue';
 import MainFooter from '@/components/MainFooter.vue';
+import CreateReview from '@/components/views/CreateReview.vue';
 
 export default {
   name: 'ProductDetail',
   components: {
     MainHeader,
     MainFooter,
+    CreateReview,
   },
+  data() {
+    return {
+      currentUser: JSON.parse(localStorage.getItem('user')) || null,
+    };
+  },
+  computed: {
+    productDetailId() {
+      return this.$route.params.id; // Lấy id từ URL: /product/:id
+    }
+  }
 };
 </script>
 

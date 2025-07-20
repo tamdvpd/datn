@@ -52,7 +52,7 @@ public class SupplierServiceImpl implements SupplierService {
     private void checkDuplicateAndValidate(String email, String phoneNumber, Integer currentId) {
         // Kiểm tra định dạng số điện thoại: bắt đầu bằng 0 và đủ 10 chữ số
         if (!Pattern.matches("^0\\d{9}$", phoneNumber)) {
-            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số");
+            throw new RuntimeException("Số điện thoại không lệ");
         }
 
         // Kiểm tra định dạng email (nếu cần, có thể dùng annotation @Email ở entity tốt

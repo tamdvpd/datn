@@ -35,6 +35,7 @@
               <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
                   CHỈNH</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/invoicedetails">📥CHI TIẾT PHIẾU NHẬP</router-link></li>   
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 GIAO DIỆN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 NHÀ CUNG CẤP</router-link></li>
@@ -65,6 +66,7 @@
               <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
                   CHỈNH</router-link></li>
+                  <li class="nav-item"><router-link class="nav-link" to="/admin/invoicedetails">📥CHI TIẾT PHIẾU NHẬP</router-link></li>     
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨GIAO DIỆN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭NHÀ CUNG CẤP</router-link></li>

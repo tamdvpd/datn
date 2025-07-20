@@ -1,7 +1,6 @@
 package com.fashionstore.fashionstore.controller;
 
 import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fashionstore.fashionstore.entity.InventoryAdjustment;
 import com.fashionstore.fashionstore.service.InventoryAdjustmentService;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class InventoryAdjustmentController {
 
     private final InventoryAdjustmentService inventoryAdjustmentService;
-
     @GetMapping
     public ResponseEntity<Page<InventoryAdjustment>> getAll(@RequestParam(defaultValue = "0") int page) {
         int pageSize = 6;

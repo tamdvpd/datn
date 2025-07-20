@@ -1,6 +1,8 @@
 package com.fashionstore.fashionstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -23,13 +25,15 @@ public class ImportInvoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // ✅ Quan hệ nhiều - một với Supplier
+    //  Quan hệ nhiều - một với Supplier
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id", nullable = false)
     @NotNull(message = "Nhà cung cấp không được để trống")
-    @JsonIgnoreProperties({ "importInvoices", "hibernateLazyInitializer", "handler" }) // ✅ Tránh vòng lặp JSON
+    @JsonIgnoreProperties({ "importInvoices", "hibernateLazyInitializer", "handler" }) // Tránh vòng lặp JSON
     private Supplier supplier;
 
+    //  Ẩn trường tổng tiền khi trả về frontend
+    @JsonIgnore
     @DecimalMin(value = "0.0", inclusive = true, message = "Tổng tiền phải >= 0")
     @Digits(integer = 13, fraction = 2, message = "Tổng tiền không hợp lệ")
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
@@ -45,16 +49,17 @@ public class ImportInvoice {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-
+    //  Gán giá trị mặc định khi lưu
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.importDate == null) {
-            this.importDate = LocalDate.now(); // ✅ Gán mặc định ngày nhập là ngày hiện tại
+            this.importDate = LocalDate.now();
         }
     }
 
-    // ✅ Một phiếu nhập có nhiều dòng chi tiết
+    //  Một phiếu nhập có nhiều chi tiết phiếu nhập
     @OneToMany(mappedBy = "importInvoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 }

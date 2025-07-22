@@ -1,7 +1,9 @@
 package com.fashionstore.fashionstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -19,25 +21,39 @@ public class ImportInvoiceDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // Quan hệ nhiều - một với ImportInvoice
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "import_invoice_id", nullable = false)
     @JsonBackReference // Ngăn vòng lặp khi serialize JSON
     private ImportInvoice importInvoice;
 
+    // Quan hệ nhiều - một với ProductDetail
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
+    @NotNull(message = "Chi tiết sản phẩm không được để trống")
+    @JsonIgnoreProperties({ "product", "hibernateLazyInitializer", "handler" }) // Tránh vòng lặp nếu cần
     private ProductDetail productDetail;
 
+    // Số lượng nhập
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng phải >= 1")
     @Column(nullable = false)
     private Integer quantity;
 
+    // Đơn giá nhập
+    @NotNull(message = "Đơn giá không được để trống")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Đơn giá phải > 0")
+    @Digits(integer = 13, fraction = 2, message = "Đơn giá không hợp lệ")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal unitPrice;
 
+    // Người tạo chi tiết nhập (tùy chọn)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({ "importInvoiceDetails", "hibernateLazyInitializer", "handler" })
     private User user;
 
+    // Ngày giờ tạo
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

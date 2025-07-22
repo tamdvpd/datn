@@ -24,28 +24,32 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotBlank(message = "Tên nhà cung cấp không được để trống")
+    @NotBlank(message = "Tên nhà cung cấp không được để trống.")
+    @Size(max = 100, message = "Tên nhà cung cấp không được vượt quá 100 ký tự.")
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Email(message = "Email không đúng định dạng")
-    @Size(max = 100)
-    @Column(length = 100, unique = true)
+    @NotBlank(message = "Email không được để trống.")
+    @Email(message = "Email không đúng định dạng.")
+    @Size(max = 100, message = "Email không được vượt quá 100 ký tự.")
+    @Column(length = 100, unique = true, nullable = false)
     private String email;
 
-    @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số")
-    @Column(name = "phone_number", length = 15, unique = true)
+    @NotBlank(message = "Số điện thoại không được để trống.")
+    @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không đúng định dạng (bắt đầu bằng 0 và đủ 10 số).")
+    @Column(name = "phone_number", length = 15, unique = true, nullable = false)
     private String phoneNumber;
 
-    @Size(max = 255)
-    @Column(length = 255)
+    @NotBlank(message = "Địa chỉ không được để trống.")
+    @Size(max = 255, message = "Địa chỉ không được vượt quá 255 ký tự.")
+    @Column(length = 255, nullable = false)
     private String address;
 
     @NotNull
     @Column(nullable = false, columnDefinition = "BIT DEFAULT 1")
-    private Boolean status = true; // true = hoạt động, false = ngừng hoạt động
+    private Boolean status = true;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

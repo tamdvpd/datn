@@ -7,30 +7,36 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ImportInvoiceDetailServiceImpl implements ImportInvoiceDetailService {
 
-    private final ImportInvoiceDetailRepository importInvoiceDetailRepository;
+    private final ImportInvoiceDetailRepository repository;
 
     @Override
-    public ImportInvoiceDetail save(ImportInvoiceDetail detail) {
-        return importInvoiceDetailRepository.save(detail);
-    }
-
-    @Override
-    public List<ImportInvoiceDetail> findAll() {
-        return importInvoiceDetailRepository.findAll();
+    public List<ImportInvoiceDetail> getAll() {
+        return repository.findAll();
     }
 
     @Override
     public List<ImportInvoiceDetail> getByImportInvoiceId(Integer importInvoiceId) {
-        return importInvoiceDetailRepository.findAllByImportInvoice_Id(importInvoiceId);
+        return repository.findByImportInvoiceId(importInvoiceId);
     }
 
     @Override
-    public void deleteById(Integer id) {
-        importInvoiceDetailRepository.deleteById(id);
+    public ImportInvoiceDetail getById(Integer id) {
+        return repository.findById(id).orElse(null);
+    }
+
+    @Override
+    public ImportInvoiceDetail create(ImportInvoiceDetail detail) {
+        return repository.save(detail);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        repository.deleteById(id);
     }
 }

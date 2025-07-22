@@ -85,7 +85,8 @@ const routes = [
         component: AdminUiPage,
       },
       {
-        path: "invoicedetails",
+        path: "invoice/:id",
+        name: "AdminImportInvoiceDetail",
         component: AdminImportInvoiceDetail,
       },
       {

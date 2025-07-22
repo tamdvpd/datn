@@ -1,13 +1,11 @@
 package com.fashionstore.fashionstore.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,19 +23,11 @@ public class ImportInvoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    //  Quan hệ nhiều - một với Supplier
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id", nullable = false)
     @NotNull(message = "Nhà cung cấp không được để trống")
-    @JsonIgnoreProperties({ "importInvoices", "hibernateLazyInitializer", "handler" }) // Tránh vòng lặp JSON
+    @JsonIgnoreProperties({ "importInvoices", "hibernateLazyInitializer", "handler" })
     private Supplier supplier;
-
-    //  Ẩn trường tổng tiền khi trả về frontend
-    @JsonIgnore
-    @DecimalMin(value = "0.0", inclusive = true, message = "Tổng tiền phải >= 0")
-    @Digits(integer = 13, fraction = 2, message = "Tổng tiền không hợp lệ")
-    @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
-    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @NotNull(message = "Ngày nhập không được để trống")
     @Column(name = "import_date", nullable = false)
@@ -46,10 +36,14 @@ public class ImportInvoice {
     @Column(length = 255)
     private String note;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    //  Gán giá trị mặc định khi lưu
+    @OneToMany(mappedBy = "importInvoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -57,9 +51,4 @@ public class ImportInvoice {
             this.importDate = LocalDate.now();
         }
     }
-
-    //  Một phiếu nhập có nhiều chi tiết phiếu nhập
-    @OneToMany(mappedBy = "importInvoice", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 }

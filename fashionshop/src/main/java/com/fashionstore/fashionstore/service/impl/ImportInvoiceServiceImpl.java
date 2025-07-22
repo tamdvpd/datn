@@ -42,12 +42,6 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
             throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể tạo phiếu nhập.");
         }
 
-        // (Tùy chọn) Kiểm tra tổng tiền
-        if (invoice.getTotalAmount() == null
-                || invoice.getTotalAmount().compareTo(new java.math.BigDecimal("100000")) < 0) {
-            throw new RuntimeException("❌ Tổng tiền phải lớn hơn hoặc bằng 100.000 VNĐ.");
-        }
-
         // Gắn lại supplier từ DB để đảm bảo entity hợp lệ
         invoice.setSupplier(supplier);
         invoice.setImportDate(LocalDate.now()); // Cập nhật ngày nhập nếu cần
@@ -56,7 +50,6 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
 
     @Override
     public ImportInvoice updateImportInvoice(Integer id, ImportInvoice invoice) {
-        // Có thể thêm kiểm tra giống như khi tạo nếu cần
         invoice.setId(id);
         return importInvoiceRepository.save(invoice);
     }

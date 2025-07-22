@@ -6,7 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ImportInvoiceDetailRepository extends JpaRepository<ImportInvoiceDetail, Integer> {
-
-    // Lấy tất cả dòng chi tiết theo mã phiếu nhập
-    List<ImportInvoiceDetail> findAllByImportInvoice_Id(Integer importInvoiceId);
+    List<ImportInvoiceDetail> findByImportInvoiceId(Integer importInvoiceId);
 }

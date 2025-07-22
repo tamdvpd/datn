@@ -8,10 +8,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WishlistService {
+    // CRUD
     List<Wishlist> getAllWishlists();
     Page<Wishlist> getAllWishlists(Pageable pageable);
     Optional<Wishlist> getWishlistById(Integer id);
     Wishlist createWishlist(Wishlist wishlist);
     Wishlist updateWishlist(Integer id, Wishlist wishlist);
     void deleteWishlist(Integer id);
+
+    // Wishlist logic
+    void addToWishlist(Long userId, Long productId);
+    void removeFromWishlist(Long userId, Long productId);
+    List<Wishlist> getWishlistByUser(Long userId);
 }

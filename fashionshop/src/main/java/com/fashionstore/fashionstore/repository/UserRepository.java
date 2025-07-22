@@ -1,6 +1,8 @@
 package com.fashionstore.fashionstore.repository;
 
 import com.fashionstore.fashionstore.entity.User;
+import com.fashionstore.fashionstore.entity.Wishlist;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +23,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> searchUsers(@Param("fullName") String fullName,
                            @Param("email") String email,
                            Pageable pageable);
+
+    Optional<Wishlist> findAll(Long userId);
 }

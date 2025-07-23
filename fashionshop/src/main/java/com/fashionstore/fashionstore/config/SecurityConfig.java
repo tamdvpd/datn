@@ -18,47 +18,34 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                // 👉 Cho phép CORS
-                .cors(Customizer.withDefaults())
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .cors(Customizer.withDefaults())
+        .csrf().disable()
 
-                // 👉 Tắt CSRF vì bạn đang làm API REST
-                .csrf().disable()
+        .authorizeHttpRequests(auth -> auth
+            .anyRequest().permitAll() // 👈 Cho phép tất cả các request
+        )
 
-                // 👉 Phân quyền endpoint
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/users/auth/**", // Cho phép login, register, google login...
-                                "/users/register/**",
-                                "/users/check-email",
-                                "/users/test-email")
-                        .permitAll()
-                        .anyRequest().authenticated() // Những API khác cần JWT
-                )
+        .exceptionHandling()
+        .authenticationEntryPoint((req, res, ex) -> {
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        })
+        .and()
 
-                // 👉 Xử lý lỗi không có quyền
-                .exceptionHandling()
-                .authenticationEntryPoint((req, res, ex) -> {
-                    res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                })
-                .and()
+        .sessionManagement()
+        .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
+        .and()
 
-                // 👉 Không dùng session
-                .sessionManagement()
-                .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
+        .headers()
+        .addHeaderWriter((request, response) -> {
+            response.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+            response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+        });
 
-                // ✅ Thêm header COOP/COEP để tránh lỗi postMessage bị chặn
-                .and()
-                .headers()
-                .addHeaderWriter((request, response) -> {
-                    response.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-                    response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+    return http.build();
+}
 
-                });
-
-        return http.build();
-    }
 
     // 👉 Mã hoá mật khẩu bằng BCrypt
     @Bean

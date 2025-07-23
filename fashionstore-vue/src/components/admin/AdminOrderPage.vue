@@ -1,8 +1,7 @@
 <template>
   <div class="p-4">
     <h2>📦 Quản lý đơn hàng</h2>
-    <p>Hiển thị các đơn hàng và trạng thái xử lý.</p>
-
+    <hr />
     <!-- Bộ lọc trạng thái -->
     <div class="mb-3">
       <label>Trạng thái:</label>
@@ -15,7 +14,7 @@
         <option value="CANCELED">CANCELED</option>
       </select>
     </div>
-
+    <hr />
     <!-- Bảng dữ liệu -->
     <table class="table table-bordered mt-3">
       <thead class="table-light">
@@ -45,11 +44,7 @@
           <td>{{ formatDate(order.createdAt) }}</td>
           <td>
             <router-link :to="`/admin/orders/${order.id}`" class="btn btn-sm btn-primary me-2">Chi tiết</router-link>
-            <button
-              class="btn btn-sm btn-danger"
-              v-if="order.status !== 'CANCELED'"
-              @click="cancelOrder(order.id)"
-            >
+            <button class="btn btn-sm btn-danger" v-if="order.status !== 'CANCELED'" @click="cancelOrder(order.id)">
               Hủy
             </button>
           </td>
@@ -60,12 +55,7 @@
     <!-- Phân trang -->
     <nav v-if="totalPages > 1" class="mt-3">
       <ul class="pagination">
-        <li
-          v-for="p in totalPages"
-          :key="p"
-          class="page-item"
-          :class="{ active: p - 1 === page }"
-        >
+        <li v-for="p in totalPages" :key="p" class="page-item" :class="{ active: p - 1 === page }">
           <button class="page-link" @click="changePage(p - 1)">
             {{ p }}
           </button>
@@ -95,13 +85,15 @@ export default {
   methods: {
     async loadOrders() {
       try {
-        const res = await api.get('/orders', {
+        const res = await api.get('/orders/page', {
           params: {
             status: this.status,
             page: this.page,
             size: this.size
           }
         });
+
+
         this.orders = res.data.content || [];
         this.totalPages = res.data.totalPages || 1;
       } catch (e) {

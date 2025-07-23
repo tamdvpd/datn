@@ -34,17 +34,42 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order createOrder(Order order) {
+        order.setId(null); // đảm bảo là create
         return orderRepository.save(order);
     }
 
     @Override
     public Order updateOrder(Integer id, Order order) {
-        order.setId(id);
-        return orderRepository.save(order);
+        Optional<Order> existing = orderRepository.findById(id);
+        if (existing.isPresent()) {
+            order.setId(id);
+            return orderRepository.save(order);
+        }
+        throw new IllegalArgumentException("Không tìm thấy đơn hàng có id = " + id);
     }
 
     @Override
     public void deleteOrder(Integer id) {
+        if (!orderRepository.existsById(id)) {
+            throw new IllegalArgumentException("Đơn hàng không tồn tại: " + id);
+        }
         orderRepository.deleteById(id);
     }
+
+    @Override
+    public Order updateOrderStatus(Integer id, String status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public Order updateTrackingCode(Integer id, String trackingCode) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        order.setTrackingCode(trackingCode);
+        return orderRepository.save(order);
+    }
+
 }

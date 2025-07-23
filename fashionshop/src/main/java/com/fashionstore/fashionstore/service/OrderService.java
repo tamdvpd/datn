@@ -9,9 +9,19 @@ import java.util.Optional;
 
 public interface OrderService {
     List<Order> getAllOrders();
+
     Page<Order> getAllOrders(Pageable pageable);
+
     Optional<Order> getOrderById(Integer id);
+
     Order createOrder(Order order);
+
     Order updateOrder(Integer id, Order order);
+
     void deleteOrder(Integer id);
+
+    Order updateOrderStatus(Integer id, String status);
+
+    Order updateTrackingCode(Integer id, String trackingCode);
+
 }

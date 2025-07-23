@@ -7,17 +7,19 @@ import RegisterView from "@/components/views/RegisterView.vue";
 import Cart from "@/components/views/Cart.vue";
 import ProductDetail from "@/components/views/ProductDetail.vue";
 import AdminDashBoard from "@/components/admin/AdminDashBoard.vue";
-import AdminHomePage from '@/components/admin/AdminHomePage.vue';
-import ProductManager from '@/components/admin/AdminProductPage.vue';
-import OrderManager from '@/components/admin/AdminOrderPage.vue';
-import ReportPage from '@/components/admin/AdminReportPage.vue';
+import AdminHomePage from "@/components/admin/AdminHomePage.vue";
+import ProductManager from "@/components/admin/AdminProductPage.vue";
+import OrderManager from "@/components/admin/AdminOrderPage.vue";
+import ReportPage from "@/components/admin/AdminReportPage.vue";
 import CategoryPage from "@/components/admin/AdminCategoryPage.vue";
 import PaymentPage from "@/components/admin/AdminPaymentPage.vue";
+import Order from "@/components/views/Order.vue";
+import OrderDetail from "@/components/views/OrderDetail.vue";
 import AdminSupportPage from "@/components/admin/AdminSupportPage.vue";
 import AdminUiPage from "@/components/admin/AdminUiPage.vue";
 import AdminInventoryPage from "@/components/admin/AdminInventoryPage.vue";
 import AdminUserPage from "@/components/admin/AdminUserPage.vue";
-import AdminCouponPage from "@/components/admin/AdminCouponPage.vue"
+import AdminCouponPage from "@/components/admin/AdminCouponPage.vue";
 import AdminShippingProvider from "@/components/admin/AdminShippingProvider.vue";
 import SupplierPage from "@/components/admin/AdminSupplierPage.vue";
 import AdminImportInvoicePage from "@/components/admin/AdminImportInvoicePage.vue";
@@ -33,11 +35,30 @@ const routes = [
   { path: "/cart", name: "Cart", component: Cart },
   { path: "/product/:id", name: "ProductDetail", component: ProductDetail },
   { path: "/profile", name: "Profile", component: ProfilePage },
-  { path: "/change-password", name: "ChangePassword", component: ChangePassword },
+  {
+    path: "/order",
+    name: "Order",
+    component: Order,
+  },
+  {
+    path: "/order/:id",
+    name: "OrderDetail",
+    component: OrderDetail,
+  },
+  {
+    path: "/change-password",
+    name: "ChangePassword",
+    component: ChangePassword,
+  },
   {
     path: "/admin",
     component: AdminDashBoard,
     children: [
+      {
+        path: "orders/:id",
+        name: "AdminOrderDetail",
+        component: () => import("@/components/views/OrderDetail.vue"),
+      },
       {
         path: "",
         component: AdminHomePage,
@@ -111,16 +132,15 @@ const router = createRouter({
   routes,
 });
 
-
 router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = JSON.parse(localStorage.getItem("user"));
 
-  if (to.path.startsWith('/admin')) {
-    if (user && user.role === 'ADMIN') {
+  if (to.path.startsWith("/admin")) {
+    if (user && user.role === "ADMIN") {
       next();
     } else {
-      alert('Bạn không có quyền truy cập trang quản trị!');
-      next('/');
+      alert("Bạn không có quyền truy cập trang quản trị!");
+      next("/");
     }
   } else {
     next();

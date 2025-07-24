@@ -60,8 +60,7 @@ public class UserController {
         }
     }
 
-    @RequestMapping({ "", "/" })
-    @GetMapping
+    @GetMapping({ "", "/" })
     public ResponseEntity<List<User>> getAll() {
         return ResponseEntity.ok(userService.getAllUsers());
     }

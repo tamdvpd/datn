@@ -6,6 +6,7 @@
       </router-link>
 
       <h3 class="text-center mb-4">Đăng nhập</h3>
+
       <form @submit.prevent="handleLogin">
         <div class="form-group mb-3">
           <input v-model="loginForm.email" type="email" class="form-control" placeholder="Email" required />
@@ -14,7 +15,12 @@
           <input v-model="loginForm.password" type="password" class="form-control" placeholder="Mật khẩu" required />
         </div>
         <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
+
+        <div class="mt-3 text-center">
+          <GoogleLogin :onSuccess="onGoogleSuccess" :onError="onGoogleError" />
+        </div>
       </form>
+
       <div class="text-center mt-3">
         <span>Chưa có tài khoản? <router-link to="/register">Đăng ký</router-link></span>
       </div>
@@ -26,6 +32,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { GoogleLogin } from "vue3-google-login";
 
 const router = useRouter();
 
@@ -35,41 +42,69 @@ const loginForm = ref({
 });
 
 onMounted(() => {
-  const user = localStorage.getItem("user");
-  if (user) {
+  const jwt = localStorage.getItem("jwt");
+  if (jwt) {
     router.push("/");
   }
 });
 
 function handleLogin() {
   axios
-    .post("http://localhost:8080/users/auth/login", {
-      email: loginForm.value.email,
-      password: loginForm.value.password
-    })
+    .post("http://localhost:8080/users/auth/login", loginForm.value)
     .then((response) => {
       alert("Đăng nhập thành công!");
+      localStorage.setItem("jwt", response.data.jwt || "");
       localStorage.setItem("user", JSON.stringify(response.data));
       router.push("/");
     })
     .catch((error) => {
-      if (error.response) {
-        if (error.response.status === 403) {
-          alert(error.response.data?.message || "Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên.");
-        } else if (error.response.status === 401) {
-          alert(error.response.data?.message || "Email hoặc mật khẩu không chính xác.");
-        } else {
-          alert(error.response.data?.message || "Đăng nhập thất bại! Vui lòng thử lại sau.");
-        }
-      } else {
-        alert("Không thể kết nối tới máy chủ.");
-      }
-      console.error(error);
+      const msg = error.response?.data?.message || "Đăng nhập thất bại";
+      alert(msg);
     });
 }
 
+// ✅ Xử lý đăng nhập bằng Google
+const onGoogleSuccess = async (response) => {
+  console.log("📥 Google response:", response);
 
+  const idToken = response.credential;
+  if (!idToken) {
+    alert("Không nhận được idToken từ Google");
+    return;
+  }
 
+  try {
+    const res = await fetch("http://localhost:8080/users/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.jwt) {
+      localStorage.setItem("jwt", data.jwt);
+      localStorage.setItem("user", JSON.stringify(data.user || {}));
+
+      if (data.newUser === true) {
+        alert("✅ Tài khoản mới đã được tạo từ Google và bạn đã được đăng nhập!");
+      } else {
+        alert("✅ Đăng nhập Google thành công!");
+      }
+
+      router.push("/");
+    } else {
+      alert(data.message || "Đăng nhập Google thất bại.");
+    }
+  } catch (error) {
+    console.error("❌ Lỗi kết nối server:", error);
+    alert("Không thể kết nối máy chủ.");
+  }
+};
+
+const onGoogleError = () => {
+  alert("Google login không thành công.");
+};
 </script>
 
 <style scoped>

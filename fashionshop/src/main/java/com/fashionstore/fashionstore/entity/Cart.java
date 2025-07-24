@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "Carts")
@@ -30,8 +31,11 @@ public class Cart {
     private Integer id;
 
     // Người dùng sở hữu giỏ hàng
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "carts", "orders", "importInvoiceDetails",
+            "wishlists", "reviews" })
     private User user;
 
     // Sản phẩm cụ thể (biến thể) được thêm vào giỏ

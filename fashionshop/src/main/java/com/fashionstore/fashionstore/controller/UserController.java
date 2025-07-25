@@ -7,14 +7,6 @@ import com.fashionstore.fashionstore.service.GoogleOAuthService;
 import com.fashionstore.fashionstore.service.JwtService;
 import com.fashionstore.fashionstore.service.UserService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-
-import com.google.api.client.json.jackson2.JacksonFactory;
-
-import jakarta.annotation.PostConstruct;
-import jakarta.validation.Payload;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
-
-import java.util.Collections;
 
 import java.util.List;
 import java.util.Map;

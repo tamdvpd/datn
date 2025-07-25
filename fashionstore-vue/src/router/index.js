@@ -145,6 +145,8 @@ router.beforeEach((to, from, next) => {
   } else {
     next();
   }
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("user", JSON.stringify(res.data.user));
 });
 
 export default router;

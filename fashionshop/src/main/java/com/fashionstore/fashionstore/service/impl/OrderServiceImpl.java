@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -128,14 +129,16 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toDto(orderRepository.save(order));
     }
 
-    @Override
-    public Page<OrderResponse> search(OrderStatus status, java.time.LocalDate from, java.time.LocalDate to,
-            Pageable pageable) {
-        LocalDateTime start = from != null ? from.atStartOfDay() : LocalDateTime.MIN;
-        LocalDateTime end = to != null ? to.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(1);
-        return orderRepository.searchByStatusAndCreatedAtBetween(status, start, end, pageable)
-                .map(orderMapper::toDto);
-    }
+   @Override
+public Page<OrderResponse> search(OrderStatus status, LocalDate from, LocalDate to, Pageable pageable) {
+    // SQL Server không hỗ trợ LocalDateTime.MIN
+    LocalDateTime safeStart = LocalDate.of(2000, 1, 1).atStartOfDay();
+    LocalDateTime start = from != null ? from.atStartOfDay() : safeStart;
+    LocalDateTime end = to != null ? to.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(1);
+    return orderRepository.searchByStatusAndCreatedAtBetween(status, start, end, pageable)
+            .map(orderMapper::toDto);
+}
+
 
     // ===== CUSTOMER =====
 

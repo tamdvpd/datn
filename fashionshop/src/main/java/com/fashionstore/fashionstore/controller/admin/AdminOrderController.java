@@ -36,7 +36,7 @@ public class AdminOrderController {
     }
 
     // ✅ API 2: Phân trang và lọc đơn hàng
-    @GetMapping("/")
+    @GetMapping("/page")
     @Operation(summary = "Phân trang và lọc đơn hàng theo trạng thái và khoảng thời gian")
     public ResponseEntity<Page<OrderResponse>> getPaged(
             @RequestParam(defaultValue = "0") int page,

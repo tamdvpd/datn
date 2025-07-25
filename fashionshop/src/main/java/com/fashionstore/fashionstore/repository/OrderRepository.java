@@ -111,4 +111,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer>, JpaSpeci
 
     // 🔹 14. Tổng đơn theo nhiều trạng thái
     Page<Order> findByStatusIn(List<OrderStatus> statuses, Pageable pageable);
+    
+    List<Order> findByUserId(Long userId);
+
 }

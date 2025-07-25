@@ -7,11 +7,12 @@ import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.service.InventoryLogService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,6 @@ public class InventoryLogServiceImpl implements InventoryLogService {
 
         log.setProductDetail(productDetail);
         log.setCreatedAt(LocalDateTime.now());
-
         return inventoryLogRepository.save(log);
     }
 
@@ -67,7 +67,7 @@ public class InventoryLogServiceImpl implements InventoryLogService {
         InventoryLog log = new InventoryLog();
         log.setAction("EXPORT");
         log.setProductDetail(productDetail);
-        log.setQuantity(-quantity); // xuất là số âm
+        log.setQuantity(-quantity);
         log.setReferenceType("Order");
         log.setReferenceId(orderId);
         log.setCreatedAt(LocalDateTime.now());
@@ -97,8 +97,9 @@ public class InventoryLogServiceImpl implements InventoryLogService {
         productDetail.setQuantity(productDetail.getQuantity() + quantity);
         productDetailRepository.save(productDetail);
 
-        // Bạn vẫn có thể log ghi chú ra console (tùy chọn)
-        System.out.println("Ghi chú nhập hàng (bỏ qua DB): " + note);
+        if (note != null && !note.isEmpty()) {
+            System.out.println("Ghi chú nhập hàng: " + note);
+        }
     }
 
     @Override
@@ -121,7 +122,37 @@ public class InventoryLogServiceImpl implements InventoryLogService {
         productDetail.setQuantity(productDetail.getQuantity() + quantityChange);
         productDetailRepository.save(productDetail);
 
-        // Ghi chú kiểm kho có thể log ra nếu muốn
-        System.out.println("Ghi chú điều chỉnh: " + note + ", bởi user: " + userId);
+        System.out.println("Điều chỉnh tồn kho: " + note + ", bởi user: " + userId);
+    }
+
+    @Override
+    public List<Object[]> getAllCurrentStocks() {
+        // Query riêng có thể viết trong InventoryLogRepository
+        return inventoryLogRepository.getAllCurrentStocks();
+    }
+
+    @Override
+    public Page<Object[]> getWarehouseStockWithFilters(
+            String product, String color, String size,
+            Integer stockMin, Integer stockMax,
+            Double priceMin, Double priceMax,
+            Double discountMin, Double discountMax,
+            Pageable pageable) {
+
+        return inventoryLogRepository.getWarehouseStockWithFilters(
+                product, color, size,
+                stockMin, stockMax,
+                priceMin, priceMax,
+                discountMin, discountMax,
+                pageable
+        );
+    }
+
+    @Override
+    public Map<String, List<String>> getFilterOptions() {
+        Map<String, List<String>> filters = new LinkedHashMap<>();
+        filters.put("colors", productDetailRepository.findDistinctColors());
+        filters.put("sizes", productDetailRepository.findDistinctSizes());
+        return filters;
     }
 }

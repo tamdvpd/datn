@@ -18,6 +18,7 @@ import java.util.Optional;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductDetailRepository productDetailRepository;
 
     @Override
     public List<Product> getAllProducts() {
@@ -52,6 +53,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
-        return ProductDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
+        return productDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
     }
 }

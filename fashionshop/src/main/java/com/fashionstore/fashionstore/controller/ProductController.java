@@ -1,13 +1,16 @@
 package com.fashionstore.fashionstore.controller;
 
 import com.fashionstore.fashionstore.entity.Product;
+import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -15,7 +18,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-
+    private final ProductDetailRepository productDetailRepository;
+    
     @GetMapping
     public ResponseEntity<List<Product>> getAll() {
         return ResponseEntity.ok(productService.getAllProducts());
@@ -50,5 +54,13 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal maxPrice) {
         return ResponseEntity.ok(productService.searchProducts(name, categoryId, minPrice, maxPrice));
     }
+    @GetMapping("/distinct-filters")
+public ResponseEntity<Map<String, List<String>>> getDistinctFilters() {
+    Map<String, List<String>> filters = new HashMap<>();
+    filters.put("colors", productDetailRepository.findDistinctColors());
+    filters.put("sizes", productDetailRepository.findDistinctSizes());
+    return ResponseEntity.ok(filters);
+}
+
 
 }

@@ -3,10 +3,15 @@ package com.fashionstore.fashionstore.controller;
 import com.fashionstore.fashionstore.entity.InventoryLog;
 import com.fashionstore.fashionstore.service.InventoryLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/inventoryLogs")
@@ -82,5 +87,64 @@ public class InventoryLogController {
     ) {
         inventoryLogService.adjustStock(productDetailId, quantityChange, note, userId, adjustmentId);
         return ResponseEntity.ok("Điều chỉnh tồn kho thành công");
+<<<<<<< HEAD
+=======
+    }
+
+    /**
+     * Lấy danh sách sản phẩm + tồn kho hiện tại (bảng kho hàng) với filter & pagination
+     */
+    @GetMapping("/warehouse")
+    public ResponseEntity<Map<String, Object>> getWarehouseStock(
+            @RequestParam(required = false) String product,
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) Integer stockMin,
+            @RequestParam(required = false) Integer stockMax,
+            @RequestParam(required = false) Double priceMin,
+            @RequestParam(required = false) Double priceMax,
+            @RequestParam(required = false) Double discountMin,
+            @RequestParam(required = false) Double discountMax,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int sizePage
+    ) {
+        Page<Object[]> pageResult = inventoryLogService.getWarehouseStockWithFilters(
+                product, color, size,
+                stockMin, stockMax,
+                priceMin, priceMax,
+                discountMin, discountMax,
+                PageRequest.of(page, sizePage)
+        );
+
+        List<Map<String, Object>> data = new ArrayList<>();
+        for (Object[] row : pageResult.getContent()) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("productId", row[0]);
+            map.put("productName", row[1]);
+            map.put("productDetailId", row[2]);
+            map.put("color", row[3]);
+            map.put("size", row[4]);
+            map.put("currentStock", row[5]);
+            map.put("price", row[6]);
+            map.put("discountPrice", row[7]);
+            data.add(map);
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("data", data);
+        response.put("currentPage", pageResult.getNumber());
+        response.put("totalItems", pageResult.getTotalElements());
+        response.put("totalPages", pageResult.getTotalPages());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Lấy danh sách các bộ lọc (colors, sizes)
+     */
+    @GetMapping("/warehouse/filters")
+    public ResponseEntity<Map<String, List<String>>> getWarehouseFilters() {
+        return ResponseEntity.ok(inventoryLogService.getFilterOptions());
+>>>>>>> origin/master
     }
 }

@@ -1,90 +1,153 @@
 <template>
-  <div class="p-6 bg-white rounded-xl shadow-lg max-w-7xl mx-auto">
+  <div class="p-4">
     <!-- Tiêu đề và nút Thêm -->
-    <div class="flex justify-between items-center mb-6 border-b pb-2">
-      <h2 class="text-2xl font-bold text-gray-800">Quản lý danh mục</h2>
-      <button @click="showForm = !showForm" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-semibold">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+      <h2 class="fw-bold">📂 Quản lý danh mục</h2>
+      <button
+        @click="toggleForm"
+        class="btn btn-primary"
+      >
         {{ showForm ? 'Đóng' : 'Thêm mới' }}
       </button>
     </div>
- <!-- Form thêm/sửa danh mục -->
-<div v-if="showForm" class="mb-10 bg-gray-50 p-6 rounded-xl shadow">
-  <h3 class="text-xl font-semibold text-gray-800 mb-4">
-    {{ form.id ? '✏️ Cập nhật danh mục' : '➕ Thêm danh mục mới' }}
-  </h3>
-  <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <input name="name" v-model="form.name" placeholder="Tên danh mục" required
-      class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
 
-    <input name="description" v-model="form.description" placeholder="Mô tả"
-      class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-    <!-- Input chọn file ảnh -->
-    <input name="image" type="file" accept="image/*" @change="handleImageChange"
-      class="border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
-
-    <!-- Ảnh xem trước -->
-    <img v-if="imagePreview" :src="imagePreview" alt="Xem trước ảnh"
-      class="w-32 h-32 object-cover rounded-lg border mt-1" />
-
-    <!-- Trạng thái -->
-    <div class="flex items-center gap-2">
-      <label class="text-gray-700 font-medium">Trạng thái:</label>
-      <label class="inline-flex items-center">
-        <input type="radio" name="status" value="true" v-model="form.status" class="mr-1" /> Hiển thị
-      </label>
-      <label class="inline-flex items-center ml-4">
-        <input type="radio" name="status" value="false" v-model="form.status" class="mr-1" /> Ẩn
-      </label>
-    </div>
-
-    <!-- Nút hành động -->
-    <div class="md:col-span-2 flex gap-3 mt-2">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
-        {{ form.id ? 'Cập nhật' : 'Thêm' }}
-      </button>
-      <button type="button" @click="resetForm"
-        class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg font-semibold">Huỷ</button>
-    </div>
-  </form>
-</div>
+    <!-- Form thêm/sửa danh mục -->
+    <transition name="fade-slide">
+      <div v-if="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-pencil-square me-2"></i>{{ form.id ? 'Cập nhật danh mục' : 'Thêm danh mục mới' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <form @submit.prevent="handleSubmit">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Tên danh mục</label>
+                <input
+                  v-model="form.name"
+                  type="text"
+                  class="form-control"
+                  placeholder="Tên danh mục"
+                  required
+                />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Mô tả</label>
+                <input
+                  v-model="form.description"
+                  type="text"
+                  class="form-control"
+                  placeholder="Mô tả"
+                />
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Ảnh</label>
+              <input
+                type="file"
+                accept="image/*"
+                @change="handleImageChange"
+                class="form-control"
+              />
+              <div class="mt-2">
+                <img
+                  v-if="imagePreview"
+                  :src="imagePreview"
+                  class="img-thumbnail"
+                  style="width: 100px; height: 100px; object-fit: cover;"
+                />
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Trạng thái</label>
+              <div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    value="true"
+                    v-model="form.status"
+                    id="statusShow"
+                  />
+                  <label class="form-check-label" for="statusShow">Hiển thị</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    value="false"
+                    v-model="form.status"
+                    id="statusHide"
+                  />
+                  <label class="form-check-label" for="statusHide">Ẩn</label>
+                </div>
+              </div>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-check-circle me-1"></i>{{ form.id ? 'Cập nhật' : 'Thêm' }}
+              </button>
+              <button type="button" class="btn btn-secondary" @click="resetForm">
+                <i class="bi bi-x-circle me-1"></i>Huỷ
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
 
     <!-- Bảng danh mục -->
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm text-left border border-gray-200 rounded-lg shadow">
-        <thead class="bg-blue-100 text-gray-700">
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered text-center align-middle">
+        <thead class="table-light">
           <tr>
-            <th class="px-4 py-2 border">ID</th>
-            <th class="px-4 py-2 border">Tên danh mục</th>
-            <th class="px-4 py-2 border">Mô tả</th>
-            <th class="px-4 py-2 border">Ảnh</th>
-            <th class="px-4 py-2 border">Trạng thái</th>
-            <th class="px-4 py-2 border">Ngày tạo</th>
-            <th class="px-4 py-2 border">Ngày cập nhật</th>
-            <th class="px-4 py-2 border">Sửa</th>
-            <th class="px-4 py-2 border">Xoá</th>
+            <th>ID</th>
+            <th>Tên danh mục</th>
+            <th>Mô tả</th>
+            <th>Ảnh</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th>Sửa</th>
+            <th>Xoá</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in categories" :key="category.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2 border">{{ category.id }}</td>
-            <td class="px-4 py-2 border font-medium">{{ category.name }}</td>
-            <td class="px-4 py-2 border">{{ category.description }}</td>
-            <td class="px-4 py-2 border">
-              <img v-if="category.imageUrl" :src="category.imageUrl" class="w-12 h-12 rounded object-cover" style="max-width: 48px; max-height: 48px"/>
+          <tr v-for="category in categories" :key="category.id">
+            <td>{{ category.id }}</td>
+            <td class="fw-semibold">{{ category.name }}</td>
+            <td>{{ category.description }}</td>
+            <td>
+              <img
+                v-if="category.imageUrl"
+                :src="`http://localhost:8080${category.imageUrl}`"
+                class="img-thumbnail"
+                style="width: 50px; height: 50px; object-fit: cover;"
+              />
             </td>
-            <td class="px-4 py-2 border">
-              <span :class="category.status ? 'text-green-600' : 'text-red-600'">
+            <td>
+              <span :class="category.status ? 'badge bg-success' : 'badge bg-danger'">
                 {{ category.status ? 'Hiển thị' : 'Ẩn' }}
               </span>
             </td>
-            <td class="px-4 py-2 border">{{ formatDate(category.createdAt) }}</td>
-            <td class="px-4 py-2 border">{{ formatDate(category.updatedAt) }}</td>
-            <td class="px-4 py-2 border text-center">
-              <button @click="editCategory(category)" class="text-yellow-600 hover:text-yellow-800 text-lg">✏️</button>
+            <td>{{ formatDate(category.createdAt) }}</td>
+            <td>{{ formatDate(category.updatedAt) }}</td>
+            <td>
+              <button
+                class="btn btn-sm btn-outline-warning"
+                @click="editCategory(category)"
+              >
+                ✏️
+              </button>
             </td>
-            <td class="px-4 py-2 border text-center">
-              <button @click="deleteCategory(category.id)" class="text-red-600 hover:text-red-800 text-lg">🗑️</button>
+            <td>
+              <button
+                class="btn btn-sm btn-outline-danger"
+                @click="deleteCategory(category.id)"
+              >
+                🗑️
+              </button>
             </td>
           </tr>
         </tbody>
@@ -104,8 +167,9 @@ export default {
         id: null,
         name: '',
         description: '',
-        imageUrl: '',
-        status: true
+        status: 'true',
+        image: null,
+        imageUrl: ''
       }
     };
   },
@@ -113,73 +177,76 @@ export default {
     fetchCategories() {
       fetch('http://localhost:8080/api/categories')
         .then(res => res.json())
-        .then(data => this.categories = data)
-        .catch(err => console.error("Fetch categories error:", err));
+        .then(data => (this.categories = data))
+        .catch(err => console.error('Fetch categories error:', err));
     },
     handleImageChange(event) {
       const file = event.target.files[0];
       if (!file) return;
-
-      this.form.image = file; // lưu tạm file ảnh
-
+      this.form.image = file;
       const reader = new FileReader();
-      reader.onload = e => {
-        this.imagePreview = e.target.result;
-      };
+      reader.onload = e => (this.imagePreview = e.target.result);
       reader.readAsDataURL(file);
     },
     handleSubmit() {
-        const isUpdate = this.form.id !== null;
-        const url = isUpdate
-          ? `http://localhost:8080/api/categories/${this.form.id}`
-          : 'http://localhost:8080/api/categories';
-        const method = isUpdate ? 'PUT' : 'POST';
-        const formData = new FormData();
-        formData.append("name", this.form.name);
-        formData.append("description", this.form.description);
-        formData.append("status", this.form.status);
-        if (this.form.image) {
-          formData.append("image", this.form.image);
-        }
-
-        fetch(url, {
-          method,
-          body: formData
+      const isUpdate = this.form.id !== null;
+      const url = isUpdate
+        ? `http://localhost:8080/api/categories/${this.form.id}`
+        : 'http://localhost:8080/api/categories';
+      const method = isUpdate ? 'PUT' : 'POST';
+      const formData = new FormData();
+      formData.append('name', this.form.name);
+      formData.append('description', this.form.description);
+      formData.append('status', this.form.status === 'true');
+      if (this.form.image) {
+        formData.append('image', this.form.image);
+      }
+      fetch(url, { method, body: formData })
+        .then(() => {
+          this.fetchCategories();
+          this.resetForm();
+          this.showForm = false;
         })
-          .then(() => {
-            this.fetchCategories();
-            this.resetForm();
-            this.showForm = false;
-          })
-          .catch(err => console.error("Submit error:", err));
-      },
+        .catch(err => console.error('Submit error:', err));
+    },
     editCategory(category) {
-      this.form = { ...category };
-      this.imagePreview = category.imageUrl || null;
+      this.form = {
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        status: category.status ? 'true' : 'false',
+        image: null,
+        imageUrl: category.imageUrl
+      };
+      this.imagePreview = category.imageUrl
+        ? `http://localhost:8080${category.imageUrl}`
+        : null;
       this.showForm = true;
     },
     deleteCategory(id) {
       if (confirm('Bạn có chắc chắn muốn xoá danh mục này?')) {
         fetch(`http://localhost:8080/api/categories/${id}`, { method: 'DELETE' })
           .then(() => this.fetchCategories())
-          .catch(err => console.error("Delete error:", err));
+          .catch(err => console.error('Delete error:', err));
       }
     },
     resetForm() {
-      this.form = {
-        id: null,
-        name: '',
-        description: '',
-        imageUrl: '',
-        status: true,
-        image: null,
-        imageUrl: ''
-      };
+      this.form = { id: null, name: '', description: '', status: 'true', image: null, imageUrl: '' };
       this.imagePreview = null;
+    },
+    toggleForm() {
+      this.showForm = !this.showForm;
+      if (!this.showForm) this.resetForm();
     },
     formatDate(dateStr) {
       if (!dateStr) return '';
-      return new Date(dateStr).toLocaleString('vi-VN');
+      return new Date(dateStr).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
   },
   mounted() {
@@ -188,4 +255,19 @@ export default {
 };
 </script>
 
-
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>

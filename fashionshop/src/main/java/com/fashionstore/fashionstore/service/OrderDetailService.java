@@ -14,4 +14,5 @@ public interface OrderDetailService {
     OrderDetail createOrderDetail(OrderDetail orderDetail);
     OrderDetail updateOrderDetail(Integer id, OrderDetail orderDetail);
     void deleteOrderDetail(Integer id);
+    
 }

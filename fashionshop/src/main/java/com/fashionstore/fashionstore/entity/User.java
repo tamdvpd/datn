@@ -1,6 +1,8 @@
 package com.fashionstore.fashionstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,6 +15,8 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "Users")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

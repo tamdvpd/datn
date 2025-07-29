@@ -3,6 +3,8 @@ package com.fashionstore.fashionstore.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -17,6 +19,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+
 public class ShippingProvider {
 
     @Id

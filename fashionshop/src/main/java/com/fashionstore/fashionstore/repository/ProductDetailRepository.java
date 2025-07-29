@@ -15,12 +15,13 @@ import java.util.List;
 @Repository
 public interface ProductDetailRepository extends JpaRepository<ProductDetail, Integer> {
 
-    @Query("SELECT DISTINCT pd.product FROM ProductDetail pd WHERE " +
-            "(:name IS NULL OR LOWER(pd.product.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:categoryId IS NULL OR pd.product.category.id = :categoryId) AND " +
-            "(:minPrice IS NULL OR pd.price >= :minPrice) AND " +
-            "(:maxPrice IS NULL OR pd.price <= :maxPrice)")
-    List<Product> searchProducts(
+    @Query("SELECT pd FROM ProductDetail pd " +
+            "JOIN pd.product p " +
+            "WHERE (:name IS NULL OR p.name LIKE %:name%) " +
+            "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+            "AND (:minPrice IS NULL OR pd.price >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR pd.price <= :maxPrice)")
+    List<ProductDetail> searchProducts(
             @Param("name") String name,
             @Param("categoryId") Integer categoryId,
             @Param("minPrice") BigDecimal minPrice,
@@ -33,20 +34,20 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
     List<String> findDistinctSizes();
 
     @Query("""
-        SELECT p.id AS productId, p.name AS productName, pd.id AS productDetailId,
-               pd.color, pd.size, pd.quantity AS currentStock, pd.price, pd.discountPrice
-        FROM ProductDetail pd
-        JOIN pd.product p
-        WHERE (:productName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%')))
-          AND (:color IS NULL OR LOWER(pd.color) = LOWER(:color))
-          AND (:size IS NULL OR LOWER(pd.size) = LOWER(:size))
-          AND (:priceMin IS NULL OR pd.price >= :priceMin)
-          AND (:priceMax IS NULL OR pd.price <= :priceMax)
-          AND (:stockMin IS NULL OR pd.quantity >= :stockMin)
-          AND (:stockMax IS NULL OR pd.quantity <= :stockMax)
-          AND (:discountMin IS NULL OR ((pd.price - COALESCE(pd.discountPrice, pd.price)) * 100 / pd.price) >= :discountMin)
-          AND (:discountMax IS NULL OR ((pd.price - COALESCE(pd.discountPrice, pd.price)) * 100 / pd.price) <= :discountMax)
-        """)
+            SELECT p.id AS productId, p.name AS productName, pd.id AS productDetailId,
+                   pd.color, pd.size, pd.quantity AS currentStock, pd.price, pd.discountPrice
+            FROM ProductDetail pd
+            JOIN pd.product p
+            WHERE (:productName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :productName, '%')))
+              AND (:color IS NULL OR LOWER(pd.color) = LOWER(:color))
+              AND (:size IS NULL OR LOWER(pd.size) = LOWER(:size))
+              AND (:priceMin IS NULL OR pd.price >= :priceMin)
+              AND (:priceMax IS NULL OR pd.price <= :priceMax)
+              AND (:stockMin IS NULL OR pd.quantity >= :stockMin)
+              AND (:stockMax IS NULL OR pd.quantity <= :stockMax)
+              AND (:discountMin IS NULL OR ((pd.price - COALESCE(pd.discountPrice, pd.price)) * 100 / pd.price) >= :discountMin)
+              AND (:discountMax IS NULL OR ((pd.price - COALESCE(pd.discountPrice, pd.price)) * 100 / pd.price) <= :discountMax)
+            """)
     Page<Object[]> getWarehouseStockWithFilters(
             @Param("productName") String productName,
             @Param("color") String color,
@@ -57,14 +58,15 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
             @Param("priceMax") BigDecimal priceMax,
             @Param("discountMin") Integer discountMin,
             @Param("discountMax") Integer discountMax,
-            Pageable pageable
-    );
+            Pageable pageable);
 
     @Query("""
-        SELECT p.id AS productId, p.name AS productName, pd.id AS productDetailId,
-               pd.color, pd.size, pd.quantity AS currentStock, pd.price, pd.discountPrice
-        FROM ProductDetail pd
-        JOIN pd.product p
-        """)
+            SELECT p.id AS productId, p.name AS productName, pd.id AS productDetailId,
+                   pd.color, pd.size, pd.quantity AS currentStock, pd.price, pd.discountPrice
+            FROM ProductDetail pd
+            JOIN pd.product p
+            """)
     List<Object[]> findAllCurrentStocks();
+
+    List<ProductDetail> findByProductId(Integer productId);
 }

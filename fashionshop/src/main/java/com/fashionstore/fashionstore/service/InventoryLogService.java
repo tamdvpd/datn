@@ -1,6 +1,8 @@
 package com.fashionstore.fashionstore.service;
 
 import com.fashionstore.fashionstore.entity.InventoryLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -28,17 +30,11 @@ public interface InventoryLogService {
      * Ghi log nhập hàng và cập nhật tồn kho
      */
     void importProduct(Integer productDetailId, int quantity, Integer importInvoiceId, String note);
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> origin/master
     /**
      * Ghi log điều chỉnh thủ công (khi kiểm kho)
      */
     void adjustStock(Integer productDetailId, int quantityChange, String note, Long userId, Integer adjustmentId);
-<<<<<<< HEAD
-=======
 
     /**
      * Lấy danh sách tồn kho (product + color + size + tồn) - không filter
@@ -49,13 +45,12 @@ public interface InventoryLogService {
      * Lấy danh sách tồn kho với filter + pagination
      */
     Page<Object[]> getWarehouseStockWithFilters(
-        String product, String color, String size,
-        Integer stockMin, Integer stockMax,
-        Double priceMin, Double priceMax,
-        Double discountMin, Double discountMax,
-        Pageable pageable
-    );
+            String product, String color, String size,
+            Integer stockMin, Integer stockMax,
+            Double priceMin, Double priceMax,
+            Double discountMin, Double discountMax,
+            Pageable pageable);
+
     Map<String, List<String>> getFilterOptions();
 
->>>>>>> origin/master
 }

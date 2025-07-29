@@ -55,8 +55,7 @@ public class InventoryLogController {
             @RequestParam Integer productDetailId,
             @RequestParam int quantity,
             @RequestParam(required = false) Integer importInvoiceId,
-            @RequestParam(required = false) String note
-    ) {
+            @RequestParam(required = false) String note) {
         inventoryLogService.importProduct(productDetailId, quantity, importInvoiceId, note);
         return ResponseEntity.ok("Nhập hàng thành công");
     }
@@ -68,8 +67,7 @@ public class InventoryLogController {
     public ResponseEntity<String> exportProduct(
             @RequestParam Integer productDetailId,
             @RequestParam int quantity,
-            @RequestParam(required = false) Integer orderId
-    ) {
+            @RequestParam(required = false) Integer orderId) {
         inventoryLogService.exportProduct(productDetailId, quantity, orderId);
         return ResponseEntity.ok("Xuất hàng thành công");
     }
@@ -83,16 +81,14 @@ public class InventoryLogController {
             @RequestParam int quantityChange,
             @RequestParam(required = false) String note,
             @RequestParam Long userId,
-            @RequestParam(required = false) Integer adjustmentId
-    ) {
+            @RequestParam(required = false) Integer adjustmentId) {
         inventoryLogService.adjustStock(productDetailId, quantityChange, note, userId, adjustmentId);
         return ResponseEntity.ok("Điều chỉnh tồn kho thành công");
-<<<<<<< HEAD
-=======
     }
 
     /**
-     * Lấy danh sách sản phẩm + tồn kho hiện tại (bảng kho hàng) với filter & pagination
+     * Lấy danh sách sản phẩm + tồn kho hiện tại (bảng kho hàng) với filter &
+     * pagination
      */
     @GetMapping("/warehouse")
     public ResponseEntity<Map<String, Object>> getWarehouseStock(
@@ -106,15 +102,13 @@ public class InventoryLogController {
             @RequestParam(required = false) Double discountMin,
             @RequestParam(required = false) Double discountMax,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int sizePage
-    ) {
+            @RequestParam(defaultValue = "10") int sizePage) {
         Page<Object[]> pageResult = inventoryLogService.getWarehouseStockWithFilters(
                 product, color, size,
                 stockMin, stockMax,
                 priceMin, priceMax,
                 discountMin, discountMax,
-                PageRequest.of(page, sizePage)
-        );
+                PageRequest.of(page, sizePage));
 
         List<Map<String, Object>> data = new ArrayList<>();
         for (Object[] row : pageResult.getContent()) {
@@ -145,6 +139,5 @@ public class InventoryLogController {
     @GetMapping("/warehouse/filters")
     public ResponseEntity<Map<String, List<String>>> getWarehouseFilters() {
         return ResponseEntity.ok(inventoryLogService.getFilterOptions());
->>>>>>> origin/master
     }
 }

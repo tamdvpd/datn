@@ -95,6 +95,7 @@
         <table class="table table-striped table-bordered text-center align-middle">
           <thead class="table-light">
             <tr>
+              <th>ProductDetail ID</th>
               <th>Product</th>
               <th>Color</th>
               <th>Size</th>
@@ -105,6 +106,7 @@
           </thead>
           <tbody>
             <tr v-for="item in stocks" :key="item.productDetailId">
+              <td>{{ item.productDetailId }}</td>
               <td>{{ item.productName }}</td>
               <td>{{ item.color }}</td>
               <td>{{ item.size }}</td>
@@ -115,7 +117,7 @@
               <td>{{ item.discountPrice ? formatCurrency(item.discountPrice) : '-' }}</td>
             </tr>
             <tr v-if="stocks.length === 0">
-              <td colspan="6">Không có dữ liệu</td>
+              <td colspan="7">Không có dữ liệu</td>
             </tr>
           </tbody>
         </table>
@@ -177,7 +179,6 @@
 
 <script>
 export default {
-  // script giữ nguyên logic cũ
   name: "InventoryWarehouse",
   data() {
     return {
@@ -212,7 +213,6 @@ export default {
     this.fetchFilters();
   },
   methods: {
-    // Các methods fetchWarehouseStock, fetchLogs, submitImport, applyFilters ... giữ nguyên như code cũ
     async fetchFilters() {
       try {
         const res = await fetch('http://localhost:8080/admin/inventoryLogs/warehouse/filters');

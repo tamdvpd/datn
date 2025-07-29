@@ -25,8 +25,13 @@
         </form>
 
         <div class="d-flex align-items-center">
-          <router-link to="/cart" class="btn btn-outline-primary me-2"
-            >🛒 Giỏ hàng</router-link
+          <router-link to="/cart" class="btn btn-outline-primary me-2 position-relative"
+            >
+            🛒 Giỏ hàng
+            <span v-if="cartItemCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              {{ cartItemCount }}
+            </span>
+          </router-link
           >
 
           <div v-if="!currentUser">
@@ -86,10 +91,19 @@ export default {
     return {
       searchQuery: "",
       currentUser: null,
+      cartItemCount: 0,
     };
   },
   created() {
     this.loadCurrentUser();
+    if (this.currentUser) {
+      this.loadCartCount();
+    }
+    // Lắng nghe sự kiện thay đổi giỏ hàng
+    window.addEventListener('storage', this.handleStorageChange);
+  },
+  beforeUnmount() {
+    window.removeEventListener('storage', this.handleStorageChange);
   },
   methods: {
     onSearch() {
@@ -99,6 +113,25 @@ export default {
       const user = localStorage.getItem("user");
       if (user) {
         this.currentUser = JSON.parse(user);
+        this.loadCartCount();
+      }
+    },
+    async loadCartCount() {
+      if (!this.currentUser || !this.currentUser.id) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8080/api/cart/${this.currentUser.id}`);
+        if (response.ok) {
+          const cart = await response.json();
+          this.cartItemCount = cart.length;
+        }
+      } catch (error) {
+        console.error('Lỗi khi tải số lượng giỏ hàng:', error);
+      }
+    },
+    handleStorageChange(event) {
+      if (event.key === 'cartUpdated' && this.currentUser) {
+        this.loadCartCount();
       }
     },
     handleLogout() {

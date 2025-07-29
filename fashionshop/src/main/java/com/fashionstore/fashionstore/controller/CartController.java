@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:3001")
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
@@ -31,15 +32,49 @@ public class CartController {
     @PostMapping
     public ResponseEntity<?> addToCart(@RequestBody Map<String, Object> body) {
         try {
-            Integer userId = (Integer) body.get("userId");
-            Integer productDetailId = (Integer) body.get("productDetailId");
-            Integer quantity = (Integer) body.get("quantity");
+            System.out.println("Received request body: " + body);
+            Object userIdObj = body.get("userId");
+            Object productDetailIdObj = body.get("productDetailId");
+            Object quantityObj = body.get("quantity");
+            
+            Integer userId = null;
+            Integer productDetailId = null;
+            Integer quantity = null;
+            
+            // Convert to Integer safely
+            if (userIdObj instanceof Number) {
+                userId = ((Number) userIdObj).intValue();
+            } else if (userIdObj instanceof String) {
+                userId = Integer.parseInt((String) userIdObj);
+            }
+            
+            if (productDetailIdObj instanceof Number) {
+                productDetailId = ((Number) productDetailIdObj).intValue();
+            } else if (productDetailIdObj instanceof String) {
+                productDetailId = Integer.parseInt((String) productDetailIdObj);
+            }
+            
+            if (quantityObj instanceof Number) {
+                quantity = ((Number) quantityObj).intValue();
+            } else if (quantityObj instanceof String) {
+                quantity = Integer.parseInt((String) quantityObj);
+            }
+            
+            System.out.println("Parsed values - userId: " + userId + ", productDetailId: " + productDetailId + ", quantity: " + quantity);
+            
+            if (userId == null || productDetailId == null || quantity == null) {
+                return ResponseEntity.badRequest().body(error("Thiếu thông tin bắt buộc"));
+            }
+            
             Cart cart = cartService.addToCart(userId, productDetailId, quantity);
             return ResponseEntity.status(HttpStatus.CREATED).body(cart);
         } catch (EntityNotFoundException | IllegalArgumentException e) {
+            System.out.println("Error in addToCart: " + e.getMessage());
             return ResponseEntity.badRequest().body(error(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error("Lỗi hệ thống"));
+            System.out.println("Unexpected error in addToCart: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error("Lỗi hệ thống: " + e.getMessage()));
         }
     }
 

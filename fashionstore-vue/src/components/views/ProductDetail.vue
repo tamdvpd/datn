@@ -40,15 +40,6 @@
         Giá: {{ formatPrice(selectedDetail?.price || 0) }}
       </p>
 <div class="row mb-3">
-  <!-- Chọn Size -->
-  <div class="col-md-3 col-6">
-    <label class="form-label fw-semibold small">Chọn Size:</label>
-    <select v-model="selectedSize" class="form-select form-select-sm" @change="onSizeChange">
-      <option disabled value="">-- Chọn Size --</option>
-      <option v-for="size in uniqueSizes" :key="size">{{ size }}</option>
-    </select>
-  </div>
-
   <!-- Chọn Màu -->
   <div class="col-md-3 col-6">
     <label class="form-label fw-semibold small">Chọn Màu:</label>
@@ -62,6 +53,15 @@
       <option v-for="color in filteredColors" :key="color">{{ color }}</option>
     </select>
   </div>
+  <!-- Chọn Size -->
+  <div class="col-md-3 col-6">
+    <label class="form-label fw-semibold small">Chọn Size:</label>
+    <select v-model="selectedSize" class="form-select form-select-sm" @change="onSizeChange">
+      <option disabled value="">-- Chọn Size --</option>
+      <option v-for="size in filteredSizes" :key="size">{{ size }}</option>
+    </select>
+  </div>
+
 </div>
 <!-- Nhập số lượng -->
     <div class="mb-2 w-25">
@@ -133,7 +133,13 @@ export default {
         .filter(d => d.size === this.selectedSize)
         .map(d => d.color)
         .filter((value, index, self) => self.indexOf(value) === index);
-    }
+    },
+    filteredSizes() {
+    return this.productDetails
+      .filter(d => d.color === this.selectedColor)
+      .map(d => d.size)
+      .filter((value, index, self) => self.indexOf(value) === index);
+  }
   },
   methods: {
     fetchProductDetails(productId) {
@@ -168,23 +174,46 @@ export default {
         });
     },
     onSizeChange() {
-      this.selectedColor = '';
-      this.selectedDetail = null;
-      // Nếu chỉ có 1 màu hoặc muốn tự động chọn màu đầu tiên
-      if (this.filteredColors.length > 0) {
-        this.selectedColor = this.filteredColors[0];
-        this.onColorChange(); // cập nhật detail và ảnh luôn
+  const isValidCombination = this.productDetails.some(
+    d => d.size === this.selectedSize && d.color === this.selectedColor
+  );
+
+  if (!isValidCombination) {
+    this.selectedColor = '';
+    this.selectedDetail = null;
+    return;
   }
-    },
+
+  this.selectedDetail = this.productDetails.find(
+    d => d.size === this.selectedSize && d.color === this.selectedColor
+  );
+
+  if (this.selectedDetail && this.selectedDetail.imageUrl) {
+    this.selectedImage = this.getImageUrl(this.selectedDetail.imageUrl);
+  }
+}
+,
     onColorChange() {
-      this.selectedDetail = this.productDetails.find(
-        d => d.size === this.selectedSize && d.color === this.selectedColor
-      );
-       // ✅ Cập nhật ảnh lớn khi chọn màu
-      if (this.selectedDetail && this.selectedDetail.imageUrl) {
-        this.selectedImage = this.getImageUrl(this.selectedDetail.imageUrl);
+  const isValidCombination = this.productDetails.some(
+    d => d.size === this.selectedSize && d.color === this.selectedColor
+  );
+
+  if (!isValidCombination) {
+    this.selectedSize = '';
+    this.selectedDetail = null;
+    return;
   }
-    },
+
+  this.selectedDetail = this.productDetails.find(
+    d => d.size === this.selectedSize && d.color === this.selectedColor
+  );
+
+  if (this.selectedDetail && this.selectedDetail.imageUrl) {
+    this.selectedImage = this.getImageUrl(this.selectedDetail.imageUrl);
+  }
+}
+
+,
     getImageUrl(path) {
       if (!path) return require('@/assets/img/default-avatar.png');
       if (path.startsWith('http')) return path;

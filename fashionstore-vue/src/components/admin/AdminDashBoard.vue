@@ -37,6 +37,7 @@
                   CHỈNH</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 GIAO DIỆN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/reviews">📝ĐÁNH GIÁ</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 NHÀ CUNG CẤP</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
               </li>
@@ -68,6 +69,7 @@
                   <li class="nav-item"><router-link class="nav-link" to="/admin/invoicedetails">📥CHI TIẾT PHIẾU NHẬP</router-link></li>     
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨GIAO DIỆN</router-link></li>
+              <li class="nav-item"><router-link class="nav-link" to="/admin/reviews">📝ĐÁNH GIÁ</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭NHÀ CUNG CẤP</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
               </li>

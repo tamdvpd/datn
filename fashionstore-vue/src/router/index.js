@@ -25,7 +25,9 @@ import ProfilePage from "@/components/views/ProfilePage.vue";
 import ChangePassword from "@/components/views/ChangePassword.vue";
 import AdminInventoryAdjustmentPage from "@/components/admin/AdminInventoryAdjustmentPage.vue";
 import AdminImportInvoiceDetail from "@/components/admin/AdminImportInvoiceDetail.vue";
+
 import CreateReview from"@/components/views/CreateReview.vue";
+import ReviewManagement from "@/components/admin/ReviewManagement.vue";
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -85,9 +87,13 @@ const routes = [
         component: AdminUiPage,
       },
       {
-        path: "invoice/:id",
+        path: 'import-invoices/:id/details',
         name: "AdminImportInvoiceDetail",
         component: AdminImportInvoiceDetail,
+      },
+      {
+        path: "reviews",
+        component: ReviewManagement,
       },
       {
         path: "inventory",

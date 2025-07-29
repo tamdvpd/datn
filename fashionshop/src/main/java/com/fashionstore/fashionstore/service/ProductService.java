@@ -14,7 +14,6 @@ public interface ProductService {
     Optional<Product> getProductById(Integer id);
     Product createProduct(Product product);
     Product updateProduct(Integer id, Product product);
-    void deleteProduct(Integer id);
+    void deleteProduct(Integer id); // Xóa mềm (status=false)
     List<Product> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice);
-
 }

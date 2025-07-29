@@ -17,38 +17,52 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Liên kết đến bảng Users
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnoreProperties({ "reviews", "password", "orders", "wishlist", "importInvoices" }) // tuỳ chỉnh nếu có vòng
-                                                                                             // lặp
+    @JsonIgnoreProperties({ "reviews", "password", "orders", "wishlist", "importInvoices" })
     private User user;
 
-    // Liên kết đến bảng ProductDetails
     @ManyToOne(fetch = FetchType.LAZY)
+    
     @JoinColumn(name = "product_detail_id", nullable = false)
     @JsonIgnoreProperties({ "reviews", "product", "importInvoiceDetails", "orderDetails" })
     private ProductDetail productDetail;
 
-    // Điểm đánh giá: từ 1 đến 5
     @Column(nullable = false)
     private Integer rating;
 
-    // Nội dung đánh giá (tùy chọn)
     @Column(length = 1000)
     private String comment;
 
-    // Thời gian tạo
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Thời gian cập nhật
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Danh sách ảnh kèm theo (nếu có)
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReviewImage> reviewImages = new ArrayList<>();
+
+    @Transient
+    public List<String> getImages() {
+        List<String> urls = new ArrayList<>();
+        for (ReviewImage image : reviewImages) {
+            urls.add(image.getImageUrl());
+        }
+        return urls;
+    }
+
+    @Transient
+    public void setImages(List<String> imageUrls) {
+        this.reviewImages.clear(); // Xóa ảnh cũ nếu có
+
+        for (String url : imageUrls) {
+            ReviewImage image = new ReviewImage();
+            image.setImageUrl(url);
+            image.setReview(this); // Thiết lập quan hệ ngược
+            this.reviewImages.add(image);
+        }
+    }
 
     @PrePersist
     protected void onCreate() {

@@ -52,7 +52,7 @@ public class ImportInvoiceDetail {
     @JoinColumn(name = "user_id")
     @JsonIgnoreProperties({ "importInvoiceDetails", "hibernateLazyInitializer", "handler" })
     private User user;
-
+    
     // Ngày giờ tạo
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

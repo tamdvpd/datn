@@ -1,270 +1,343 @@
 <template>
-  <div class="p-16 bg-gradient-to-br from-blue-100 to-purple-200 rounded-4xl shadow-4xl max-w-[1800px] w-full mx-auto border-4 border-blue-300 backdrop-filter backdrop-blur-sm">
-    <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-16 pb-8 border-b-4 border-purple-400">
-      <h2 class="text-7xl font-black text-gray-900 leading-tight mb-8 sm:mb-0 drop-shadow-xl flex items-center">
-        <span class="inline-block mr-6 text-blue-800 transform rotate-3 scale-125">📦</span> Quản lý Kho hàng
-      </h2>
-      <button
-        @click="fetchData"
-        class="bg-blue-700 hover:bg-blue-800 text-white px-14 py-6 rounded-full font-extrabold text-2xl shadow-3xl transition-all duration-400 ease-in-out transform hover:-translate-y-2 hover:scale-105 focus:outline-none focus:ring-6 focus:ring-blue-500 focus:ring-opacity-80 active:bg-blue-900 animate-bounce-subtle"
-      >
-        Tải lại dữ liệu
-      </button>
-    </div>
+  <div class="container my-4">
+    <!-- ======================= FORM NHẬP HÀNG ======================= -->
+    <section class="mb-5">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">➕ Nhập hàng</h5>
+        </div>
+        <div class="card-body">
+          <form @submit.prevent="submitImport" class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">ProductDetail ID</label>
+              <input v-model.number="newLog.productDetailId" type="number" class="form-control" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Số lượng</label>
+              <input v-model.number="newLog.quantity" type="number" class="form-control" required min="1" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Ghi chú</label>
+              <input v-model="newLog.note" type="text" class="form-control" />
+            </div>
+            <div class="col-12 text-end">
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-box-arrow-in-down me-1"></i> Nhập hàng
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
 
-    <!-- Inventory Logs Section -->
-    <div class="mb-20 bg-white p-14 rounded-4xl shadow-2xl border-2 border-gray-200 animate-fade-in-up">
-      <h3 class="text-6xl font-extrabold text-gray-800 mb-14 text-center leading-tight">Nhật ký tồn kho gần đây</h3>
-      <div v-if="loading" class="text-gray-700 text-center text-3xl font-medium py-20 bg-gray-100 rounded-3xl animate-pulse-fast flex items-center justify-center">
-        <svg class="animate-spin -ml-1 mr-4 h-10 w-10 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Đang tải dữ liệu...
+    <!-- ======================= BẢNG KHO HÀNG ======================= -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold">📦 Bảng kho hàng</h5>
       </div>
-      <div v-else-if="error" class="text-red-800 text-center text-3xl font-medium py-20 bg-red-100 rounded-3xl border-2 border-red-400 flex items-center justify-center">
-        <span class="mr-4 text-4xl">⚠️</span> Lỗi: {{ error }}
-      </div>
-      <div v-else>
-        <div v-if="inventoryLogs.length === 0" class="text-gray-600 text-center text-3xl py-20 bg-gray-100 rounded-3xl border-2 border-gray-300">
-          Không có nhật ký tồn kho nào.
-        </div>
-        <div v-else class="overflow-x-auto rounded-3xl border-2 border-gray-300 shadow-xl">
-          <table class="min-w-full text-xl text-left">
-            <thead class="bg-blue-600 text-white uppercase tracking-wider font-extrabold border-b-4 border-blue-700">
-              <tr>
-                <th class="px-12 py-6 border-r-2 border-blue-700">ID</th>
-                <th class="px-12 py-6 border-r-2 border-blue-700">ID Chi tiết SP</th>
-                <th class="px-12 py-6 border-r-2 border-blue-700">Hành động</th>
-                <th class="px-12 py-6 border-r-2 border-blue-700">Số lượng</th>
-                <th class="px-12 py-6 border-r-2 border-blue-700">Loại tham chiếu</th>
-                <th class="px-12 py-6 border-r-2 border-blue-700">ID tham chiếu</th>
-                <th class="px-12 py-6">Thời gian</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="log in inventoryLogs" :key="log.id" class="border-b-2 border-gray-200 last:border-b-0 hover:bg-blue-50 transition-all duration-200 ease-in-out">
-                <td class="px-12 py-5 border-r-2 border-gray-200 text-gray-800">{{ log.id }}</td>
-                <td class="px-12 py-5 border-r-2 border-gray-200 text-gray-800">{{ log.productDetail?.id || 'N/A' }}</td>
-                <td class="px-12 py-5 border-r-2 border-gray-200 font-semibold text-gray-900">{{ log.action }}</td>
-                <td :class="['px-12 py-5 border-r-2 border-gray-200 font-black text-3xl', log.quantity > 0 ? 'text-green-600' : 'text-red-600']">
-                  {{ log.quantity }}
-                </td>
-                <td class="px-12 py-5 border-r-2 border-gray-200 text-gray-800">{{ log.referenceType || 'N/A' }}</td>
-                <td class="px-12 py-5 border-r-2 border-gray-200 text-gray-800">{{ log.referenceId || 'N/A' }}</td>
-                <td class="px-12 py-5 text-gray-600">{{ formatDate(log.createdAt) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
-    <!-- Low Stock Alert Section -->
-    <div class="mt-20 bg-white p-14 rounded-4xl shadow-2xl border-2 border-gray-200 animate-fade-in-up">
-      <h3 class="text-6xl font-extrabold text-gray-800 mb-14 text-center leading-tight">Cảnh báo tồn kho thấp</h3>
-      <div v-if="loading" class="text-gray-700 text-center text-3xl font-medium py-20 bg-gray-100 rounded-3xl animate-pulse-fast flex items-center justify-center">
-        <svg class="animate-spin -ml-1 mr-4 h-10 w-10 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Đang kiểm tra cảnh báo...
-      </div>
-      <div v-else-if="error" class="text-red-800 text-center text-3xl font-medium py-20 bg-red-100 rounded-3xl border-2 border-red-400 flex items-center justify-center">
-        <span class="mr-4 text-4xl">⚠️</span> Lỗi: {{ error }}
-      </div>
-      <div v-else>
-        <div v-if="lowStockProducts.length === 0" class="text-gray-600 text-center text-3xl py-20 bg-gray-100 rounded-3xl border-2 border-gray-300">
-          Không có sản phẩm nào tồn kho thấp.
+      <!-- Bộ lọc -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-2">
+          <input v-model="filters.product" placeholder="Tìm sản phẩm" class="form-control" />
         </div>
-        <div v-else class="overflow-x-auto rounded-3xl border-2 border-yellow-400 shadow-xl">
-          <table class="min-w-full text-xl text-left">
-            <thead class="bg-yellow-600 text-white uppercase tracking-wider font-extrabold border-b-4 border-yellow-700">
-              <tr>
-                <th class="px-12 py-6 border-r-2 border-yellow-700">ID</th>
-                <th class="px-12 py-6 border-r-2 border-yellow-700">Tên sản phẩm</th>
-                <th class="px-12 py-6 border-r-2 border-yellow-700">Màu sắc</th>
-                <th class="px-12 py-6 border-r-2 border-yellow-700">Kích thước</th>
-                <th class="px-12 py-6 text-center">Tồn kho hiện tại</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in lowStockProducts" :key="product.id" class="border-b-2 border-yellow-200 last:border-b-0 hover:bg-yellow-50 transition-all duration-200 ease-in-out">
-                <td class="px-12 py-5 border-r-2 border-yellow-200 text-gray-800">{{ product.id }}</td>
-                <td class="px-12 py-5 border-r-2 border-yellow-200 font-semibold text-gray-900">{{ product.product?.name || 'N/A' }}</td>
-                <td class="px-12 py-5 border-r-2 border-yellow-200 text-gray-800">{{ product.color || 'N/A' }}</td>
-                <td class="px-12 py-5 border-r-2 border-yellow-200 text-gray-800">{{ product.size || 'N/A' }}</td>
-                <td class="px-12 py-5 text-center font-black text-red-600 text-3xl">{{ product.quantity }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="col-md-2">
+          <select v-model="filters.color" class="form-select">
+            <option value="">All Colors</option>
+            <option v-for="color in colors" :key="color" :value="color">{{ color }}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select v-model="filters.size" class="form-select">
+            <option value="">All Sizes</option>
+            <option v-for="size in sizes" :key="size" :value="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select v-model="filters.stockRange" class="form-select">
+            <option value="">All Stock</option>
+            <option value="0-10">0 - 10</option>
+            <option value="10-50">10 - 50</option>
+            <option value="50-100">50 - 100</option>
+            <option value="100-999999">> 100</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select v-model="filters.priceRange" class="form-select">
+            <option value="">All Prices</option>
+            <option value="0-100000">0 - 100k</option>
+            <option value="100000-500000">100k - 500k</option>
+            <option value="500000-1000000">500k - 1M</option>
+            <option value="1000000-999999999">> 1M</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select v-model="filters.discountRange" class="form-select">
+            <option value="">All Discount</option>
+            <option value="0-10">0% - 10%</option>
+            <option value="10-30">10% - 30%</option>
+            <option value="30-50">30% - 50%</option>
+            <option value="50-100">> 50%</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex gap-2 mt-2">
+          <button @click="applyFilters" class="btn btn-primary btn-sm">
+            <i class="bi bi-funnel me-1"></i> Lọc
+          </button>
+          <button @click="resetFilters" class="btn btn-secondary btn-sm">
+            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Toast Notification -->
-    <div v-if="showNotification" class="notification" :class="notificationType">
-      {{ notificationMessage }}
-    </div>
+      <!-- Bảng dữ liệu kho -->
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ProductDetail ID</th>
+              <th>Product</th>
+              <th>Color</th>
+              <th>Size</th>
+              <th>Stock</th>
+              <th>Price</th>
+              <th>Discount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in stocks" :key="item.productDetailId">
+              <td>{{ item.productDetailId }}</td>
+              <td>{{ item.productName }}</td>
+              <td>{{ item.color }}</td>
+              <td>{{ item.size }}</td>
+              <td :class="{ 'text-warning fw-bold': item.currentStock <= 5 }">
+                {{ item.currentStock }}
+              </td>
+              <td>{{ formatCurrency(item.price) }}</td>
+              <td>{{ item.discountPrice ? formatCurrency(item.discountPrice) : '-' }}</td>
+            </tr>
+            <tr v-if="stocks.length === 0">
+              <td colspan="7">Không có dữ liệu</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Phân trang -->
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+          <button class="btn btn-outline-secondary btn-sm me-2" :disabled="currentPage === 0" @click="changePage(currentPage - 1)">
+            Previous
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" :disabled="currentPage >= totalPages - 1" @click="changePage(currentPage + 1)">
+            Next
+          </button>
+        </div>
+        <span>Page {{ currentPage + 1 }} / {{ totalPages }} ({{ totalItems }} items)</span>
+        <select v-model.number="sizePage" @change="fetchWarehouseStock(0)" class="form-select form-select-sm" style="width: 100px;">
+          <option :value="5">5</option>
+          <option :value="10">10</option>
+          <option :value="20">20</option>
+          <option :value="50">50</option>
+        </select>
+      </div>
+    </section>
+z
+    <!-- ======================= LỊCH SỬ NHẬP XUẤT ======================= -->
+    <section>
+      <h5 class="fw-bold mb-3">📋 Lịch sử nhập / xuất kho</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>ProductDetail ID</th>
+              <th>Loại</th>
+              <th>Số lượng</th>
+              <th>Ngày</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in inventoryLogs" :key="log.id">
+              <td>{{ log.id }}</td>
+              <td>{{ log.productDetailId ?? '-' }}</td>
+              <td>{{ log.action }}</td>
+              <td :class="{ 'text-danger fw-bold': log.quantity < 0, 'text-success fw-bold': log.quantity > 0 }">
+                {{ log.quantity }}
+              </td>
+              <td>{{ formatDate(log.createdAt) }}</td>
+            </tr>
+            <tr v-if="inventoryLogs.length === 0">
+              <td colspan="5">Không có log</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'AdminInventoryPage',
+  name: "InventoryWarehouse",
   data() {
     return {
+      stocks: [],
+      currentPage: 0,
+      totalPages: 0,
+      totalItems: 0,
+      sizePage: 10,
+      filters: {
+        product: "",
+        color: "",
+        size: "",
+        stockRange: "",
+        priceRange: "",
+        discountRange: "",
+        stockMin: null,
+        stockMax: null,
+        priceMin: null,
+        priceMax: null,
+        discountMin: null,
+        discountMax: null,
+      },
+      colors: [],
+      sizes: [],
       inventoryLogs: [],
-      lowStockProducts: [],
-      loading: true,
-      error: null,
-      showNotification: false,
-      notificationMessage: '',
-      notificationType: 'success'
+      newLog: { productDetailId: null, quantity: null, note: "" },
     };
   },
+  mounted() {
+    this.fetchWarehouseStock(0);
+    this.fetchLogs();
+    this.fetchFilters();
+  },
   methods: {
-    showNotify(message, type = 'success', duration = 3000) {
-      this.notificationMessage = message;
-      this.notificationType = type;
-      this.showNotification = true;
-      setTimeout(() => {
-        this.showNotification = false;
-      }, duration);
-    },
-    async fetchData() {
-      this.loading = true;
-      this.error = null;
+    async fetchFilters() {
       try {
-        // Fetch Inventory Logs
-        const inventoryLogsResponse = await fetch('http://localhost:8080/inventoryLogs');
-        if (!inventoryLogsResponse.ok) {
-          throw new Error(`HTTP error! status: ${inventoryLogsResponse.status}`);
-        }
-        this.inventoryLogs = await inventoryLogsResponse.json();
-
-        // Fetch Low Stock Products (assuming you have an endpoint for this)
-        // You would need to implement this endpoint in your Spring Boot backend
-        // For example, a GET /productDetails/lowStock endpoint that returns ProductDetail objects
-        const lowStockProductsResponse = await fetch('http://localhost:8080/productDetails/lowStock');
-        if (!lowStockProductsResponse.ok) {
-          throw new Error(`HTTP error! status: ${lowStockProductsResponse.status}`);
-        }
-        this.lowStockProducts = await lowStockProductsResponse.json();
-
+        const res = await fetch('http://localhost:8080/admin/inventoryLogs/warehouse/filters');
+        if (!res.ok) throw new Error('Không thể tải filters');
+        const data = await res.json();
+        this.colors = data.colors || [];
+        this.sizes = data.sizes || [];
       } catch (err) {
-        console.error("Lỗi khi tải dữ liệu:", err);
-        this.error = "Không thể tải dữ liệu. Vui lòng kiểm tra kết nối backend và CORS.";
-        this.showNotify('Không thể tải dữ liệu kho hàng!', 'error');
-
-        // Fallback to mock data if API call fails
-        this.inventoryLogs = [
-            { id: 1, productDetail: { id: 101, name: 'Áo Polo Xanh' }, action: 'IMPORT', quantity: 50, referenceType: 'ImportInvoice', referenceId: 1, createdAt: '2025-07-17T10:00:00' },
-            { id: 2, productDetail: { id: 102, name: 'Quần Jean Đen' }, action: 'EXPORT', quantity: -5, referenceType: 'Order', referenceId: 101, createdAt: '2025-07-17T11:30:00' },
-            { id: 3, productDetail: { id: 101, name: 'Áo Polo Xanh' }, action: 'ADJUSTMENT', quantity: -2, referenceType: 'Adjustment', referenceId: 5, createdAt: '2025-07-17T14:00:00' },
-            { id: 4, productDetail: { id: 103, name: 'Giày Sneaker Trắng' }, action: 'IMPORT', quantity: 100, referenceType: 'ImportInvoice', referenceId: 2, createdAt: '2025-07-17T16:00:00' },
-        ];
-        this.lowStockProducts = [
-            { id: 201, product: { name: 'Áo thun cơ bản' }, color: 'Trắng', size: 'M', quantity: 3 },
-            { id: 202, product: { name: 'Quần jean slim-fit' }, color: 'Xanh đậm', size: 'L', quantity: 5 },
-            { id: 203, product: { name: 'Váy maxi hoa' }, color: 'Đa sắc', size: 'S', quantity: 1 },
-        ];
-      } finally {
-        this.loading = false;
+        console.error('Lỗi khi tải filters:', err);
       }
     },
-    formatDate(dateString) {
-      if (!dateString) return "";
-      return new Date(dateString).toLocaleString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-      });
-    }
+    async fetchWarehouseStock(page = 0) {
+      try {
+        const query = new URLSearchParams({
+          page,
+          sizePage: this.sizePage,
+          product: this.filters.product,
+          color: this.filters.color,
+          size: this.filters.size,
+        });
+        if (this.filters.stockMin !== null) query.append("stockMin", this.filters.stockMin);
+        if (this.filters.stockMax !== null) query.append("stockMax", this.filters.stockMax);
+        if (this.filters.priceMin !== null) query.append("priceMin", this.filters.priceMin);
+        if (this.filters.priceMax !== null) query.append("priceMax", this.filters.priceMax);
+        if (this.filters.discountMin !== null) query.append("discountMin", this.filters.discountMin);
+        if (this.filters.discountMax !== null) query.append("discountMax", this.filters.discountMax);
+        const res = await fetch(`http://localhost:8080/admin/inventoryLogs/warehouse?${query.toString()}`);
+        if (!res.ok) throw new Error("Không thể tải dữ liệu kho hàng");
+        const data = await res.json();
+        this.stocks = data.data || [];
+        this.currentPage = data.currentPage || 0;
+        this.totalItems = data.totalItems || 0;
+        this.totalPages = data.totalPages || 0;
+      } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi tải kho hàng: " + err.message);
+      }
+    },
+    applyFilters() {
+      if (this.filters.priceRange) {
+        const [min, max] = this.filters.priceRange.split("-");
+        this.filters.priceMin = Number(min);
+        this.filters.priceMax = Number(max);
+      } else { this.filters.priceMin = null; this.filters.priceMax = null; }
+      if (this.filters.discountRange) {
+        const [min, max] = this.filters.discountRange.split("-");
+        this.filters.discountMin = Number(min);
+        this.filters.discountMax = Number(max);
+      } else { this.filters.discountMin = null; this.filters.discountMax = null; }
+      if (this.filters.stockRange) {
+        const [min, max] = this.filters.stockRange.split("-");
+        this.filters.stockMin = Number(min);
+        this.filters.stockMax = Number(max);
+      } else { this.filters.stockMin = null; this.filters.stockMax = null; }
+      this.fetchWarehouseStock(0);
+    },
+    changePage(page) {
+      if (page < 0 || page >= this.totalPages) return;
+      this.fetchWarehouseStock(page);
+    },
+    resetFilters() {
+      this.filters = {
+        product: "",
+        color: "",
+        size: "",
+        stockRange: "",
+        priceRange: "",
+        discountRange: "",
+        stockMin: null,
+        stockMax: null,
+        priceMin: null,
+        priceMax: null,
+        discountMin: null,
+        discountMax: null,
+      };
+      this.fetchWarehouseStock(0);
+    },
+    async fetchLogs() {
+      try {
+        const res = await fetch("http://localhost:8080/admin/inventoryLogs");
+        if (!res.ok) throw new Error("Không thể tải log");
+        this.inventoryLogs = await res.json();
+      } catch (err) {
+        console.error("Lỗi khi tải log:", err);
+      }
+    },
+    async submitImport() {
+      const params = new URLSearchParams();
+      params.append("productDetailId", this.newLog.productDetailId);
+      params.append("quantity", this.newLog.quantity);
+      if (this.newLog.note) params.append("note", this.newLog.note);
+      try {
+        const res = await fetch("http://localhost:8080/admin/inventoryLogs/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: params,
+        });
+        if (!res.ok) throw new Error("Lỗi khi gửi phiếu nhập");
+        alert("✅ Nhập hàng thành công!");
+        this.resetForm();
+        this.fetchLogs();
+        this.fetchWarehouseStock(this.currentPage);
+      } catch (err) {
+        alert("❌ Lỗi nhập hàng: " + err.message);
+      }
+    },
+    resetForm() {
+      this.newLog = { productDetailId: null, quantity: null, note: "" };
+    },
+    formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("vi-VN") + " " + d.toLocaleTimeString("vi-VN");
+    },
+    formatCurrency(value) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(value ?? 0);
+    },
   },
-  mounted() {
-    this.fetchData();
-  }
 };
 </script>
 
 <style scoped>
-/* Animation cho form */
-@keyframes fade-in-down {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in-down {
-  animation: fade-in-down 0.5s ease-out forwards;
-}
-
-/* Custom animation for subtle bounce */
-@keyframes bounce-subtle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-.animate-bounce-subtle {
-  animation: bounce-subtle 2s infinite ease-in-out;
-}
-
-/* Custom animation for pulse-fast */
-@keyframes pulse-fast {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
-}
-.animate-pulse-fast {
-  animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-
-/* Style cho thông báo Toast */
-.notification {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 15px 25px;
-  border-radius: 8px;
-  color: white;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: fadeInOut 3.5s ease forwards;
-  font-weight: 600;
-}
-.notification.success {
-  background-color: #22c55e; /* Tailwind green-500 */
-}
-.notification.error {
-  background-color: #ef4444; /* Tailwind red-500 */
-}
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(20px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(20px); }
-}
-
-/* Style cho thông báo lỗi dưới input (nếu có form) */
-.error-message {
-  color: #ef4444; /* Tailwind red-500 */
-  font-weight: 500;
-  font-size: 0.875rem; /* text-sm */
-  margin-top: 0.25rem;
+.text-warning {
+  color: orange !important;
 }
 </style>

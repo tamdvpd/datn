@@ -9,9 +9,16 @@ import java.util.Optional;
 
 public interface ReviewService {
     List<Review> getAllReviews();
+
     Page<Review> getAllReviews(Pageable pageable);
+
     Optional<Review> getReviewById(Integer id);
+
     Review createReview(Review review);
-    Review updateReview(Integer id, Review review);
+
+    Review updateReview(Integer id, Review updatedReview);
+
     void deleteReview(Integer id);
+
+    List<Review> getReviewsByProductDetailId(Integer productDetailId);
 }

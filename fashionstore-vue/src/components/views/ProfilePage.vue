@@ -5,24 +5,31 @@
       <h2 class="mb-3 text-center">👤 Thông tin cá nhân</h2>
       <p class="text-center">Quản lý và chỉnh sửa thông tin tài khoản của bạn.</p>
 
-      <div class="text-center mb-4 position-relative" style="cursor: pointer;">
-  <img 
-    :src="user.imageUrl || require('@/assets/img/default-avatar.png')" 
-    alt="Avatar" 
-    class="rounded-circle border" 
-    width="120" height="120"
-    @click="triggerFileSelect" 
-  />
-  <input 
-    type="file" 
-    ref="fileInput" 
-    accept="image/*" 
-    @change="handleImageChange" 
-    style="display: none;" 
-  />
-  <div class="text-muted mt-2">Click vào ảnh để thay đổi</div>
-</div>
+      <div class="text-center mb-4 position-relative">
+        <img 
+          :src="user.imageUrl || require('@/assets/img/default-avatar.png')" 
+          alt="Avatar" 
+          class="rounded-circle border" 
+          width="120" height="120"
+        />
+        
+        <div class="mt-2">
+          <button class="btn btn-outline-primary btn-sm me-2" @click="triggerFileSelect">
+            Chọn ảnh từ máy
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" @click="enterImageUrl">
+            Nhập URL ảnh
+          </button>
+        </div>
 
+        <input 
+          type="file" 
+          ref="fileInput" 
+          accept="image/*" 
+          @change="handleImageChange" 
+          style="display: none;" 
+        />
+      </div>
 
       <div class="card shadow-sm">
         <div class="card-header bg-info text-white">
@@ -58,7 +65,6 @@
   </div>
   <MainFooter />
 </template>
-
 <script setup>
 import MainHeader from '@/components/MainHeader.vue';
 import MainFooter from '@/components/MainFooter.vue';
@@ -83,33 +89,55 @@ function triggerFileSelect() {
   fileInput.value.click();
 }
 
+function uploadAvatar(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return axios.post('http://localhost:8080/upload/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+}
+
 function handleImageChange(event) {
   const file = event.target.files[0];
   if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      user.value.imageUrl = e.target.result; // Hiển thị ảnh mới ngay
-    };
-    reader.readAsDataURL(file);
+    uploadAvatar(file)
+      .then(res => {
+        user.value.imageUrl = res.data.url;
+      })
+      .catch(err => {
+        console.error('Lỗi upload ảnh:', err);
+        alert('Tải ảnh thất bại, vui lòng thử lại.');
+      });
+  }
+}
+
+function enterImageUrl() {
+  const url = prompt("Nhập URL ảnh:");
+  if (url && url.startsWith("http")) {
+    user.value.imageUrl = url;
+  } else if (url) {
+    alert("URL không hợp lệ, vui lòng nhập lại.");
   }
 }
 
 function updateProfile() {
-  axios.put(`http://localhost:8080/users/${user.value.id}/update`, user.value)
+  const payload = {
+    fullName: user.value.fullName,
+    phoneNumber: user.value.phoneNumber,
+    address: user.value.address,
+    imageUrl: user.value.imageUrl
+  };
+
+  axios.put(`http://localhost:8080/users/${user.value.id}/update`, payload)
     .then(() => {
-      alert('Cập nhật thông tin thành công!');
+      alert('Cập nhật thành công!');
+      Object.assign(user.value, payload);
       localStorage.setItem('user', JSON.stringify(user.value));
     })
     .catch((error) => {
-      console.error(error);
+      console.error('Lỗi chi tiết:', error.response?.data || error);
       alert('Cập nhật thất bại!');
     });
 }
 </script>
-
-
-<style scoped>
-.card {
-  border-radius: 12px;
-}
-</style>

@@ -2,6 +2,8 @@ package com.fashionstore.fashionstore.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,11 +34,13 @@ public class Cart {
     // Người dùng sở hữu giỏ hàng
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User user;
 
     // Sản phẩm cụ thể (biến thể) được thêm vào giỏ
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ProductDetail productDetail;
 
     @Column(nullable = false)

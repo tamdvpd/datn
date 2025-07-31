@@ -4,7 +4,7 @@ module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false,
   devServer: {
-    port: 3001  // 👉 Đổi cổng tại đây (ví dụ: 3001)
+    port: 3001,  // 👉 Đổi cổng tại đây (ví dụ: 3001)
   }
 })
 

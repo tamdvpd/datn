@@ -71,15 +71,21 @@
 
       <!-- Nút hành động -->
       <div class="d-flex flex-wrap gap-2 mt-3">
-        <button class="btn btn-outline-primary" @click="addToCart" :disabled="!selectedDetail">
+        <button class="btn btn-outline-primary" @click="addToCart" :disabled="!selectedDetail || selectedQuantity <= 0">
           🛒 Thêm vào giỏ
         </button>
-        <button class="btn btn-success" @click="buyNow" :disabled="!selectedDetail">
+        <button class="btn btn-success" @click="buyNow" :disabled="!selectedDetail || selectedQuantity <= 0">
           ✅ Chọn và Mua ngay
         </button>
         <button class="btn btn-outline-secondary" @click="addToWishlist">
           ❤️ Yêu thích
         </button>
+      </div>
+      
+      <!-- Thông báo trạng thái -->
+      <div v-if="!selectedDetail" class="alert alert-warning mt-3" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        Vui lòng chọn size và màu sắc sản phẩm để thêm vào giỏ hàng
       </div>
     </div>
   </div>
@@ -196,29 +202,123 @@ export default {
       return new Intl.NumberFormat('vi-VN').format(value) + ' VNĐ';
     },
     addToCart() {
-      if (!this.selectedDetail) return;
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const existing = cart.find(item => item.detailId === this.selectedDetail.id);
-      if (existing) {
-        existing.quantity += this.selectedQuantity;
-      } else {
-        cart.push({
-          productId: this.product.id,
-          detailId: this.selectedDetail.id,
-          name: this.product.name,
-          imageUrl: this.selectedDetail.imageUrl,
-          price: this.selectedDetail.price,
-          quantity: this.selectedQuantity,
-          size: this.selectedDetail.size,
-          color: this.selectedDetail.color,
-        });
+      if (!this.selectedDetail) {
+        alert('Vui lòng chọn size và màu sắc sản phẩm!');
+        return;
       }
-      localStorage.setItem('cart', JSON.stringify(cart));
-      alert(`🛒 Đã thêm "${this.product.name}" vào giỏ hàng!`);
+      
+      if (this.selectedQuantity <= 0) {
+        alert('Số lượng phải lớn hơn 0!');
+        return;
+      }
+      
+      // Kiểm tra đăng nhập
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
+        this.$router.push('/login');
+        return;
+      }
+
+      // Gọi API để thêm vào giỏ hàng
+      console.log('Sending request with data:', {
+        userId: user.id,
+        productDetailId: this.selectedDetail.id,
+        quantity: this.selectedQuantity
+      });
+      
+      fetch('http://localhost:8080/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: parseInt(user.id),
+          productDetailId: parseInt(this.selectedDetail.id),
+          quantity: parseInt(this.selectedQuantity)
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(`HTTP ${response.status}: ${text}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert(`🛒 Đã thêm "${this.product.name}" vào giỏ hàng!`);
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+      })
+      .catch(error => {
+        console.error('Lỗi khi thêm vào giỏ hàng:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin!');
+        } else {
+          alert(`Lỗi: ${error.message}`);
+        }
+      });
     },
     buyNow() {
-      this.addToCart();
-      this.$router.push('/cart');
+      if (!this.selectedDetail) {
+        alert('Vui lòng chọn size và màu sắc sản phẩm!');
+        return;
+      }
+      
+      if (this.selectedQuantity <= 0) {
+        alert('Số lượng phải lớn hơn 0!');
+        return;
+      }
+      
+      // Kiểm tra đăng nhập
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || !user.id) {
+        alert('Vui lòng đăng nhập để mua sản phẩm!');
+        this.$router.push('/login');
+        return;
+      }
+
+      // Gọi API để thêm vào giỏ hàng
+      console.log('Sending request with data:', {
+        userId: user.id,
+        productDetailId: this.selectedDetail.id,
+        quantity: this.selectedQuantity
+      });
+      
+      fetch('http://localhost:8080/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: parseInt(user.id),
+          productDetailId: parseInt(this.selectedDetail.id),
+          quantity: parseInt(this.selectedQuantity)
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(`HTTP ${response.status}: ${text}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert(`🛒 Đã thêm "${this.product.name}" vào giỏ hàng!`);
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+        this.$router.push('/cart');
+      })
+      .catch(error => {
+        console.error('Lỗi khi thêm vào giỏ hàng:', error);
+        if (error.message.includes('Failed to fetch')) {
+          alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin!');
+        } else {
+          alert(`Lỗi: ${error.message}`);
+        }
+      });
     },
     addToWishlist() {
       alert(`❤️ Đã thêm "${this.product.name}" vào danh sách yêu thích!`);

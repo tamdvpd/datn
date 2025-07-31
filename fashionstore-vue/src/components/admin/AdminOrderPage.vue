@@ -50,6 +50,7 @@
           <select class="form-select d-inline w-auto" v-model="updatedStatus">
             <option value="PENDING">Chờ xử lý</option>
             <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="PROCESSING">Đang xử lý</option>
             <option value="SHIPPED">Đang giao</option>
             <option value="DELIVERED">Đã giao</option>
             <option value="CANCELLED">Đã huỷ</option>
@@ -120,19 +121,26 @@ export default {
         .catch(err => console.error('Lỗi tải chi tiết đơn hàng:', err));
     },
     async updateStatus() {
-      try {
-        await axios.put(`http://localhost:8080/orders/${this.selectedOrder.id}/status`, {
-          status: this.updatedStatus,
-          admin: true
-        });
-        alert('✅ Cập nhật trạng thái thành công!');
-        this.viewOrderDetail(this.selectedOrder.id); // refresh chi tiết
-        this.loadOrders(); // refresh danh sách
-      } catch (err) {
-        alert('❌ Cập nhật trạng thái thất bại!');
-        console.error(err);
+  try {
+    await axios.put(`http://localhost:8080/orders/${this.selectedOrder.id}/status`, null, {
+      params: {
+        status: this.updatedStatus,
+        admin: true
       }
-    },
+    });
+
+    alert('✅ Cập nhật trạng thái thành công!');
+    this.viewOrderDetail(this.selectedOrder.id);
+    this.loadOrders();
+  } catch (err) {
+    if (err.response && err.response.data) {
+      alert(err.response.data); // thông báo lỗi từ backend
+    } else {
+      alert('❌ Cập nhật trạng thái thất bại!');
+    }
+  }
+},
+
     formatCurrency(value) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
     },

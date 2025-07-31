@@ -36,8 +36,7 @@ public class OrderController {
     @GetMapping("/admin/page")
     public ResponseEntity<Page<Order>> getAllOrdersPageable(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok(orderService.getAllOrders(pageable));
     }
@@ -48,8 +47,7 @@ public class OrderController {
     @GetMapping("/user")
     public ResponseEntity<List<Order>> getOrdersByUserEmailAndStatus(
             @RequestParam String email,
-            @RequestParam(required = false) String status
-    ) {
+            @RequestParam(required = false) String status) {
         List<Order> orders = (status != null && !status.isBlank())
                 ? orderService.getOrdersByUserEmailAndStatus(email, status)
                 : orderService.getOrdersByUserEmail(email);
@@ -64,8 +62,7 @@ public class OrderController {
     public ResponseEntity<Order> getById(
             @PathVariable Integer id,
             @RequestParam(required = false) String email,
-            @RequestParam(defaultValue = "false") boolean admin
-    ) {
+            @RequestParam(defaultValue = "false") boolean admin) {
         Optional<Order> optionalOrder = orderService.getOrderById(id);
         if (optionalOrder.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -101,8 +98,7 @@ public class OrderController {
     public ResponseEntity<Order> update(
             @PathVariable Integer id,
             @RequestBody Order order,
-            @RequestParam(defaultValue = "false") boolean admin
-    ) {
+            @RequestParam(defaultValue = "false") boolean admin) {
         if (!admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -119,18 +115,21 @@ public class OrderController {
     // ✅ 7. Cập nhật trạng thái đơn (ADMIN)
     // ====================================
     @PutMapping("/{id}/status")
-    public ResponseEntity<Order> updateStatus(
+    public ResponseEntity<?> updateStatus(
             @PathVariable Integer id,
             @RequestParam String status,
-            @RequestParam(defaultValue = "false") boolean admin
-    ) {
+            @RequestParam(defaultValue = "false") boolean admin) {
         if (!admin) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền cập nhật trạng thái đơn hàng.");
         }
 
-        Optional<Order> updated = orderService.updateOrderStatus(id, status);
-        return updated.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        try {
+            Optional<Order> updated = orderService.updateOrderStatus(id, status);
+            return updated.map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ====================================
@@ -139,8 +138,7 @@ public class OrderController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Integer id,
-            @RequestParam(defaultValue = "false") boolean admin
-    ) {
+            @RequestParam(defaultValue = "false") boolean admin) {
         if (!admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }

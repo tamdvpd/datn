@@ -137,6 +137,21 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> optionalOrder = orderRepository.findById(id);
         if (optionalOrder.isPresent()) {
             Order order = optionalOrder.get();
+            String currentStatus = order.getStatus();
+
+            List<String> allowedNextStatuses = switch (currentStatus) {
+                case "PENDING" -> List.of("CONFIRMED", "CANCELLED");
+                case "CONFIRMED" -> List.of("PROCESSING");
+                case "PROCESSING" -> List.of("SHIPPED");
+                case "SHIPPED" -> List.of("DELIVERED");
+                case "DELIVERED" -> List.of("COMPLETED");
+                case "COMPLETED", "CANCELLED" -> List.of(); // locked trạng thái
+                default -> List.of();
+            };
+            if (!allowedNextStatuses.contains(status)) {
+                throw new IllegalStateException("❌ Không thể chuyển từ " + currentStatus + " sang " + status);
+            }
+
             order.setStatus(status);
             order.setUpdatedAt(LocalDateTime.now());
             return Optional.of(orderRepository.save(order));

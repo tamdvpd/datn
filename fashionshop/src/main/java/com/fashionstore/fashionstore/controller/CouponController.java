@@ -43,4 +43,16 @@ public class CouponController {
         couponService.deleteCoupon(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/check-code/{code}")
+    public ResponseEntity<Coupon> checkCoupon(@PathVariable String code) {
+        boolean result = couponService.checkByCode(code);
+        if (result) {
+            return couponService.getCouponByCode(code)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

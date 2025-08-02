@@ -29,4 +29,9 @@ public class OrderDetail {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void onCreated() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

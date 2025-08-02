@@ -18,6 +18,8 @@ public interface CouponService {
 
     Coupon updateCoupon(Integer id, Coupon coupon);
 
+    Coupon updateQuantity(Integer id);
+
     void deleteCoupon(Integer id);
 
     boolean checkByCode(String code);

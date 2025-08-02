@@ -76,4 +76,12 @@ public class CouponServiceImpl implements CouponService {
     public Optional<Coupon> getCouponByCode(String code) {
         return Optional.ofNullable(couponRepository.findByCode(code));
     }
+
+    @Override
+    public Coupon updateQuantity(Integer id) {
+        Coupon coupon = couponRepository.getById(id);
+        int currentQuantity = coupon.getQuantity() - 1;
+        coupon.setQuantity(currentQuantity);
+        return couponRepository.save(coupon);
+    }
 }

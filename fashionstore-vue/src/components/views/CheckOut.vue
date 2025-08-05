@@ -385,16 +385,50 @@ export default {
                 const res = await axios.post("http://localhost:8080/api/checkout/payment", orderData);
 
                 const result = res.data;
-
-                // if (result.success) {
-                //     alert("Đặt hàng thành công!");
-                //     this.$router.push("/thank-you"); // hoặc redirect đến trang đơn hàng
-                // } else {
-                //     alert(result.message || "Đặt hàng thất bại!");
-                // }
+                // Xử lý response dạng Map
+                if (result.status === "success") {
+                    // Thanh toán thành công (COD)
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            status: 'success',
+                            orderId: result.orderId,
+                            amount: result.totalAmount,
+                        }
+                    });
+                } else if (result.status === "fail") {
+                    // Thanh toán thất bại
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            status: 'fail',
+                            error: response.error || "Thanh toán thất bại"
+                        }
+                    });
+                } else if (result.paymentUrl) {
+                    // window.location.href = result.paymentUrl;
+                    window.open(result.paymentUrl, '_blank');
+                } else {
+                    // Trường hợp response không rõ ràng
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            status: 'fail',
+                            error: "Phản hồi từ server không hợp lệ"
+                        }
+                    });
+                }
             } catch (error) {
                 console.error("Lỗi khi gửi đơn hàng:", error);
-                alert("Có lỗi xảy ra trong quá trình đặt hàng.");
+                this.$router.push({
+                    path: '/payment-result',
+                    query: {
+                        status: 'fail',
+                        error: error.response?.data?.error ||
+                            error.response?.data?.message ||
+                            "Có lỗi xảy ra trong quá trình đặt hàng"
+                    }
+                });
             }
         },
         async fetchInitialData() {

@@ -28,6 +28,8 @@ import RegisterView from "@/components/views/RegisterView.vue";
 import Order from "@/components/views/Order.vue";
 import CheckOut from "@/components/views/CheckOut.vue";
 import CartCheckout from "@/components/views/CartCheckout.vue";
+import PaymentResult from "@/components/views/PaymentResult.vue";
+
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -40,6 +42,7 @@ const routes = [
   {path: "/order", name: "Order", component: Order },
   {path: "/check-out", name: "CheckOut", component: CheckOut },
   {path: "/checkout-cart", name: "CartCheckout", component: CartCheckout },
+  {path: "/payment-result", name: "PaymentResult", component: PaymentResult },
   {
     path: "/admin",
     component: AdminDashBoard,

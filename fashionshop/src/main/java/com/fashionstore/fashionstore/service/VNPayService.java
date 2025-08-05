@@ -1,27 +1,20 @@
 package com.fashionstore.fashionstore.service;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 
 import com.fashionstore.fashionstore.config.VNPayConfig;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class VNPayService {
+
     public String createOrder(int total, String orderInfor, String urlReturn) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
@@ -70,7 +63,8 @@ public class VNPayService {
                 hashData.append(fieldName);
                 hashData.append('=');
                 try {
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                    hashData.append(URLEncoder.encode(fieldValue,
+                            StandardCharsets.US_ASCII.toString()));
                     // Build query
                     query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII.toString()));
                     query.append('=');
@@ -91,38 +85,40 @@ public class VNPayService {
         return paymentUrl;
     }
 
-    public int orderReturn(HttpServletRequest request) {
-        Map fields = new HashMap();
-        for (Enumeration params = request.getParameterNames(); params.hasMoreElements();) {
-            String fieldName = null;
-            String fieldValue = null;
-            try {
-                fieldName = URLEncoder.encode((String) params.nextElement(), StandardCharsets.US_ASCII.toString());
-                fieldValue = URLEncoder.encode(request.getParameter(fieldName), StandardCharsets.US_ASCII.toString());
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+    public Map<String, String> orderReturn(HttpServletRequest request) {
+        Map<String, String> result = new HashMap<>();
+        Map<String, String> fields = new HashMap<>();
+
+        for (Enumeration<?> params = request.getParameterNames(); params.hasMoreElements();) {
+            String fieldName = (String) params.nextElement();
+            String fieldValue = request.getParameter(fieldName);
+            if (fieldValue != null && fieldValue.length() > 0) {
                 fields.put(fieldName, fieldValue);
             }
         }
 
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-        if (fields.containsKey("vnp_SecureHashType")) {
-            fields.remove("vnp_SecureHashType");
-        }
-        if (fields.containsKey("vnp_SecureHash")) {
-            fields.remove("vnp_SecureHash");
-        }
+        fields.remove("vnp_SecureHashType");
+        fields.remove("vnp_SecureHash");
+
         String signValue = VNPayConfig.hashAllFields(fields);
+
+        String status;
         if (signValue.equals(vnp_SecureHash)) {
-            if ("00".equals(request.getParameter("vnp_TransactionStatus"))) {
-                return 1;
-            } else {
-                return 0;
-            }
+            status = "00".equals(request.getParameter("vnp_TransactionStatus")) ? "success" : "fail";
         } else {
-            return -1;
+            status = "invalid_signature";
         }
+
+        result.put("status", status);
+        result.put("orderId", request.getParameter("vnp_TxnRef"));
+        result.put("totalPrice", request.getParameter("vnp_Amount"));
+        result.put("transactionId", request.getParameter("vnp_TransactionNo"));
+        result.put("paymentTime", request.getParameter("vnp_PayDate"));
+        result.put("transactionStatus", request.getParameter("vnp_TransactionStatus"));
+        result.put("vnp_OrderInfo", request.getParameter("vnp_OrderInfo"));
+
+        return result;
     }
+
 }

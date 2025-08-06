@@ -46,10 +46,18 @@ public class CheckOutController {
         // Redirect về frontend
         String redirectUrl = "http://localhost:3001/payment-result" +
                 "?status=" + result.get("status") +
+                "&method=" + "VNPAY" +
                 "&orderId=" + orderId +
                 "&amount=" + result.get("totalPrice");
 
         return new RedirectView(redirectUrl);
+    }
+
+    @PostMapping("/payment-cart")
+    public ResponseEntity<Map<String, Object>> getPaymentCart(@RequestBody Map<String, Object> payload,
+            HttpServletRequest request) {
+        Map<String, Object> result = checkOutService.processPaymentCart(payload);
+        return ResponseEntity.ok(result);
     }
 
 }

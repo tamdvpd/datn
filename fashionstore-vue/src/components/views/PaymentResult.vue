@@ -109,8 +109,12 @@ export default {
         // Lấy thông tin từ route query hoặc params
         this.isSuccess = this.$route.query.status === 'success';
         this.orderId = this.$route.query.orderId || '';
-        this.totalAmount = parseFloat(this.$route.query.amount) || 0;
         this.errorMessage = this.$route.query.error || '';
+        if (this.$route.query.method === 'VNPAY') {
+            this.totalAmount = parseFloat(this.$route.query.amount) / 100 || 0;
+        } else {
+            this.totalAmount = parseFloat(this.$route.query.amount) || 0;
+        }
     },
     methods: {
         formatCurrency(value) {

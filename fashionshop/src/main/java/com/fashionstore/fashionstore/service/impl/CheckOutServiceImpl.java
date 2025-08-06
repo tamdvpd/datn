@@ -2,6 +2,7 @@ package com.fashionstore.fashionstore.service.impl;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.fashionstore.fashionstore.entity.PaymentMethod;
 import com.fashionstore.fashionstore.entity.ProductDetail;
 import com.fashionstore.fashionstore.entity.ShippingProvider;
 import com.fashionstore.fashionstore.entity.User;
+import com.fashionstore.fashionstore.service.CartService;
 import com.fashionstore.fashionstore.service.CheckOutService;
 import com.fashionstore.fashionstore.service.CouponService;
 import com.fashionstore.fashionstore.service.OrderDetailService;
@@ -33,6 +35,7 @@ public class CheckOutServiceImpl implements CheckOutService {
     private final OrderDetailService orderDetailService;
     private final CouponService couponService;
     private final VNPayService vnPayService;
+    private final CartService cartService;
 
     @Override
     public Map<String, Object> reviewOrder(Map<String, Object> payload) {
@@ -251,5 +254,161 @@ public class CheckOutServiceImpl implements CheckOutService {
             order.setStatus(status);
             orderService.createOrder(order);
         }
+    }
+
+    @Override
+    public Map<String, Object> processPaymentCart(Map<String, Object> payload) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Đọc thông tin chung từ payload
+        String fullName = payload.get("receiverName").toString();
+        String phoneNumber = payload.get("receiverPhone").toString();
+        String address = payload.get("receiverAddress").toString();
+        int couponId = Integer.parseInt(payload.get("couponId").toString());
+
+        // Tạo đơn hàng
+        Order order = new Order();
+        User user = new User();
+
+        PaymentMethod paymentMethod = paymentMethodService
+                .getPaymentMethodById(Integer.valueOf(payload.get("paymentMethodId").toString())).get();
+        user.setId(Integer.valueOf(payload.get("userId").toString()));
+        ShippingProvider shippingProvider = new ShippingProvider();
+        shippingProvider.setId(Integer.valueOf(payload.get("shippingProviderId").toString()));
+        shippingProvider = shippingProviderService
+                .getById(Integer.valueOf(payload.get("shippingProviderId").toString())).get();
+        Coupon coupon = new Coupon();
+        Optional<Coupon> couponOpt = couponService.getCouponById(couponId);
+        if (couponOpt.isPresent()) {
+            coupon = couponOpt.get();
+        } else {
+            coupon.setId(0);
+        }
+        // Tổng hóa đơn
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        // Tổng giảm giá
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        List<Map<String, Object>> orderItems = (List<Map<String, Object>>) payload.get("orderItems");
+        // Tính tổng hóa đơn
+        for (Map<String, Object> item : orderItems) {
+            int productDetailId = Integer.parseInt(item.get("productDetailId").toString());
+            System.out.println("id của option sản phẩm: " + productDetailId);
+            int quantity = Integer.parseInt(item.get("quantity").toString());
+            System.out.println("số lượng của option định mua: " + quantity);
+            ProductDetail productDetail = productDetailService.getProductDetailById(productDetailId).get();
+            if (productDetail.getDiscountPrice() != null
+                    && productDetail.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0) {
+                totalAmount = totalAmount.add(productDetail.getDiscountPrice().multiply(BigDecimal.valueOf(quantity)));
+            } else {
+                totalAmount = totalAmount.add(productDetail.getPrice().multiply(BigDecimal.valueOf(quantity)));
+            }
+        }
+        // Giảm giá nếu có
+        if (coupon.getId() != 0) {
+            // số tiền giảm
+            discountAmount = totalAmount.multiply(BigDecimal.valueOf(coupon.getDiscountPercent() / 100.0));
+            totalAmount = totalAmount.subtract(discountAmount);
+            order.setCoupon(coupon);
+        }
+        totalAmount = totalAmount.add(shippingProvider.getShippingFee());
+        order.setUser(user);
+        order.setShippingProvider(shippingProvider);
+        order.setPaymentMethod(paymentMethod);
+        order.setTotalAmount(totalAmount);
+        order.setDiscountAmount(discountAmount);
+        order.setShippingFee(shippingProvider.getShippingFee());
+        order.setNote(payload.get("note").toString());
+        order.setReceiverName(fullName);
+        order.setReceiverPhone(phoneNumber);
+        order.setReceiverAddress(address);
+        if (paymentMethod.getCode().equalsIgnoreCase("COD")) {
+            // set status là COD thanh toán khi nhận hàng
+            order.setStatus("Pending Confirmation");
+            orderService.createOrder(order);
+            cartService.clearCart(user.getId());
+            response.put("status", "success");
+            response.put("orderId", order.getId());
+            response.put("totalAmount", order.getTotalAmount());
+            // dùng vòng lặp để thêm vào orderDetail
+            for (Map<String, Object> item : orderItems) {
+                OrderDetail orderDetail = new OrderDetail();
+                int productDetailId = Integer.parseInt(item.get("productDetailId").toString());
+                int quantity = Integer.parseInt(item.get("quantity").toString());
+                ProductDetail productDetail = productDetailService.getProductDetailById(productDetailId).get();
+                if (productDetail.getDiscountPrice() != null
+                        && productDetail.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    // option có giảm giá
+                    orderDetail.setOrder(order);
+                    orderDetail.setProductDetail(productDetail);
+                    orderDetail.setQuantity(quantity);
+                    orderDetail.setUnitPrice(productDetail.getDiscountPrice());
+                    orderDetailService.createOrderDetail(orderDetail);
+                    // cập nhật số lượng option của sản phẩm
+                    productDetailService.updateQuantity(productDetailId, quantity);
+                    // cập nhật lại số lượng (-1) mã giá nếu có dùng
+                    if (couponId != 0) {
+                        couponService.updateQuantity(couponId);
+                    }
+                } else {
+                    // option chỉ có giá gốc
+                    orderDetail.setOrder(order);
+                    orderDetail.setProductDetail(productDetail);
+                    orderDetail.setQuantity(quantity);
+                    orderDetail.setUnitPrice(productDetail.getPrice());
+                    orderDetailService.createOrderDetail(orderDetail);
+                    // cập nhật số lượng option của sản phẩm
+                    productDetailService.updateQuantity(productDetailId, quantity);
+                    // cập nhật lại số lượng (-1) mã giá nếu có dùng
+                    if (couponId != 0) {
+                        couponService.updateQuantity(couponId);
+                    }
+                }
+            }
+        } else if (paymentMethod.getCode().equalsIgnoreCase("VNPAY")) {
+            // set status là COD thanh toán khi nhận hàng
+            order.setStatus("Pending Payment");
+            orderService.createOrder(order);
+            cartService.clearCart(user.getId());
+            // dùng vòng lặp để thêm vào orderDetail
+            for (Map<String, Object> item : orderItems) {
+                OrderDetail orderDetail = new OrderDetail();
+                int productDetailId = Integer.parseInt(item.get("productDetailId").toString());
+                int quantity = Integer.parseInt(item.get("quantity").toString());
+                ProductDetail productDetail = productDetailService.getProductDetailById(productDetailId).get();
+                if (productDetail.getDiscountPrice() != null
+                        && productDetail.getDiscountPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    // option có giảm giá
+                    orderDetail.setOrder(order);
+                    orderDetail.setProductDetail(productDetail);
+                    orderDetail.setQuantity(quantity);
+                    orderDetail.setUnitPrice(productDetail.getDiscountPrice());
+                    orderDetailService.createOrderDetail(orderDetail);
+                    // cập nhật số lượng option của sản phẩm
+                    productDetailService.updateQuantity(productDetailId, quantity);
+                    // cập nhật lại số lượng (-1) mã giá nếu có dùng
+                    if (couponId != 0) {
+                        couponService.updateQuantity(couponId);
+                    }
+                } else {
+                    // option chỉ có giá gốc
+                    orderDetail.setOrder(order);
+                    orderDetail.setProductDetail(productDetail);
+                    orderDetail.setQuantity(quantity);
+                    orderDetail.setUnitPrice(productDetail.getPrice());
+                    orderDetailService.createOrderDetail(orderDetail);
+                    // cập nhật số lượng option của sản phẩm
+                    productDetailService.updateQuantity(productDetailId, quantity);
+                    // cập nhật lại số lượng (-1) mã giá nếu có dùng
+                    if (couponId != 0) {
+                        couponService.updateQuantity(couponId);
+                    }
+                }
+            }
+            response.put("orderId", order.getId());
+            String paymentUrl = useVNPay(order.getTotalAmount().intValue(), order.getId().toString(),
+                    "http://localhost:8080");
+            response.put("paymentUrl", paymentUrl);
+        }
+        return response;
     }
 }

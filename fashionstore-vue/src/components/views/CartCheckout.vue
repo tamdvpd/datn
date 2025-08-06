@@ -198,6 +198,7 @@ export default {
     data() {
         return {
             user: {
+                id: null,
                 fullName: '',
                 phoneNumber: '',
                 address: ''
@@ -329,6 +330,7 @@ export default {
             }
 
             this.user = {
+                id: user.id,
                 fullName: user.fullName || '',
                 phoneNumber: user.phoneNumber || '',
                 address: user.address || ''
@@ -353,27 +355,13 @@ export default {
             }
         },
         async fetchCartItems() {
-            const cartData = JSON.parse(localStorage.getItem("cartForCheckout"));
-            if (!cartData || !cartData.length) {
-                alert("Không có sản phẩm nào trong giỏ hàng!");
-                this.$router.push("/cart");
-                return;
-            }
-
             try {
-                this.cartItems = await Promise.all(
-                    cartData.map(async item => {
-                        const response = await axios.get(`http://localhost:8080/productdetails/${item.productDetailId}`);
-                        return {
-                            ...item,
-                            productDetail: response.data
-                        };
-                    })
-                );
+                const response = await axios.get(`http://localhost:8080/api/cart/${this.user.id}`);
+                this.cartItems = response.data;
                 console.log("Danh sách sản phẩm:", this.cartItems);
             } catch (error) {
-                console.error("Lỗi khi tải thông tin sản phẩm:", error);
-                alert("Có lỗi xảy ra khi tải thông tin sản phẩm");
+                console.error("Lỗi khi tải thông tin giỏ hàng:", error);
+                alert("Có lỗi xảy ra khi tải thông tin giỏ hàng");
             }
         },
         async applyCoupon() {
@@ -395,6 +383,7 @@ export default {
         },
         async submitOrder() {
             try {
+                // Kiểm tra đăng nhập
                 const user = JSON.parse(localStorage.getItem("user"));
                 if (!user || !user.id) {
                     alert("Vui lòng đăng nhập!");
@@ -402,12 +391,20 @@ export default {
                     return;
                 }
 
+                // Kiểm tra giỏ hàng rỗng
+                if (this.cartItems.length === 0) {
+                    alert("Giỏ hàng của bạn đang trống!");
+                    return;
+                }
+
+                // Validate thông tin
                 const isNameValid = this.validateName();
                 const isPhoneValid = this.validatePhone();
                 if (!isNameValid || !isPhoneValid) {
                     return;
                 }
 
+                // Xử lý địa chỉ
                 let finalAddress = this.user.address;
                 if (this.addressType === 'temporary') {
                     this.validateStreet();
@@ -421,6 +418,7 @@ export default {
                     finalAddress = `${street}, ${wardName}, ${provinceName}`;
                 }
 
+                // Chuẩn bị dữ liệu đơn hàng
                 const orderData = {
                     userId: user.id,
                     receiverName: this.user.fullName,
@@ -431,25 +429,62 @@ export default {
                     paymentMethodId: this.selectedPayment,
                     couponId: this.coupon ? this.coupon.id : 0,
                     orderItems: this.cartItems.map(item => ({
-                        productDetailId: item.productDetailId,
-                        quantity: item.quantity
+                        productDetailId: item.productDetail.id,  // Sửa từ productDetailId -> productDetail.id
+                        quantity: item.quantity,
+                        unitPrice: this.getFinalPrice(item.productDetail) // Thêm giá sản phẩm
                     }))
                 };
 
                 console.log("Dữ liệu đơn hàng:", JSON.stringify(orderData, null, 2));
 
-                const res = await axios.post("http://localhost:8080/api/checkout/payment", orderData);
+                // Gửi đơn hàng
+                const res = await axios.post("http://localhost:8080/api/checkout/payment-cart", orderData);
+                const result = res.data;
 
-                if (res.data.success) {
-                    await axios.delete(`http://localhost:8080/api/cart/clear/${user.id}`);
-                    localStorage.removeItem("cartForCheckout");
-                    this.$router.push("/thank-you");
+                if (result.status === "success") {
+                    // Thanh toán thành công (COD)
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            // if()
+                            status: 'success',
+                            orderId: result.orderId,
+                            amount: result.totalAmount,
+                        }
+                    });
+                } else if (result.status === "fail") {
+                    // Thanh toán thất bại
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            status: 'fail',
+                            error: response.error || "Thanh toán thất bại"
+                        }
+                    });
+                } else if (result.paymentUrl) {
+                    window.location.href = result.paymentUrl;
+                    // window.open(result.paymentUrl, '_blank');
                 } else {
-                    alert(res.data.message || "Đặt hàng thất bại!");
+                    // Trường hợp response không rõ ràng
+                    this.$router.push({
+                        path: '/payment-result',
+                        query: {
+                            status: 'fail',
+                            error: "Phản hồi từ server không hợp lệ"
+                        }
+                    });
                 }
             } catch (error) {
-                console.error("Lỗi khi đặt hàng:", error);
-                alert("Có lỗi xảy ra khi đặt hàng");
+                console.error("Lỗi khi gửi đơn hàng:", error);
+                this.$router.push({
+                    path: '/payment-result',
+                    query: {
+                        status: 'fail',
+                        error: error.response?.data?.error ||
+                            error.response?.data?.message ||
+                            "Có lỗi xảy ra trong quá trình đặt hàng"
+                    }
+                });
             }
         }
     },

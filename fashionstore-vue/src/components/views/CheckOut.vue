@@ -150,7 +150,7 @@
                                             </div>
                                             <small>Phân loại: Màu: {{ productDetail.color }}, Size: {{
                                                 productDetail.size
-                                            }}</small><br>
+                                                }}</small><br>
                                             <small>Số lượng: {{ buyNowProduct.quantity }}</small>
                                         </div>
                                     </div>
@@ -160,13 +160,13 @@
                                     <li class="d-flex justify-content-between">
                                         <span>Tổng tiền hàng:</span>
                                         <span>{{ (totalPayment.price * buyNowProduct.quantity).toLocaleString()
-                                        }}đ</span>
+                                            }}đ</span>
                                     </li>
                                     <li v-if="discountPercent" class="d-flex justify-content-between">
                                         <span class="text-success">Mã giảm giá ({{ discountPercent }}%):</span>
                                         <span class="text-success">-{{ ((totalPayment.price *
                                             buyNowProduct.quantity) * (discountPercent / 100)).toLocaleString()
-                                        }}đ</span>
+                                            }}đ</span>
                                     </li>
                                     <li class="d-flex justify-content-between">
                                         <span>Phí vận chuyển:</span>
@@ -406,8 +406,8 @@ export default {
                         }
                     });
                 } else if (result.paymentUrl) {
-                    // window.location.href = result.paymentUrl;
-                    window.open(result.paymentUrl, '_blank');
+                    window.location.href = result.paymentUrl;
+                    // window.open(result.paymentUrl, '_blank');
                 } else {
                     // Trường hợp response không rõ ràng
                     this.$router.push({

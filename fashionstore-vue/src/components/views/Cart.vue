@@ -3,7 +3,7 @@
     <MainHeader />
     <div class="cart-page">
       <h1 class="cart-title">GIỎ HÀNG ({{ cart.length }} SẢN PHẨM)</h1>
-      
+
       <!-- Loading state -->
       <div v-if="loading" class="text-center py-5">
         <div class="spinner-border text-primary" role="status">
@@ -11,7 +11,7 @@
         </div>
         <p class="mt-3">Đang tải giỏ hàng...</p>
       </div>
-      
+
       <div class="cart-box" v-else-if="cart.length">
         <table class="cart-table">
           <thead>
@@ -27,9 +27,8 @@
           <tbody>
             <tr v-for="(item, index) in cart" :key="item.id">
               <td class="product-cell">
-                <img :src="getImageUrl(item.productDetail.product.imageUrl)"
-                :alt="item.productDetail.product.name" class="product-image"
-/>
+                <img :src="getImageUrl(item.productDetail.imageUrl)" :alt="item.productDetail.product.name"
+                  class="product-image" />
                 <div class="product-name">{{ item.productDetail.product.name }}</div>
               </td>
               <td>
@@ -40,13 +39,17 @@
                 {{ formatVND(item.productDetail.discountPrice || item.productDetail.price) }}
               </td>
               <td>
-                <input type="number" min="1" v-model.number="item.quantity" @input="updateQuantity(item)" class="qty-input"/>
+                <input type="number" min="1" v-model.number="item.quantity" @input="updateQuantity(item)"
+                  class="qty-input" />
+                <div class="stock-text">
+                  Còn lại: {{ item.productDetail.quantity }}
+                </div>
               </td>
               <td class="price">
                 {{
                   formatVND(
                     (item.productDetail.discountPrice || item.productDetail.price) *
-                      item.quantity
+                    item.quantity
                   )
                 }}
               </td>
@@ -64,7 +67,7 @@
           <div class="cart-summary">
             <p class="summary-row">Tiền hàng: {{ formatVND(total) }}</p>
             <p class="summary-total">Tổng cộng: <span>{{ formatVND(total) }}</span></p>
-            <button class="checkout-btn">TIẾN HÀNH ĐẶT HÀNG</button>
+            <button class="checkout-btn" @click="proceedToCheckout">TIẾN HÀNH ĐẶT HÀNG</button>
           </div>
         </div>
       </div>
@@ -105,7 +108,7 @@ export default {
   },
   methods: {
     getImageUrl(path) {
-      return `http://localhost:8080/images/products/${path}`;
+      return `http://localhost:8080/images/productDetails/${path}`;
     },
     formatVND(val) {
       return val.toLocaleString("vi-VN", {
@@ -133,38 +136,103 @@ export default {
       }
     },
     async removeItem(cartId) {
-  try {
-    await axios.delete(`http://localhost:8080/api/cart/${cartId}`);
-    this.cart = this.cart.filter(item => item.id !== cartId);
-    this.updateTotal();
-    // Thông báo cập nhật giỏ hàng
-    localStorage.setItem('cartUpdated', Date.now().toString());
-  } catch (error) {
-    console.error("Lỗi khi xoá sản phẩm:", error);
-    alert("Không thể xoá sản phẩm khỏi giỏ hàng.");
-  }
-},
-async updateQuantity(item) {
-  const quantity = item.quantity;
+      try {
+        await axios.delete(`http://localhost:8080/api/cart/${cartId}`);
+        this.cart = this.cart.filter(item => item.id !== cartId);
+        this.updateTotal();
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+      } catch (error) {
+        console.error("Lỗi khi xoá sản phẩm:", error);
+        alert("Không thể xoá sản phẩm khỏi giỏ hàng.");
+      }
+    },
+    async updateQuantity(item) {
+      const quantity = item.quantity;
 
-  if (quantity < 1) {
-    alert("Số lượng phải lớn hơn 0");
-    return;
-  }
+      if (quantity < 1) {
+        alert("Số lượng phải lớn hơn 0");
+        return;
+      }
 
-  try {
-    await axios.put(`http://localhost:8080/api/cart/${item.id}`, {
-      quantity: quantity
-    });
+      try {
+        await axios.put(`http://localhost:8080/api/cart/${item.id}`, {
+          quantity: quantity
+        });
 
-    this.updateTotal(); // cập nhật tổng sau khi update thành công
-    // Thông báo cập nhật giỏ hàng
-    localStorage.setItem('cartUpdated', Date.now().toString());
-  } catch (error) {
-    console.error("Lỗi khi cập nhật số lượng:", error);
-    alert("Không thể cập nhật số lượng sản phẩm.");
-  }
-},
+        this.updateTotal(); // cập nhật tổng sau khi update thành công
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+      } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng:", error);
+        alert("Không thể cập nhật số lượng sản phẩm.");
+      }
+    },
+    async proceedToCheckout() {
+      try {
+        if (!this.user || !this.user.id) {
+          router.push("/login");
+          return;
+        }
+
+        if (!this.cart.length) {
+          alert("Giỏ hàng của bạn đang trống!");
+          return;
+        }
+
+        // Kiểm tra tồn kho trước khi tiếp tục
+        const isStockAvailable = await this.checkStockAvailability();
+        if (!isStockAvailable) {
+          return;
+        }
+
+        // Lưu giỏ hàng vào localStorage
+        const cartData = this.cart.map(item => ({
+          productDetailId: item.productDetail.id,
+          quantity: item.quantity
+        }));
+
+        localStorage.setItem("cartForCheckout", JSON.stringify(cartData, null, 2));
+        await router.push("/checkout-cart");
+        console.log("Đã lưu vào localStorage:", JSON.parse(localStorage.getItem("cartForCheckout")));
+      } catch (error) {
+        console.error("Lỗi khi chuyển đến trang thanh toán:", error);
+        alert("Có lỗi xảy ra: " + error.message);
+      }
+    },
+    async checkStockAvailability() {
+      try {
+        const results = await Promise.all(
+          this.cart.map(async (item) => {
+            const response = await axios.get(
+              `http://localhost:8080/productdetails/${item.productDetail.id}`
+            );
+            return {
+              item,
+              available: response.data.quantity >= item.quantity,
+              currentStock: response.data.quantity,
+              productName: response.data.product.name
+            };
+          })
+        );
+
+        const outOfStockItems = results.filter(result => !result.available);
+
+        if (outOfStockItems.length > 0) {
+          const message = outOfStockItems.map(item =>
+            `- ${item.productName}: Bạn chọn ${item.item.quantity} nhưng chỉ còn ${item.currentStock}`
+          ).join('\n');
+
+          alert(`Một số sản phẩm không đủ số lượng tồn kho:\n${message}`);
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra tồn kho:", error);
+        alert("Có lỗi xảy ra khi kiểm tra tồn kho");
+        return false;
+      }
+    },
   },
   async mounted() {
     const storedUser = localStorage.getItem("user");
@@ -346,5 +414,11 @@ async updateQuantity(item) {
   margin-top: 3rem;
   font-size: 18px;
   color: #777;
+}
+
+.stock-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
 }
 </style>

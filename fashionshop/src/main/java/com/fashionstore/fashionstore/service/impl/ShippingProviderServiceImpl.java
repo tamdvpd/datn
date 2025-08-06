@@ -23,6 +23,11 @@ public class ShippingProviderServiceImpl implements ShippingProviderService {
     }
 
     @Override
+    public List<ShippingProvider> getAllShippingIsActive() {
+        return shippingProviderRepository.findByStatusTrue();
+    }
+
+    @Override
     public Optional<ShippingProvider> getById(Integer id) {
         return shippingProviderRepository.findById(id);
     }

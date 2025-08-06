@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +35,23 @@ public class CouponServiceImpl implements CouponService {
     }
 
     @Override
+    public boolean checkByCode(String code) {
+        Coupon currenCoupon = couponRepository.findByCode(code);
+        if (currenCoupon != null) {
+            if (currenCoupon.getStatus()) {
+                if (currenCoupon.getQuantity() > 0) {
+                    if (currenCoupon.getExpiryDate().isBefore(LocalDateTime.now())) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Coupon createCoupon(Coupon coupon) {
         return couponRepository.save(coupon);
     }
@@ -51,5 +70,18 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public void deleteCoupon(Integer id) {
         couponRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<Coupon> getCouponByCode(String code) {
+        return Optional.ofNullable(couponRepository.findByCode(code));
+    }
+
+    @Override
+    public Coupon updateQuantity(Integer id) {
+        Coupon coupon = couponRepository.getById(id);
+        int currentQuantity = coupon.getQuantity() - 1;
+        coupon.setQuantity(currentQuantity);
+        return couponRepository.save(coupon);
     }
 }

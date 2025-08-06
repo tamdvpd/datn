@@ -23,6 +23,11 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     }
 
     @Override
+    public List<PaymentMethod> getAllPaymentMethodsIsActive() {
+        return paymentMethodRepository.findByStatusTrue();
+    }
+
+    @Override
     public Optional<PaymentMethod> getPaymentMethodById(Integer id) {
         return paymentMethodRepository.findById(id);
     }

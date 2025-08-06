@@ -70,4 +70,15 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails = new ArrayList<>();
+
+    @PrePersist
+    public void onCreated() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdated() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

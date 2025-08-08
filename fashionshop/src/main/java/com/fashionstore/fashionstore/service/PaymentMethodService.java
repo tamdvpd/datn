@@ -9,6 +9,8 @@ public interface PaymentMethodService {
 
     List<PaymentMethod> getAllPaymentMethods();
 
+    List<PaymentMethod> getAllPaymentMethodsIsActive();
+
     Optional<PaymentMethod> getPaymentMethodById(Integer id);
 
     PaymentMethod updatePaymentMethod(Integer id, PaymentMethod paymentMethod);

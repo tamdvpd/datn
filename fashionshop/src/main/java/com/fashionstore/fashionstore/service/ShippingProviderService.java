@@ -8,6 +8,8 @@ import com.fashionstore.fashionstore.entity.ShippingProvider;
 public interface ShippingProviderService {
     List<ShippingProvider> getAllShipping();
 
+    List<ShippingProvider> getAllShippingIsActive();
+
     Optional<ShippingProvider> getById(Integer id);
 
     ShippingProvider create(ShippingProvider provider);

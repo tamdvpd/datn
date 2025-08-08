@@ -264,6 +264,30 @@ export default {
 </script>
 
 <style scoped>
+.card-body {
+  background: linear-gradient(90deg, #ACB6E5, #86FDE8);
+}
+
+.card {
+  border: none;
+  /* Bỏ viền mặc định */
+  border-radius: 15px;
+  /* Bo góc */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  /* Đổ bóng mềm */
+  transition: all 0.3s ease;
+  /* Hiệu ứng mượt khi hover */
+  overflow: hidden;
+  /* Đảm bảo nội dung không vượt ra ngoài bo góc */
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  /* Nâng card lên khi hover */
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+  /* Đổ bóng đậm hơn khi hover */
+}
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: all 0.5s ease;

@@ -53,23 +53,31 @@
             />
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
-                <router-link to="/profile" class="dropdown-item"
-                  >👤 Thông tin cá nhân</router-link
-                >
+                <router-link to="/profile" class="dropdown-item">
+                  👤 Thông tin cá nhân
+                </router-link>
               </li>
+
+              <!-- 👇 Thêm mới ở đây -->
+              <li>
+                <router-link to="/order" class="dropdown-item">
+                  📦 Đơn hàng của tôi
+                </router-link>
+              </li>
+
               <li><hr class="dropdown-divider" /></li>
               <li>
-                <router-link to="/change-password" class="dropdown-item"
-                  >Đổi mật khẩu</router-link
-                >
+                <router-link to="/change-password" class="dropdown-item">
+                  Đổi mật khẩu
+                </router-link>
               </li>
               <li>
                 <a class="dropdown-item" @click="handleLogout">🚪 Đăng xuất</a>
               </li>
               <li v-if="currentUser.role === 'ADMIN'">
-                <router-link to="/admin" class="dropdown-item"
-                  >🛠️ Quản lý Admin</router-link
-                >
+                <router-link to="/admin" class="dropdown-item">
+                  🛠️ Quản lý Admin
+                </router-link>
               </li>
             </ul>
           </div>

@@ -134,4 +134,13 @@ public class ProductDetailServiceImpl implements ProductDetailService {
             throw new RuntimeException("Không thể lưu ảnh: " + e.getMessage(), e);
         }
     }
+
+    @Override
+    public ProductDetail updateQuantity(Integer id, int quantity) {
+        ProductDetail productDetail = productDetailRepository.getById(id);
+        // cập nhật lại số lượng của option sản phẩm
+        int currentQuantity = productDetail.getQuantity() - quantity;
+        productDetail.setQuantity(currentQuantity);
+        return productDetailRepository.save(productDetail);
+    }
 }

@@ -37,13 +37,13 @@ export default {
   name: 'ImportInvoiceDetail',
   data() {
     return {
-      invoiceId: this.$route.params.id,
+      invoiceId: this.$route.params.id, // lấy từ router
       details: []
     }
   },
   methods: {
     loadDetails() {
-      axios.get(`/api/import-invoice-details/by-invoice/${this.invoiceId}`)
+      axios.get(`/api/import-invoice-details/invoice/${this.invoiceId}`)
         .then(res => {
           this.details = res.data
         })

@@ -16,25 +16,10 @@
         </div>
         <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
 
-        <!-- Google login -->
-<div class="mt-3 text-center">
-  <GoogleLogin :onSuccess="onGoogleSuccess" :onError="onGoogleError">
-    <template #default>
-      <button class="btn btn-social btn-google">
-        <i class="fab fa-google me-2"></i> Đăng nhập bằng Google
-      </button>
-    </template>
-  </GoogleLogin>
-</div>
-
-<!-- Facebook login -->
-<div class="mt-2 text-center">
-  <button class="btn btn-social btn-facebook" @click="handleFacebookLogin">
-    <i class="fab fa-facebook me-2"></i> Đăng nhập bằng Facebook
-  </button>
-</div>
-
-
+        <div class="mt-3 text-center">
+          <GoogleLogin :onSuccess="onGoogleSuccess" :onError="onGoogleError" />
+        </div>
+        
       </form>
 
       <div class="text-center mt-3">
@@ -144,31 +129,5 @@ const onGoogleError = () => {
   margin: 0 auto;
   max-width: 180px;
 }
- .btn i {
-            margin-right: 10px;
-        }
-        
-        .btn-google {
-            --bg-color: white;
-            --border-color: #e5e7eb;
-            --text-color: #4285F4;
-        }
-        
-        .btn-google:hover {
-            border-color: #4285F4;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(66, 133, 244, 0.15);
-        }
-        
-        .btn-facebook {
-            --bg-color: white;
-            --border-color: #e5e7eb;
-            --text-color: #1877f2;
-        }
-        
-        .btn-facebook:hover {
-            border-color: #1877f2;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(24, 119, 242, 0.15);
-        }
+
 </style>

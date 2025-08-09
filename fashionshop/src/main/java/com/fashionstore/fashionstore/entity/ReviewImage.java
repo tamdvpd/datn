@@ -1,6 +1,6 @@
 package com.fashionstore.fashionstore.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,10 +19,10 @@ public class ReviewImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Mỗi ảnh thuộc về một review
+    // Một ảnh thuộc về một review
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "review_id", nullable = false)
-    @JsonIgnore // tránh vòng lặp JSON khi trả về API
+    @JsonBackReference // tránh vòng lặp khi serialize JSON
     private Review review;
 
     @Column(name = "image_url", nullable = false, length = 255)

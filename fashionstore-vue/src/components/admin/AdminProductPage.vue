@@ -146,12 +146,18 @@ export default {
         .then(data => this.categories = data);
     },
     onFileChange(e) {
-      const file = e.target.files[0];
-      if (file) {
-        this.imageFile = file;
-        this.imagePreview = URL.createObjectURL(file);
-      }
-    },
+  const file = e.target.files[0];
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      alert("❌ File bạn chọn không phải hình ảnh.");
+      this.$refs.imageInput.value = null;
+      return;
+    }
+    this.imageFile = file;
+    this.imagePreview = URL.createObjectURL(file);
+  }
+}
+,
     
     // ✅ Đã fix lỗi Unexpected end of JSON input
     async handleSubmit() {
@@ -197,6 +203,7 @@ export default {
         await this.fetchProducts();
         this.resetForm();
         this.showForm = false;
+        alert(`✅ Sản phẩm đã được ${isUpdate ? 'cập nhật' : 'thêm mới'} thành công!`);
       } catch (err) {
         console.error("❌ Lỗi:", err);
         alert(`❌ ${err.message}`);

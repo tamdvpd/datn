@@ -7,30 +7,63 @@
 
       <h3 class="text-center mb-4">Đăng ký</h3>
       <form @submit.prevent="handleRegister">
+        <!-- Họ tên -->
         <div class="form-group mb-3">
-          <input v-model="registerForm.fullName" type="text" class="form-control" placeholder="Họ tên" required />
+          <input v-model="form.fullName" type="text" class="form-control" placeholder="Họ tên" required />
         </div>
+
+        <!-- Email + Gửi mã -->
+        <div class="form-group mb-3 d-flex gap-2">
+          <input v-model="form.email" type="email" class="form-control" placeholder="Email" required />
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            @click="sendOtp"
+            :disabled="countdown > 0"
+          >
+            <template v-if="countdown > 0">Gửi lại ({{ countdown }}s)</template>
+            <template v-else>Gửi mã</template>
+          </button>
+        </div>
+
+        <!-- Nhập OTP -->
+        <div v-if="isOtpSent" class="form-group mb-3 d-flex gap-2">
+          <input v-model="otpCode" type="text" class="form-control" placeholder="Nhập mã OTP" />
+          <button type="button" class="btn btn-outline-success" @click="verifyOtp">Xác minh</button>
+        </div>
+
+        <!-- Email xác thực -->
+        <p v-if="isOtpVerified" class="text-success text-center mb-3">✅ Email đã được xác thực</p>
+
+        <!-- Số điện thoại -->
         <div class="form-group mb-3">
-          <input v-model="registerForm.email" type="email" class="form-control" placeholder="Email" required />
+          <input v-model="form.phoneNumber" type="text" class="form-control" placeholder="Số điện thoại" />
         </div>
+
+        <!-- Địa chỉ -->
         <div class="form-group mb-3">
-          <input v-model="registerForm.phoneNumber" type="text" class="form-control" placeholder="Số điện thoại" />
+          <input v-model="form.address" type="text" class="form-control" placeholder="Địa chỉ" />
         </div>
+
+        <!-- Mật khẩu -->
         <div class="form-group mb-3">
-          <input v-model="registerForm.address" type="text" class="form-control" placeholder="Địa chỉ" />
+          <input v-model="form.password" type="password" class="form-control" placeholder="Mật khẩu" required />
         </div>
+
+        <!-- Nhập lại mật khẩu -->
         <div class="form-group mb-3">
-          <input v-model="registerForm.password" type="password" class="form-control" placeholder="Mật khẩu" required />
+          <input v-model="form.confirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" required />
         </div>
-        <div class="form-group mb-3">
-          <input v-model="registerForm.confirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" required />
-        </div>
+
+        <!-- Đồng ý điều khoản -->
         <div class="form-group mb-3 form-check">
-          <input v-model="registerForm.agree" type="checkbox" class="form-check-input" required />
+          <input v-model="form.agree" type="checkbox" class="form-check-input" required />
           <label class="form-check-label">Tôi đồng ý với điều khoản và chính sách</label>
         </div>
+
         <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
       </form>
+
       <div class="text-center mt-3">
         <span>Đã có tài khoản? <router-link to="/login">Đăng nhập</router-link></span>
       </div>
@@ -45,7 +78,7 @@ import axios from 'axios'
 
 const router = useRouter()
 
-const registerForm = ref({
+const form = ref({
   fullName: '',
   email: '',
   phoneNumber: '',
@@ -55,35 +88,93 @@ const registerForm = ref({
   agree: false
 })
 
+const isOtpSent = ref(false)
+const isOtpVerified = ref(false)
+const otpCode = ref('')
+
+// Countdown resend OTP
+const countdown = ref(0)
+let countdownInterval = null
+
+function sendOtp() {
+  if (!form.value.email) {
+    alert('Vui lòng nhập email trước!')
+    return
+  }
+
+  axios.post('http://localhost:8080/users/register/send-otp', {
+    email: form.value.email
+  }).then(() => {
+    isOtpSent.value = true
+    alert('Đã gửi mã xác thực đến email.')
+    // countdown 60s
+    countdown.value = 60
+    if (countdownInterval) clearInterval(countdownInterval)
+    countdownInterval = setInterval(() => {
+      if (countdown.value > 0) {
+        countdown.value--
+      } else {
+        clearInterval(countdownInterval)
+      }
+    }, 1000)
+  }).catch(err => {
+    console.error(err)
+    alert('❌ Gửi OTP thất bại!')
+  })
+}
+
+function verifyOtp() {
+  if (!otpCode.value) {
+    alert('Vui lòng nhập mã OTP!')
+    return
+  }
+
+  axios.post('http://localhost:8080/users/register/verify-otp', {
+    email: form.value.email,
+    otp: otpCode.value
+  }).then(() => {
+    isOtpVerified.value = true
+    alert('✅ Xác thực email thành công!')
+  }).catch(() => {
+    alert('❌ Mã OTP không hợp lệ hoặc đã hết hạn!')
+  })
+}
+
 function handleRegister() {
-  if (!registerForm.value.fullName || !registerForm.value.email || !registerForm.value.password || !registerForm.value.confirmPassword) {
+  const { fullName, email, phoneNumber, address, password, confirmPassword, agree } = form.value
+
+  if (!fullName || !email || !password || !confirmPassword) {
     alert('Vui lòng nhập đầy đủ thông tin!')
     return
   }
-  if (registerForm.value.password !== registerForm.value.confirmPassword) {
+
+  if (password !== confirmPassword) {
     alert('Mật khẩu nhập lại không khớp!')
     return
   }
-  if (!registerForm.value.agree) {
+
+  if (!agree) {
     alert('Bạn phải đồng ý với điều khoản để tiếp tục!')
     return
   }
+
+  if (!isOtpVerified.value) {
+    alert('Vui lòng xác thực email trước khi đăng ký!')
+    return
+  }
+
   axios.post('http://localhost:8080/users/auth/register', {
-    fullName: registerForm.value.fullName,
-    email: registerForm.value.email,
-    phoneNumber: registerForm.value.phoneNumber,
-    address: registerForm.value.address,
-    password: registerForm.value.password,
-    role: 'USER',
-    status: true
-  })
-  .then(() => {
-    alert('Đăng ký thành công! Vui lòng đăng nhập.')
+    fullName,
+    email,
+    phoneNumber,
+    address,
+    password
+  }).then(() => {
+    alert('✅ Đăng ký thành công! Vui lòng đăng nhập.')
     router.push('/login')
-  })
-  .catch(err => {
-    console.error(err)
-    alert('Đăng ký thất bại! Có thể email đã tồn tại.')
+  }).catch(err => {
+    const errorMsg = err?.response?.data?.message || 'Đăng ký thất bại!'
+    alert(`❌ ${errorMsg}`)
   })
 }
 </script>

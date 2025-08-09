@@ -1,6 +1,5 @@
 package com.fashionstore.fashionstore.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.entity.ProductDetail;
 
 public interface ProductService {
 
@@ -35,6 +33,7 @@ public interface ProductService {
     // Xoá sản phẩm
     void deleteProduct(Integer id);
 
-    // Tìm kiếm sản phẩm theo tên, danh mục, khoảng giá
-    List<ProductDetail> searchProducts(String name, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice);
+    // ✅ Tìm kiếm sản phẩm theo tên (đơn giản)
+    List<Product> searchProductsByName(String keyword);
+
 }

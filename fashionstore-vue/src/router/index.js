@@ -25,6 +25,8 @@ import Product from "@/components/views/Product.vue";
 import ProductDetail from "@/components/views/ProductDetail.vue";
 import ProfilePage from "@/components/views/ProfilePage.vue";
 import RegisterView from "@/components/views/RegisterView.vue";
+import SearchPage from "@/components/views/SearchPage.vue";
+
 const routes = [
   { path: "/", name: "Home", component: HomePage },
   { path: "/product", name: "Product", component: Product },
@@ -34,10 +36,16 @@ const routes = [
   { path: "/products/:id", name: "ProductDetail", component: ProductDetail },
   { path: "/profile", name: "Profile", component: ProfilePage },
   { path: "/change-password", name: "ChangePassword", component: ChangePassword },
+  { path: "/search", name: "Search", component: SearchPage },
+
   {
     path: "/admin",
     component: AdminDashBoard,
     children: [
+      {
+        path: "import-invoice",
+        component: AdminImportInvoicePage,
+      },
       {
         path: "",
         component: AdminHomePage,

@@ -1,9 +1,10 @@
 package com.fashionstore.fashionstore.controller;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fashionstore.fashionstore.entity.Category;
 import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.entity.ProductDetail;
 import com.fashionstore.fashionstore.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,14 @@ public class ProductController {
 
     private final ProductService productService;
 
+    // ✅ API phân trang: /products?page=0&size=5
+    @GetMapping(params = { "page", "size" })
+    public ResponseEntity<Page<Product>> getAllPaginated(Pageable pageable) {
+        Page<Product> productPage = productService.getAllProducts(pageable);
+        return ResponseEntity.ok(productPage);
+    }
+
+    // ✅ API không phân trang (giữ nguyên)
     @GetMapping
     public ResponseEntity<List<Product>> getAll() {
         return ResponseEntity.ok(productService.getAllProducts());
@@ -63,6 +71,13 @@ public class ProductController {
             @RequestParam(value = "image", required = false) MultipartFile imageFile) {
 
         try {
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên sản phẩm không được để trống.");
+            }
+            if (categoryId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Vui lòng chọn danh mục sản phẩm.");
+            }
+
             Product product = new Product();
             product.setName(name);
             product.setDescription(description);
@@ -74,9 +89,11 @@ public class ProductController {
             product.setCategory(category);
 
             Product createdProduct = productService.createProduct(product, imageFile);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body("✅ Thêm sản phẩm thành công! ID sản phẩm: " + createdProduct.getId());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error creating product");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("❌ Lỗi khi thêm sản phẩm: " + e.getMessage());
         }
     }
 
@@ -91,12 +108,17 @@ public class ProductController {
             @RequestParam(value = "image", required = false) MultipartFile imageFile) {
 
         try {
-            Product updatedProduct = productService.updateProduct(id, name, description, brand, status, categoryId,
-                    imageFile);
-            return ResponseEntity.ok(updatedProduct);
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tên sản phẩm không được để trống.");
+            }
+
+            Product updatedProduct = productService.updateProduct(
+                    id, name, description, brand, status, categoryId, imageFile);
+
+            return ResponseEntity.ok("✅ Cập nhật sản phẩm thành công! ID sản phẩm: " + updatedProduct.getId());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error updating product with id: " + id);
+                    .body("❌ Lỗi khi cập nhật sản phẩm có ID: " + id + " - " + e.getMessage());
         }
     }
 
@@ -112,11 +134,7 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDetail>> searchProducts(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Integer categoryId,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.searchProducts(name, categoryId, minPrice, maxPrice));
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam("q") String keyword) {
+        return ResponseEntity.ok(productService.searchProductsByName(keyword));
     }
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <MainHeader />
+    <MainHeader /> 
     <main>
       <div class="container mt-4">
         <div class="row">
@@ -132,9 +132,42 @@ export default {
   data() {
     return {
       products: [],
+      allProducts: [],
     };
   },
   methods: {
+    handleSearch(query) {
+  const keyword = query.trim().toLowerCase();
+
+  if (!keyword) {
+    const cached = sessionStorage.getItem('products');
+    if (cached) {
+      this.products = JSON.parse(cached);
+    } else {
+      this.products = this.allProducts;
+    }
+    return;
+  }
+
+  fetch(`http://localhost:8080/products/search?q=${encodeURIComponent(keyword)}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log("Dữ liệu từ API:", data);
+      if (Array.isArray(data)) {
+        const filtered = data.filter(p => p.status);
+        this.products = filtered;
+
+        // Optional: lưu kết quả tìm kiếm nếu bạn muốn
+        // sessionStorage.setItem('products', JSON.stringify(filtered));
+      } else {
+        console.error("Dữ liệu trả về không phải mảng:", data);
+        this.products = [];
+      }
+    })
+    .catch(err => console.error("Lỗi tìm kiếm sản phẩm:", err));
+}
+,
+
     formatPrice(value) {
       if (!value) return '';
       return new Intl.NumberFormat('vi-VN', {
@@ -142,16 +175,17 @@ export default {
         currency: 'VND'
       }).format(value);
     },
+
     addToCart(product) {
       // Logic thêm vào giỏ
     },
-   getImageUrl(imagePath) {
-  if (!imagePath) return '';
-  // Nếu đã là URL (bắt đầu bằng http), thì giữ nguyên
-  if (imagePath.startsWith('http')) return imagePath;
-  return `http://localhost:8080/images/${imagePath}`;
-}
-,
+
+    getImageUrl(imagePath) {
+      if (!imagePath) return '';
+      if (imagePath.startsWith('http')) return imagePath;
+      return `http://localhost:8080/images/${imagePath}`;
+    },
+
     getDiscountPercent(prod) {
       if (
         prod.displayPrice &&
@@ -165,17 +199,20 @@ export default {
       return null;
     }
   },
+
   mounted() {
-  fetch('http://localhost:8080/products')
-    .then(res => res.json())
-    .then(data => {
-      // ✅ Lọc ra sản phẩm đang hoạt động (status = true)
-      this.products = data.filter(p => p.status);
-    })
-    .catch(err => console.error('Lỗi tải sản phẩm:', err));
-},
+    fetch('http://localhost:8080/products')
+      .then(res => res.json())
+      .then(data => {
+        const filtered = data.filter(p => p.status);
+        this.products = filtered;
+        this.allProducts = filtered;
+      })
+      .catch(err => console.error('Lỗi tải sản phẩm:', err));
+  },
 };
 </script>
+
 
 <style scoped>
 .section-title {

@@ -1,7 +1,6 @@
 package com.fashionstore.fashionstore.service.impl;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -102,17 +101,31 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product createProduct(Product product, MultipartFile imageFile) {
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        Product saveProduct = productRepository.save(product);
-
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = storeImageWithId(saveProduct.getId(), imageFile);
-            saveProduct.setImageUrl(imageUrl);
-            saveProduct = productRepository.save(saveProduct);
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên sản phẩm không được để trống.");
         }
 
-        return saveProduct;
+        if (product.getCategory() == null || product.getCategory().getId() == null) {
+            throw new IllegalArgumentException("Danh mục sản phẩm là bắt buộc.");
+        }
+
+        product.setCreatedAt(LocalDateTime.now());
+        product.setUpdatedAt(LocalDateTime.now());
+
+        // Kiểm tra category có tồn tại thật không
+        categoryRepository.findById(product.getCategory().getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy danh mục với ID: " + product.getCategory().getId()));
+
+        Product savedProduct = productRepository.save(product);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = storeImageWithId(savedProduct.getId(), imageFile);
+            savedProduct.setImageUrl(imageUrl);
+            savedProduct = productRepository.save(savedProduct);
+        }
+
+        return savedProduct;
     }
 
     @Override
@@ -140,23 +153,31 @@ public class ProductServiceImpl implements ProductService {
     public Product updateProduct(Integer id, String name, String description, String brand, Boolean status,
             Integer categoryId, MultipartFile image) {
 
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (!optionalProduct.isPresent()) {
-            throw new RuntimeException("Product not found with id: " + id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm với ID: " + id));
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên sản phẩm không được để trống.");
         }
 
-        Product product = optionalProduct.get();
+        if (categoryId == null) {
+            throw new IllegalArgumentException("Danh mục sản phẩm là bắt buộc.");
+        }
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy danh mục với ID: " + categoryId));
+
         product.setName(name);
         product.setDescription(description);
         product.setBrand(brand);
-        product.setStatus(status);
+        product.setStatus(status != null ? status : true);
         product.setUpdatedAt(LocalDateTime.now());
-
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
         product.setCategory(category);
 
         if (image != null && !image.isEmpty()) {
+            if (!image.getContentType().startsWith("image/")) {
+                throw new IllegalArgumentException("File tải lên phải là hình ảnh.");
+            }
             String imageUrl = storeImageWithId(product.getId(), image);
             product.setImageUrl(imageUrl);
         }
@@ -170,9 +191,41 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDetail> searchProducts(String name, Integer categoryId, BigDecimal minPrice,
-            BigDecimal maxPrice) {
-        return productDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
+    public List<Product> searchProductsByName(String keyword) {
+        List<Product> products = productRepository.searchByName(keyword);
+        String domain = "http://localhost:8080";
+
+        for (Product product : products) {
+            // Xử lý image URL
+            String image = product.getImageUrl();
+            if (image != null && !image.startsWith("/images/products/")) {
+                product.setImageUrl(domain + "/images/products/" + image);
+            }
+
+            // Tính giá tốt nhất từ ProductDetail
+            List<ProductDetail> details = productDetailRepository.findByProductId(product.getId());
+            if (!details.isEmpty()) {
+                ProductDetail bestDetail = details.get(0);
+
+                for (ProductDetail detail : details) {
+                    if (detail.getDiscountPrice() != null && bestDetail.getDiscountPrice() != null) {
+                        if (detail.getDiscountPrice().compareTo(bestDetail.getDiscountPrice()) < 0) {
+                            bestDetail = detail;
+                        }
+                    } else if (detail.getDiscountPrice() != null) {
+                        bestDetail = detail;
+                    } else if (bestDetail.getDiscountPrice() == null &&
+                            detail.getPrice().compareTo(bestDetail.getPrice()) < 0) {
+                        bestDetail = detail;
+                    }
+                }
+
+                product.setDisplayPrice(bestDetail.getPrice());
+                product.setDisplayDiscountPrice(bestDetail.getDiscountPrice());
+            }
+        }
+
+        return products;
     }
 
     // ✅ Lưu ảnh theo ID sản phẩm

@@ -16,12 +16,13 @@
 
         <form class="d-flex me-auto ms-5" @submit.prevent="onSearch">
           <input
-            class="form-control me-2"
-            type="search"
             v-model="searchQuery"
+            class="form-control me-2"
             placeholder="Tìm kiếm sản phẩm..."
           />
-          <button class="btn btn-outline-success" type="submit">Tìm</button>
+
+
+          <button class="btn btn-outline-success" type="submit">Tìm kiếm</button>
         </form>
 
         <div class="d-flex align-items-center">
@@ -85,7 +86,7 @@ export default {
   data() {
     return {
       searchQuery: "",
-      currentUser: null,
+      currentUser: null
     };
   },
   created() {
@@ -93,8 +94,14 @@ export default {
   },
   methods: {
     onSearch() {
-      this.$emit("search", this.searchQuery);
-    },
+  if (this.searchQuery.trim()) {
+    this.$router.push({
+      name: 'Search',
+      query: { q: this.searchQuery.trim() }
+    });
+  }
+}
+,
     loadCurrentUser() {
       const user = localStorage.getItem("user");
       if (user) {
@@ -109,6 +116,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .top-bar {

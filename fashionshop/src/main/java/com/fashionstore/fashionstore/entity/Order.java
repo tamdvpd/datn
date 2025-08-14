@@ -5,6 +5,11 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.math.BigDecimal;
 
 @Data
@@ -17,21 +22,25 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
     // Đơn vị vận chuyển
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipping_provider_id", nullable = false)
+    @JsonIgnore
     private ShippingProvider shippingProvider;
 
     // Phương thức thanh toán
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_method_id", nullable = false)
+    @JsonIgnore
     private PaymentMethod paymentMethod;
 
     // Mã giảm giá (có thể null)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
+    @JsonIgnore
     private Coupon coupon;
 
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
@@ -69,5 +78,17 @@ public class Order {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<OrderDetail> orderDetails = new ArrayList<>();
+
+    @PrePersist
+    public void onCreated() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdated() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

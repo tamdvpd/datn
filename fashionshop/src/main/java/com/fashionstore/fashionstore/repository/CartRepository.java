@@ -1,20 +1,17 @@
 package com.fashionstore.fashionstore.repository;
 
-import com.fashionstore.fashionstore.entity.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.fashionstore.fashionstore.entity.Cart;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface CartRepository extends JpaRepository<Cart, Integer> {
-
-    // Lấy danh sách giỏ hàng theo user ID
-    List<Cart> findByUserId(Long userId);
-
-    // Tìm sản phẩm cụ thể trong giỏ hàng của người dùng
-    Cart findByUserIdAndProductDetailId(Long userId, Integer productDetailId);
-
-    // Xoá toàn bộ giỏ hàng của người dùng
-    void deleteByUserId(Long userId);
+    @Query("SELECT c FROM Cart c JOIN FETCH c.productDetail pd JOIN FETCH pd.product WHERE c.user.id = :userId")
+    List<Cart> findByUserId(@Param("userId") Integer userId);
+    
+    Optional<Cart> findByUserIdAndProductDetailId(Integer userId, Integer productDetailId);
 }
+

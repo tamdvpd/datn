@@ -16,6 +16,8 @@ public interface ProductDetailService {
 
     ProductDetail updateProductDetail(Integer id, ProductDetail productDetail, MultipartFile imageFile);
 
+    ProductDetail updateQuantity(Integer id, int quantity);
+
     void deleteProductDetail(Integer id);
 
     List<ProductDetail> getProductDetailsByProductId(Integer productId);

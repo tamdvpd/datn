@@ -28,6 +28,11 @@ public class PaymentMethodController {
         return ResponseEntity.ok(paymentMethodService.getAllPaymentMethods());
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<List<PaymentMethod>> getAllIsActive() {
+        return ResponseEntity.ok(paymentMethodService.getAllPaymentMethodsIsActive());
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<PaymentMethod> update(@PathVariable Integer id, @RequestBody PaymentMethod paymentMethod) {
         return ResponseEntity.ok(paymentMethodService.updatePaymentMethod(id, paymentMethod));

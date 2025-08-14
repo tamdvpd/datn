@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @Entity
@@ -105,6 +106,7 @@ public class ProductDetail {
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Cart> carts = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)

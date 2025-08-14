@@ -3,33 +3,61 @@
     <MainHeader />
     <div class="cart-page">
       <h1 class="cart-title">GIỎ HÀNG ({{ cart.length }} SẢN PHẨM)</h1>
-      <div class="cart-box">
+
+      <!-- Loading state -->
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-3">Đang tải giỏ hàng...</p>
+      </div>
+
+      <div class="cart-box" v-else-if="cart.length">
         <table class="cart-table">
           <thead>
             <tr>
               <th>Sản Phẩm</th>
+              <th>Phân Loại</th>
               <th>Đơn Giá</th>
               <th>Số Lượng</th>
               <th>Thành Tiền</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, index) in cart" :key="index">
+            <tr v-for="(item, index) in cart" :key="item.id">
               <td class="product-cell">
-                <img :src="item.image" :alt="item.name" class="product-image" />
-                <div class="product-name">{{ item.name }}</div>
+                <img :src="getImageUrl(item.productDetail.imageUrl)" :alt="item.productDetail.product.name"
+                  class="product-image" />
+                <div class="product-name">{{ item.productDetail.product.name }}</div>
               </td>
-              <td class="price">{{ formatVND(item.price) }}</td>
               <td>
-                <input
-                  type="number"
-                  min="1"
-                  v-model.number="item.quantity"
-                  @input="updateTotal"
-                  class="qty-input"
-                />
+                <div>Size: {{ item.productDetail.size }}</div>
+                <div>Màu sắc: {{ item.productDetail.color }}</div>
               </td>
-              <td class="price">{{ formatVND(item.price * item.quantity) }}</td>
+              <td class="price">
+                {{ formatVND(item.productDetail.discountPrice || item.productDetail.price) }}
+              </td>
+              <td>
+                <input type="number" min="1" v-model.number="item.quantity" @input="updateQuantity(item)"
+                  class="qty-input" />
+                <div class="stock-text">
+                  Còn lại: {{ item.productDetail.quantity }}
+                </div>
+              </td>
+              <td class="price">
+                {{
+                  formatVND(
+                    (item.productDetail.discountPrice || item.productDetail.price) *
+                    item.quantity
+                  )
+                }}
+              </td>
+              <td class="price">
+                <button @click="removeItem(item.id)" class="delete-btn">
+                  <i class="bi bi-trash3-fill"></i> Xoá
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -39,8 +67,18 @@
           <div class="cart-summary">
             <p class="summary-row">Tiền hàng: {{ formatVND(total) }}</p>
             <p class="summary-total">Tổng cộng: <span>{{ formatVND(total) }}</span></p>
-            <button class="checkout-btn">TIẾN HÀNH ĐẶT HÀNG</button>
+            <button class="checkout-btn" @click="proceedToCheckout">TIẾN HÀNH ĐẶT HÀNG</button>
           </div>
+        </div>
+      </div>
+      <div v-else-if="!loading" class="empty-cart">
+        <div class="text-center py-5">
+          <i class="bi bi-cart-x" style="font-size: 4rem; color: #ccc;"></i>
+          <h3 class="mt-3 text-muted">Giỏ hàng của bạn đang trống</h3>
+          <p class="text-muted">Hãy thêm sản phẩm vào giỏ hàng để bắt đầu mua sắm!</p>
+          <router-link to="/" class="btn btn-primary">
+            <i class="bi bi-house"></i> Quay lại trang chủ
+          </router-link>
         </div>
       </div>
     </div>
@@ -49,134 +87,294 @@
 </template>
 
 <script>
-import MainHeader from '@/components/MainHeader.vue';
-import MainFooter from '@/components/MainFooter.vue';
+import axios from "axios";
+import MainHeader from "@/components/MainHeader.vue";
+import MainFooter from "@/components/MainFooter.vue";
+import router from "@/router";
 
 export default {
   name: "CartPage",
   components: {
     MainHeader,
-    MainFooter
+    MainFooter,
   },
   data() {
     return {
-      cart: [
-        {
-          name: "Áo polo kẻ ngang bo tay kẻ GSTP040",
-          price: 550000,
-          quantity: 1,
-          image: "https://cdn1.nhathuoclongchau.com.vn/unsafe/360x360/https://cms-prod.s3-sgn09.fptcloud.com/gstp040.jpg",
-        },
-        {
-          name: "Áo polo kẻ ngang bo tay phối màu GSTP030",
-          price: 320250,
-          quantity: 1,
-          image: "https://cdn1.nhathuoclongchau.com.vn/unsafe/360x360/https://cms-prod.s3-sgn09.fptcloud.com/gstp030.jpg",
-        },
-      ],
+      user: null,
+      cart: [],
       total: 0,
+      loading: false,
     };
   },
   methods: {
+    getImageUrl(path) {
+      return `http://localhost:8080/images/productDetails/${path}`;
+    },
     formatVND(val) {
-      return val.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+      return val.toLocaleString("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      });
     },
     updateTotal() {
-      this.total = this.cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      this.total = this.cart.reduce((sum, item) => {
+        const price = item.productDetail.discountPrice || item.productDetail.price;
+        return sum + price * item.quantity;
+      }, 0);
+    },
+    async fetchCart(userId) {
+      this.loading = true;
+      try {
+        const response = await axios.get(`http://localhost:8080/api/cart/${userId}`);
+        this.cart = response.data;
+        this.updateTotal();
+      } catch (error) {
+        console.error("Lỗi khi lấy giỏ hàng:", error);
+        this.cart = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+    async removeItem(cartId) {
+      try {
+        await axios.delete(`http://localhost:8080/api/cart/${cartId}`);
+        this.cart = this.cart.filter(item => item.id !== cartId);
+        this.updateTotal();
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+      } catch (error) {
+        console.error("Lỗi khi xoá sản phẩm:", error);
+        alert("Không thể xoá sản phẩm khỏi giỏ hàng.");
+      }
+    },
+    async updateQuantity(item) {
+      const quantity = item.quantity;
+
+      if (quantity < 1) {
+        alert("Số lượng phải lớn hơn 0");
+        return;
+      }
+
+      try {
+        await axios.put(`http://localhost:8080/api/cart/${item.id}`, {
+          quantity: quantity
+        });
+
+        this.updateTotal(); // cập nhật tổng sau khi update thành công
+        // Thông báo cập nhật giỏ hàng
+        localStorage.setItem('cartUpdated', Date.now().toString());
+      } catch (error) {
+        console.error("Lỗi khi cập nhật số lượng:", error);
+        alert("Không thể cập nhật số lượng sản phẩm.");
+      }
+    },
+    async proceedToCheckout() {
+      try {
+        if (!this.user || !this.user.id) {
+          router.push("/login");
+          return;
+        }
+
+        if (!this.cart.length) {
+          alert("Giỏ hàng của bạn đang trống!");
+          return;
+        }
+
+        // Kiểm tra tồn kho trước khi tiếp tục
+        const isStockAvailable = await this.checkStockAvailability();
+        if (!isStockAvailable) {
+          return;
+        }
+
+        // Lưu giỏ hàng vào localStorage
+        const cartData = this.cart.map(item => ({
+          productDetailId: item.productDetail.id,
+          quantity: item.quantity
+        }));
+
+        localStorage.setItem("cartForCheckout", JSON.stringify(cartData, null, 2));
+        await router.push("/checkout-cart");
+        console.log("Đã lưu vào localStorage:", JSON.parse(localStorage.getItem("cartForCheckout")));
+      } catch (error) {
+        console.error("Lỗi khi chuyển đến trang thanh toán:", error);
+        alert("Có lỗi xảy ra: " + error.message);
+      }
+    },
+    async checkStockAvailability() {
+      try {
+        const results = await Promise.all(
+          this.cart.map(async (item) => {
+            const response = await axios.get(
+              `http://localhost:8080/productdetails/${item.productDetail.id}`
+            );
+            return {
+              item,
+              available: response.data.quantity >= item.quantity,
+              currentStock: response.data.quantity,
+              productName: response.data.product.name
+            };
+          })
+        );
+
+        const outOfStockItems = results.filter(result => !result.available);
+
+        if (outOfStockItems.length > 0) {
+          const message = outOfStockItems.map(item =>
+            `- ${item.productName}: Bạn chọn ${item.item.quantity} nhưng chỉ còn ${item.currentStock}`
+          ).join('\n');
+
+          alert(`Một số sản phẩm không đủ số lượng tồn kho:\n${message}`);
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Lỗi khi kiểm tra tồn kho:", error);
+        alert("Có lỗi xảy ra khi kiểm tra tồn kho");
+        return false;
+      }
     },
   },
-  mounted() {
-    this.updateTotal();
+  async mounted() {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      router.push("/login");
+      return;
+    }
+
+    this.user = JSON.parse(storedUser);
+
+    // Nếu không có user.id thì cũng chuyển sang login
+    if (!this.user.id) {
+      router.push("/login");
+      return;
+    }
+
+    await this.fetchCart(this.user.id);
   },
 };
 </script>
 
 <style scoped>
 .cart-page {
-  background: #f1f1f1;
+  background: #f9f9f9;
   padding: 2rem 1rem;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .cart-title {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
   text-transform: uppercase;
+  color: #333;
 }
 
 .cart-box {
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 1rem;
-  max-width: 1000px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
   width: 100%;
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  max-width: 1100px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
 }
 
 .cart-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .cart-table th {
-  background-color: #cce5ff;
-  color: #000;
-  padding: 12px;
-  border: 1px solid #ddd;
+  background-color: #007bff;
+  color: #fff;
+  padding: 14px;
+  border: none;
   text-align: center;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
 .cart-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
+  padding: 12px;
   text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #eee;
 }
 
 .product-cell {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  gap: 12px;
 }
 
 .product-image {
-  width: 100px;
-  margin-bottom: 5px;
+  width: 80px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .product-name {
-  font-weight: bold;
+  font-weight: 600;
+  color: #333;
 }
 
 .price {
-  color: red;
-  font-weight: bold;
+  color: #e53935;
+  font-weight: 600;
 }
 
 .qty-input {
   width: 60px;
-  padding: 5px;
-  font-size: 14px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
   text-align: center;
+}
+
+.qty-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-btn:hover {
+  background-color: #d93636;
 }
 
 .cart-actions {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1.5rem;
   border-top: 1px solid #ddd;
-  padding-top: 1rem;
 }
 
 .continue-shopping {
-  color: #0074d9;
-  text-decoration: underline;
+  color: #007bff;
+  text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.continue-shopping:hover {
+  color: #0056b3;
 }
 
 .cart-summary {
@@ -185,27 +383,42 @@ export default {
 }
 
 .summary-row {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .summary-total {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
-  color: red;
+  color: #e53935;
   margin-bottom: 1rem;
 }
 
 .checkout-btn {
-  background-color: red;
+  background-color: #28a745;
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 12px 24px;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   border: none;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .checkout-btn:hover {
-  background-color: darkred;
+  background-color: #218838;
+}
+
+.empty-cart {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 18px;
+  color: #777;
+}
+
+.stock-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
 }
 </style>

@@ -52,7 +52,7 @@ public class EmailService {
         String savedOtp = otpStorage.get(email);
         if (savedOtp != null && savedOtp.equals(inputOtp)) {
             verifiedEmails.put(email, true); // ✅ đánh dấu đã xác thực
-            otpStorage.remove(email);        // ✅ xoá OTP
+            otpStorage.remove(email); // ✅ xoá OTP
             return true;
         }
         return false;
@@ -72,4 +72,63 @@ public class EmailService {
     public void clearVerified(String email) {
         verifiedEmails.remove(email);
     }
+
+    // ====== THÊM MỚI cho QUÊN MẬT KHẨU ======
+    private final Map<String, String> resetOtpStorage = new ConcurrentHashMap<>();
+    private final Map<String, Boolean> resetVerifiedEmails = new ConcurrentHashMap<>();
+    private final Map<String, Long> resetLastSentAt = new ConcurrentHashMap<>();
+
+    // Gửi OTP reset password (không ảnh hưởng sendOTP đăng ký)
+    public void sendResetOTP(String email) {
+        // (tuỳ chọn) rate-limit 60s
+        long now = System.currentTimeMillis();
+        Long last = resetLastSentAt.get(email);
+        if (last != null && now - last < 60_000) {
+            throw new RuntimeException("Bạn vừa yêu cầu OTP. Vui lòng thử lại sau ít phút.");
+        }
+
+        String otp = String.format("%06d", new Random().nextInt(1_000_000));
+        resetOtpStorage.put(email, otp);
+        resetLastSentAt.put(email, now);
+
+        String subject = "Mã xác thực đặt lại mật khẩu";
+        String content = "Mã OTP của bạn là: " + otp + "\nMã có hiệu lực trong 5 phút.";
+        sendSimpleEmail(email, subject, content);
+
+        // (tuỳ chọn) Auto-expire OTP sau 5 phút
+        new Thread(() -> {
+            try {
+                Thread.sleep(5 * 60 * 1000);
+            } catch (InterruptedException ignored) {
+            }
+            // chỉ xóa nếu vẫn còn và chưa verify
+            resetOtpStorage.remove(email, otp);
+        }).start();
+    }
+
+    // Xác thực OTP reset
+    public boolean verifyResetOTP(String email, String inputOtp) {
+        String saved = resetOtpStorage.get(email);
+        if (saved != null && saved.equals(inputOtp)) {
+            resetVerifiedEmails.put(email, true);
+            resetOtpStorage.remove(email);
+            return true;
+        }
+        return false;
+    }
+
+    // Kiểm tra email đã verify cho reset chưa
+    public boolean isResetVerified(String email) {
+        return resetVerifiedEmails.getOrDefault(email, false);
+    }
+
+    // Xoá OTP và cờ verify cho reset
+    public void clearResetOTP(String email) {
+        resetOtpStorage.remove(email);
+    }
+
+    public void clearResetVerified(String email) {
+        resetVerifiedEmails.remove(email);
+    }
+
 }

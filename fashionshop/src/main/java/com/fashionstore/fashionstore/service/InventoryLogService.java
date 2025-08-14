@@ -45,12 +45,12 @@ public interface InventoryLogService {
      * Lấy danh sách tồn kho với filter + pagination
      */
     Page<Object[]> getWarehouseStockWithFilters(
-        String product, String color, String size,
-        Integer stockMin, Integer stockMax,
-        Double priceMin, Double priceMax,
-        Double discountMin, Double discountMax,
-        Pageable pageable
-    );
+            String product, String color, String size,
+            Integer stockMin, Integer stockMax,
+            Double priceMin, Double priceMax,
+            Double discountMin, Double discountMax,
+            Pageable pageable);
+
     Map<String, List<String>> getFilterOptions();
 
 }

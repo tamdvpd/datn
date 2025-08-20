@@ -1,141 +1,251 @@
 <template>
-  <div class="p-4">
-    <h2 class="text-xl font-bold mb-4">🧾 Đơn hàng của tôi</h2>
+  <div class="container py-4">
+    <h2 class="h4 fw-bold mb-4">🧾 Đơn hàng của tôi</h2>
 
-    <!-- Lọc trạng thái -->
-    <div class="mb-4 flex flex-wrap gap-2">
-      <select v-model="selectedStatus" @change="loadOrders" class="border rounded px-3 py-1 text-sm">
-        <option value="">Tất cả trạng thái</option>
-        <option value="PENDING">Chờ xử lý</option>
-        <option value="CONFIRMED">Đã xác nhận</option>
-        <option value="SHIPPED">Đang giao</option>
-        <option value="DELIVERED">Đã giao</option>
-        <option value="CANCELLED">Đã huỷ</option>
-      </select>
-    </div>
-
-    <!-- Danh sách đơn -->
-    <table class="w-full text-sm border mb-6">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="border px-3 py-2">Mã đơn</th>
-          <th class="border px-3 py-2">Ngày đặt</th>
-          <th class="border px-3 py-2">Tổng tiền</th>
-          <th class="border px-3 py-2">Trạng thái</th>
-          <th class="border px-3 py-2">Chi tiết</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="order in orders" :key="order.id">
-          <td class="border px-3 py-2">{{ order.id }}</td>
-          <td class="border px-3 py-2">{{ formatDate(order.createdAt) }}</td>
-          <td class="border px-3 py-2 text-right">{{ formatCurrency(order.totalAmount) }}</td>
-          <td class="border px-3 py-2 text-center">{{ order.status }}</td>
-          <td class="border px-3 py-2 text-center">
-            <button @click="selectOrder(order)" class="text-blue-600 hover:underline">Xem</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Chi tiết đơn hàng -->
-    <div v-if="selectedOrder" class="bg-white p-4 border rounded">
-      <div class="flex justify-between items-center mb-2">
-        <h3 class="text-lg font-semibold">Đơn hàng #{{ selectedOrder.id }}</h3>
-        <button class="text-red-500 hover:underline" @click="selectedOrder = null">Đóng</button>
+    <!-- Bộ lọc & điều khiển -->
+    <div class="row g-3 align-items-center mb-3">
+      <div class="col-auto">
+        <label class="col-form-label">Trạng thái:</label>
+      </div>
+      <div class="col-auto">
+        <select v-model="selectedStatus" @change="onFilterChange" class="form-select form-select-sm">
+          <option value="">Tất cả</option>
+          <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
+        </select>
       </div>
 
-      <p><strong>Người nhận:</strong> {{ selectedOrder.receiverName }} - {{ selectedOrder.receiverPhone }}</p>
-      <p><strong>Địa chỉ:</strong> {{ selectedOrder.receiverAddress }}</p>
-      <p><strong>Ghi chú:</strong> {{ selectedOrder.note || 'Không có' }}</p>
-      <p><strong>Trạng thái:</strong> {{ selectedOrder.status }}</p>
+      <div class="col-auto ms-auto d-flex align-items-center gap-2">
+        <span class="text-muted small">Hiển thị</span>
+        <select v-model.number="pageSize" @change="onFilterChange" class="form-select form-select-sm" style="width: 90px">
+          <option v-for="n in [5,10,20,50]" :key="n" :value="n">{{ n }}</option>
+        </select>
+        <span class="text-muted small">/ trang</span>
+        <span class="text-muted small">Tổng: {{ totalElements }} đơn</span>
+      </div>
+    </div>
 
-      <h4 class="mt-4 font-semibold">🛒 Sản phẩm</h4>
-      <table class="w-full border text-sm">
-        <thead class="bg-gray-100">
+    <!-- Bảng -->
+    <div class="table-responsive border rounded">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
           <tr>
-            <th class="border px-2 py-1">Tên</th>
-            <th class="border px-2 py-1">Màu</th>
-            <th class="border px-2 py-1">Size</th>
-            <th class="border px-2 py-1">SL</th>
-            <th class="border px-2 py-1">Đơn giá</th>
-            <th class="border px-2 py-1">Tổng</th>
+            <th style="width: 140px">Mã đơn</th>
+            <th style="width: 180px">Ngày đặt</th>
+            <th style="width: 160px" class="text-end">Tổng tiền</th>
+            <th style="width: 160px">Trạng thái</th>
+            <th style="width: 120px">Chi tiết</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in selectedOrder.orderDetails" :key="item.id">
-            <td class="border px-2 py-1">{{ item.productDetail?.product?.name }}</td>
-            <td class="border px-2 py-1">{{ item.productDetail?.color }}</td>
-            <td class="border px-2 py-1">{{ item.productDetail?.size }}</td>
-            <td class="border px-2 py-1 text-center">{{ item.quantity }}</td>
-            <td class="border px-2 py-1 text-right">{{ formatCurrency(item.unitPrice) }}</td>
-            <td class="border px-2 py-1 text-right">{{ formatCurrency(item.unitPrice * item.quantity) }}</td>
+          <tr v-if="loading">
+            <td colspan="5" class="text-center py-4">Đang tải...</td>
+          </tr>
+          <tr v-else-if="error">
+            <td colspan="5" class="text-danger py-4 text-center">{{ error }}</td>
+          </tr>
+          <tr v-else-if="orders.length === 0">
+            <td colspan="5" class="text-center py-4">Không có đơn hàng</td>
+          </tr>
+          <tr v-else v-for="o in orders" :key="o.id">
+            <td>#{{ o.id }}</td>
+            <td>{{ formatDate(o.createdAt) }}</td>
+            <td class="text-end">{{ formatCurrency(o.totalAmount) }}</td>
+            <td>
+              <span :class="['badge', statusBadge(o.status)]">{{ humanStatus(o.status) }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary" @click="viewDetail(o.id)">Xem</button>
+            </td>
           </tr>
         </tbody>
       </table>
+    </div>
 
-      <div class="text-right mt-3">
-        <p><strong>Phí vận chuyển:</strong> {{ formatCurrency(selectedOrder.shippingFee) }}</p>
-        <p><strong>Giảm giá:</strong> {{ formatCurrency(selectedOrder.discountAmount) }}</p>
-        <p class="font-semibold text-lg">Tổng: {{ formatCurrency(selectedOrder.totalAmount) }}</p>
+    <!-- Phân trang (server-side) -->
+    <div class="d-flex align-items-center justify-content-between mt-3">
+      <div class="text-muted small">
+        Trang {{ page + 1 }} / {{ totalPages || 1 }}
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page === 0" @click="goToPage(page - 1)">Trước</button>
+        <button class="btn btn-sm btn-outline-secondary" :disabled="page + 1 >= totalPages" @click="goToPage(page + 1)">Sau</button>
+      </div>
+    </div>
+
+    <!-- Chi tiết đơn hàng -->
+    <div v-if="detail" class="card mt-4 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+        <h5 class="mb-0">Chi tiết đơn hàng #{{ detail.id }}</h5>
+        <button class="btn btn-sm btn-light" @click="detail = null">Đóng</button>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <p><strong>Ngày đặt:</strong> {{ formatDate(detail.createdAt) }}</p>
+            <p><strong>Trạng thái:</strong> {{ humanStatus(detail.status) }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Người nhận:</strong> {{ detail.receiverName }} - {{ detail.receiverPhone }}</p>
+            <p><strong>Địa chỉ:</strong> {{ detail.receiverAddress }}</p>
+          </div>
+        </div>
+
+        <h6 class="fw-bold mt-3">🛒 Sản phẩm</h6>
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>Tên</th>
+                <th>Màu</th>
+                <th>Size</th>
+                <th class="text-center">SL</th>
+                <th class="text-end">Đơn giá</th>
+                <th class="text-end">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="d in (detail.orderDetails || [])" :key="d.id">
+                <td>{{ d.productDetail?.product?.name || '—' }}</td>
+                <td>{{ d.productDetail?.color || '—' }}</td>
+                <td>{{ d.productDetail?.size || '—' }}</td>
+                <td class="text-center">{{ d.quantity }}</td>
+                <td class="text-end">{{ formatCurrency(d.unitPrice) }}</td>
+                <td class="text-end">{{ formatCurrency(mul(d.unitPrice, d.quantity)) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-end mt-3">
+          <p><strong>Phí vận chuyển:</strong> {{ formatCurrency(detail.shippingFee) }}</p>
+          <p><strong>Giảm giá:</strong> {{ formatCurrency(detail.discountAmount) }}</p>
+          <h5><strong>Tổng tiền:</strong> {{ formatCurrency(detail.totalAmount) }}</h5>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import axios from 'axios';
+<script setup>
+import { onMounted, ref } from 'vue'
+import axios from 'axios'
 
-export default {
-  name: 'Order',
-  data() {
-    return {
-      email: 'phucnvpd10600@gmail.com', // Thay bằng lấy từ token nếu có
-      orders: [],
-      selectedOrder: null,
-      selectedStatus: ''
-    };
-  },
-  methods: {
-    async loadOrders() {
-      const url = this.selectedStatus
-        ? `http://localhost:8080/orders/user?email=${this.email}&status=${this.selectedStatus}`
-        : `http://localhost:8080/orders/user?email=${this.email}`;
+const API_BASE = 'http://localhost:8080'
 
-      try {
-        const res = await axios.get(url);
-        this.orders = res.data;
-      } catch (e) {
-        console.error(e);
-        alert('Không thể tải đơn hàng');
-      }
-    },
-    async selectOrder(order) {
-      try {
-        const res = await axios.get(`http://localhost:8080/orders/${order.id}?email=${this.email}`);
-        this.selectedOrder = res.data;
-      } catch (e) {
-        console.error(e);
-        alert('Không thể tải chi tiết đơn hàng');
-      }
-    },
-    formatCurrency(value) {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
-    },
-    formatDate(dateString) {
-      const d = new Date(dateString);
-      return d.toLocaleDateString('vi-VN');
+const statuses = [
+  { value: 'PENDING', label: 'Chờ xử lý' },
+  { value: 'CONFIRMED', label: 'Đã xác nhận' },
+  { value: 'PROCESSING', label: 'Đang xử lý' },
+  { value: 'SHIPPED', label: 'Đang giao' },
+  { value: 'DELIVERED', label: 'Đã giao' },
+  { value: 'CANCELLED', label: 'Đã huỷ' }
+]
+
+// state
+const loading = ref(false)
+const error = ref('')
+const orders = ref([])
+const page = ref(0)          // zero-based cho backend
+const pageSize = ref(10)
+const totalPages = ref(0)
+const totalElements = ref(0)
+const selectedStatus = ref('')
+
+const detail = ref(null)
+
+// helpers
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+    return JSON.parse(jsonPayload)
+  } catch { return null }
+}
+function readCookie(name) {
+  const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return m ? decodeURIComponent(m[2]) : ''
+}
+function getUserId() {
+  try { const u = JSON.parse(localStorage.getItem('user') || 'null'); if (u?.id) return u.id } catch {}
+  const tok = localStorage.getItem('access_token') || readCookie('access_token')
+  const payload = tok ? parseJwt(tok) : null
+  return payload?.id || payload?.userId || null
+}
+function getUserEmail() {
+  try { const u = JSON.parse(localStorage.getItem('user') || 'null'); if (u?.email) return u.email } catch {}
+  const tok = localStorage.getItem('access_token') || readCookie('access_token')
+  const payload = tok ? parseJwt(tok) : null
+  return payload?.email || null
+}
+function formatCurrency(v) {
+  if (v == null) return '—'
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v)
+}
+function formatDate(d) { return d ? new Date(d).toLocaleString('vi-VN') : '—' }
+function humanStatus(s) {
+  const map = { PENDING:'Chờ xử lý', CONFIRMED:'Đã xác nhận', PROCESSING:'Đang xử lý', SHIPPED:'Đang giao', DELIVERED:'Đã giao', CANCELLED:'Đã huỷ' }
+  return map[s] || s
+}
+function statusBadge(s) {
+  return { PENDING:'text-bg-secondary', CONFIRMED:'text-bg-info', PROCESSING:'text-bg-warning', SHIPPED:'text-bg-primary', DELIVERED:'text-bg-success', CANCELLED:'text-bg-danger' }[s] || 'text-bg-light'
+}
+function mul(a, b) {
+  const x = Number(a || 0), y = Number(b || 0)
+  return x * y
+}
+
+// fetch list (server pagination)
+async function fetchOrders() {
+  const userId = getUserId()
+  if (!userId) { error.value = 'Không xác định được người dùng. Vui lòng đăng nhập lại.'; return }
+  loading.value = true; error.value = ''
+  try {
+    const params = {
+      userId,
+      page: page.value,
+      size: pageSize.value
     }
-  },
-  mounted() {
-    this.loadOrders();
+    if (selectedStatus.value) params.status = selectedStatus.value
+    const { data } = await axios.get(`${API_BASE}/orders/user`, { params })
+    orders.value = data?.content || []
+    totalPages.value = data?.totalPages || 0
+    totalElements.value = data?.totalElements || 0
+  } catch (e) {
+    error.value = e?.response?.data?.message || 'Không tải được danh sách đơn hàng.'
+  } finally {
+    loading.value = false
   }
-};
+}
+
+function goToPage(p) {
+  if (p < 0) p = 0
+  if (totalPages.value && p >= totalPages.value) p = totalPages.value - 1
+  page.value = p
+  fetchOrders()
+}
+
+function onFilterChange() {
+  page.value = 0
+  fetchOrders()
+}
+
+// detail
+async function viewDetail(orderId) {
+  const email = getUserEmail()
+  if (!email) { error.value = 'Không xác định được email người dùng.'; return }
+  try {
+    const { data } = await axios.get(`${API_BASE}/orders/${orderId}`, { params: { email } })
+    detail.value = data
+  } catch (e) {
+    error.value = e?.response?.data?.message || 'Không tải được chi tiết đơn hàng.'
+  }
+}
+
+onMounted(fetchOrders)
 </script>
 
 <style scoped>
-table th,
-table td {
-  border: 1px solid #ddd;
-}
+.table { font-size: 0.95rem; }
+.badge { font-weight: 500; }
 </style>

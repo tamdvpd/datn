@@ -4,6 +4,7 @@ import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.entity.OrderDetail;
 import com.fashionstore.fashionstore.repository.OrderRepository;
 import com.fashionstore.fashionstore.service.OrderService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,154 +18,138 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
-    // ========================================
-    // ✅ Lấy tất cả đơn hàng
-    // ========================================
     @Override
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
-    }
-
-    @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Page<Order> getAllOrders(Pageable pageable) {
         return orderRepository.findAll(pageable);
     }
 
-    // ========================================
-    // ✅ USER: Lấy đơn hàng theo email
-    // ========================================
     @Override
-    public List<Order> getOrdersByUserEmail(String email) {
-        return orderRepository.findByUser_Email(email);
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public Page<Order> getOrdersByStatus(String status, Pageable pageable) {
+        return orderRepository.findByStatus(normalizeStatus(status), pageable);
     }
 
     @Override
-    public List<Order> getOrdersByUserEmailAndStatus(String email, String status) {
-        return orderRepository.findByUser_EmailAndStatus(email, status);
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public Page<Order> getOrdersByUserId(Integer userId, Pageable pageable) {
+        return orderRepository.findByUser_Id(userId, pageable);
     }
 
     @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public Page<Order> getOrdersByUserIdAndStatus(Integer userId, String status, Pageable pageable) {
+        return orderRepository.findByUser_IdAndStatus(userId, normalizeStatus(status), pageable);
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
     public Optional<Order> getOrderById(Integer id) {
         return orderRepository.findById(id);
     }
 
     @Override
-    public boolean existsById(Integer id) {
-        return orderRepository.existsById(id);
-    }
-
-    @Override
-    public List<Order> getRecentOrdersByEmail(String email) {
-        return orderRepository.findTop5ByUser_EmailOrderByCreatedAtDesc(email);
-    }
-
-    @Override
-    public Page<Order> getOrdersByStatus(String status, Pageable pageable) {
-        return orderRepository.findByStatus(status, pageable);
-    }
-
-    // ========================================
-    // ✅ Tạo đơn hàng mới
-    // ========================================
-    @Override
-    @Transactional
     public Order createOrder(Order order) {
-        order.setId(null);
-        LocalDateTime now = LocalDateTime.now();
-        order.setCreatedAt(now);
-        order.setUpdatedAt(now);
-
-        if (order.getStatus() == null) {
-            order.setStatus("PENDING");
-        }
-
-        BigDecimal total = BigDecimal.ZERO;
-        if (order.getOrderDetails() != null) {
-            for (OrderDetail detail : order.getOrderDetails()) {
-                detail.setOrder(order); // liên kết ngược
-                detail.setCreatedAt(now);
-                BigDecimal lineTotal = detail.getUnitPrice()
-                        .multiply(BigDecimal.valueOf(detail.getQuantity()));
-                total = total.add(lineTotal);
-            }
-        }
-        order.setTotalAmount(total);
-
-        // Thiết lập mặc định nếu không có
-        if (order.getShippingFee() == null) {
-            order.setShippingFee(BigDecimal.valueOf(30000));
-        }
-        if (order.getDiscountAmount() == null) {
-            order.setDiscountAmount(BigDecimal.ZERO);
-        }
-
         return orderRepository.save(order);
     }
 
-    // ========================================
-    // ✅ Cập nhật thông tin đơn hàng (Admin)
-    // ========================================
     @Override
-    @Transactional
-    public Order updateOrder(Integer id, Order orderUpdate) {
+    public Order updateOrder(Integer id, Order update) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + id));
 
+        order.setReceiverName(update.getReceiverName());
+        order.setReceiverPhone(update.getReceiverPhone());
+        order.setReceiverAddress(update.getReceiverAddress());
+        order.setNote(update.getNote());
+        order.setShippingProvider(update.getShippingProvider());
+        order.setPaymentMethod(update.getPaymentMethod());
+        order.setCoupon(update.getCoupon());
+        order.setShippingFee(update.getShippingFee());
+        order.setDiscountAmount(update.getDiscountAmount());
+
+        if (update.getOrderDetails() != null && !update.getOrderDetails().isEmpty()) {
+            order.setOrderDetails(update.getOrderDetails());
+        }
+
+        autoCalculateTotals(order);
         order.setUpdatedAt(LocalDateTime.now());
-        order.setReceiverName(orderUpdate.getReceiverName());
-        order.setReceiverPhone(orderUpdate.getReceiverPhone());
-        order.setReceiverAddress(orderUpdate.getReceiverAddress());
-        order.setNote(orderUpdate.getNote());
-        order.setShippingProvider(orderUpdate.getShippingProvider());
-        order.setPaymentMethod(orderUpdate.getPaymentMethod());
-        order.setCoupon(orderUpdate.getCoupon());
-        order.setShippingFee(orderUpdate.getShippingFee());
-        order.setDiscountAmount(orderUpdate.getDiscountAmount());
-
         return orderRepository.save(order);
     }
 
-    // ========================================
-    // ✅ Cập nhật trạng thái đơn hàng
-    // ========================================
     @Override
-    @Transactional
-    public Optional<Order> updateOrderStatus(Integer id, String status) {
-        Optional<Order> optionalOrder = orderRepository.findById(id);
-        if (optionalOrder.isPresent()) {
-            Order order = optionalOrder.get();
-            String currentStatus = order.getStatus();
+    public Optional<Order> updateOrderStatus(Integer id, String newStatus) {
+        return orderRepository.findById(id).map(order -> {
+            String target = normalizeStatus(newStatus);
+            String current = order.getStatus();
 
-            List<String> allowedNextStatuses = switch (currentStatus) {
-                case "PENDING" -> List.of("CONFIRMED", "CANCELLED");
+            List<String> allowedNextStatuses = switch (current) {
+                case "Pending Confirmation" -> List.of("CONFIRMED", "CANCELLED");
                 case "CONFIRMED" -> List.of("PROCESSING");
                 case "PROCESSING" -> List.of("SHIPPED");
                 case "SHIPPED" -> List.of("DELIVERED");
                 case "DELIVERED" -> List.of("COMPLETED");
-                case "COMPLETED", "CANCELLED" -> List.of(); // locked trạng thái
+                case "COMPLETED", "CANCELLED" -> List.of();
                 default -> List.of();
             };
-            if (!allowedNextStatuses.contains(status)) {
-                throw new IllegalStateException("❌ Không thể chuyển từ " + currentStatus + " sang " + status);
+
+            if (!allowedNextStatuses.contains(target)) {
+                throw new IllegalStateException("Không thể chuyển từ " + current + " sang " + target);
             }
 
-            order.setStatus(status);
+            order.setStatus(target);
             order.setUpdatedAt(LocalDateTime.now());
-            return Optional.of(orderRepository.save(order));
-        }
-        return Optional.empty();
+            return orderRepository.save(order);
+        });
     }
 
-    // ========================================
-    // ✅ Xóa đơn hàng
-    // ========================================
+    @Override
+    public void deleteOrder(Integer id) {
+        if (!orderRepository.existsById(id)) {
+            throw new EntityNotFoundException("Order not found: " + id);
+        }
+        orderRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public boolean existsById(Integer id) {
+        return orderRepository.existsById(id);
+    }
+
+    private String normalizeStatus(String status) {
+        return status == null ? null : status.trim().toUpperCase();
+    }
+
+    private void autoCalculateTotals(Order order) {
+        BigDecimal items = BigDecimal.ZERO;
+
+        if (order.getOrderDetails() != null) {
+            for (OrderDetail od : order.getOrderDetails()) {
+                BigDecimal price = od.getUnitPrice() != null ? od.getUnitPrice() : BigDecimal.ZERO;
+                int qty = od.getQuantity() != null ? od.getQuantity() : 0;
+                items = items.add(price.multiply(BigDecimal.valueOf(qty)));
+            }
+        }
+
+        BigDecimal discount = order.getDiscountAmount() != null ? order.getDiscountAmount() : BigDecimal.ZERO;
+        BigDecimal shipping = order.getShippingFee() != null ? order.getShippingFee() : BigDecimal.ZERO;
+
+        BigDecimal total = items.subtract(discount).add(shipping);
+        if (total.compareTo(BigDecimal.ZERO) < 0)
+            total = BigDecimal.ZERO;
+
+        order.setTotalAmount(total);
+    }
+
     @Override
     @Transactional
-    public void deleteOrder(Integer id) {
-        orderRepository.deleteById(id);
+    public Optional<Order> getOrderByIdWithDetails(Integer id) {
+        return orderRepository.findOneWithDetailsById(id);
     }
 }

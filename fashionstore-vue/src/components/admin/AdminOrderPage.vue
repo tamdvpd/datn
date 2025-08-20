@@ -32,6 +32,21 @@
       </table>
     </div>
 
+    <!-- Phân trang -->
+    <nav v-if="totalPages > 1" class="mt-3">
+      <ul class="pagination justify-content-center">
+        <li class="page-item" :class="{ disabled: page === 0 }">
+          <button class="page-link" @click="changePage(page - 1)">«</button>
+        </li>
+        <li v-for="p in totalPages" :key="p" class="page-item" :class="{ active: page === p - 1 }">
+          <button class="page-link" @click="changePage(p - 1)">{{ p }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: page === totalPages - 1 }">
+          <button class="page-link" @click="changePage(page + 1)">»</button>
+        </li>
+      </ul>
+    </nav>
+
     <!-- Chi tiết đơn hàng -->
     <div v-if="selectedOrder" class="card mt-5 shadow">
       <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
@@ -42,8 +57,7 @@
         <p><strong>Người nhận:</strong> {{ selectedOrder.receiverName }} - {{ selectedOrder.receiverPhone }}</p>
         <p><strong>Địa chỉ:</strong> {{ selectedOrder.receiverAddress }}</p>
         <p><strong>Ghi chú:</strong> {{ selectedOrder.note || 'Không có' }}</p>
-        <p><strong>Trạng thái hiện tại:</strong> {{ selectedOrder.status }}</p>
-
+       <p><strong>Trạng thái hiện tại:</strong> {{ selectedOrder.statusVi }}</p>
         <!-- Form cập nhật trạng thái -->
         <div class="my-3">
           <label class="form-label fw-bold me-2">Cập nhật trạng thái:</label>
@@ -96,51 +110,65 @@
 
 <script>
 import axios from 'axios';
+const API_BASE = 'http://localhost:8080';
 
 export default {
   name: 'AdminOrderPage',
   data() {
     return {
       orders: [],
+      page: 0,
+      size: 10,
+      totalPages: 0,
       selectedOrder: null,
       updatedStatus: ''
     };
   },
   methods: {
-    loadOrders() {
-      axios.get('http://localhost:8080/orders/admin')
-        .then(res => this.orders = res.data)
-        .catch(err => console.error('Lỗi tải đơn hàng:', err));
+    async loadOrders() {
+      try {
+        const res = await axios.get(`${API_BASE}/orders/admin`, {
+          params: { page: this.page, size: this.size }
+        });
+        this.orders = res.data.content;
+        this.totalPages = res.data.totalPages;
+      } catch (err) {
+        console.error('Lỗi tải đơn hàng:', err);
+      }
     },
-    viewOrderDetail(orderId) {
-      axios.get(`http://localhost:8080/orders/${orderId}?admin=true`)
-        .then(res => {
-          this.selectedOrder = res.data;
-          this.updatedStatus = res.data.status;
-        })
-        .catch(err => console.error('Lỗi tải chi tiết đơn hàng:', err));
+    async viewOrderDetail(orderId) {
+      try {
+        const res = await axios.get(`${API_BASE}/orders/${orderId}`, {
+          params: { admin: true }
+        });
+        this.selectedOrder = res.data;
+        this.updatedStatus = res.data.status;
+      } catch (err) {
+        console.error('Lỗi tải chi tiết đơn hàng:', err);
+      }
     },
     async updateStatus() {
-  try {
-    await axios.put(`http://localhost:8080/orders/${this.selectedOrder.id}/status`, null, {
-      params: {
-        status: this.updatedStatus,
-        admin: true
+      try {
+        await axios.put(`${API_BASE}/orders/${this.selectedOrder.id}/status`, null, {
+          params: { status: this.updatedStatus, admin: true }
+        });
+        alert('✅ Cập nhật trạng thái thành công!');
+        this.viewOrderDetail(this.selectedOrder.id);
+        this.loadOrders();
+      } catch (err) {
+        if (err.response && err.response.data) {
+          alert(err.response.data);
+        } else {
+          alert('❌ Cập nhật trạng thái thất bại!');
+        }
       }
-    });
-
-    alert('✅ Cập nhật trạng thái thành công!');
-    this.viewOrderDetail(this.selectedOrder.id);
-    this.loadOrders();
-  } catch (err) {
-    if (err.response && err.response.data) {
-      alert(err.response.data); // thông báo lỗi từ backend
-    } else {
-      alert('❌ Cập nhật trạng thái thất bại!');
-    }
-  }
-},
-
+    },
+    changePage(newPage) {
+      if (newPage >= 0 && newPage < this.totalPages) {
+        this.page = newPage;
+        this.loadOrders();
+      }
+    },
     formatCurrency(value) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
     },

@@ -5,12 +5,15 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 
 @Data
 @Entity
 @Table(name = "OrderDetails")
+// ✅ Cho phép Jackson theo dõi tham chiếu bằng id, không vòng lặp
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,12 +21,13 @@ public class OrderDetail {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    @JsonBackReference
+    // ✅ Gọn JSON: chỉ trả id của order, vẫn giữ liên kết
+    @JsonIdentityReference(alwaysAsId = true)
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
-    @JsonIgnore
+    // ❗ BỎ @JsonIgnore để FE thấy được color/size/product.name
     private ProductDetail productDetail;
 
     @Column(nullable = false)

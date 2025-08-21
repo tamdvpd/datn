@@ -31,28 +31,27 @@ public class ImportInvoiceController {
         return invoice.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    //  Tạo phiếu nhập mới (bao gồm chi tiết phiếu nhập)
+    // Tạo mới phiếu nhập (có chi tiết)
     @PostMapping
     public ResponseEntity<ImportInvoice> create(@Valid @RequestBody ImportInvoice invoice) {
-        // Gán lại mối quan hệ 2 chiều giữa invoice và details
+        // Thiết lập quan hệ 2 chiều
         if (invoice.getImportInvoiceDetails() != null) {
             invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(invoice));
         }
-
         ImportInvoice created = importInvoiceService.createImportInvoice(invoice);
         return ResponseEntity.status(201).body(created);
     }
 
-
-    //  Cập nhật phiếu nhập (cập nhật cả chi tiết nếu cần)
-
+    // Cập nhật phiếu nhập
     @PutMapping("/{id}")
     public ResponseEntity<ImportInvoice> update(@PathVariable Integer id, @Valid @RequestBody ImportInvoice invoice) {
         if (importInvoiceService.getImportInvoiceById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
         invoice.setId(id);
 
+        // Thiết lập lại quan hệ 2 chiều
         if (invoice.getImportInvoiceDetails() != null) {
             invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(invoice));
         }
@@ -61,7 +60,7 @@ public class ImportInvoiceController {
         return ResponseEntity.ok(updated);
     }
 
-    //  Xoá phiếu nhập
+    // Xóa phiếu nhập
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         if (importInvoiceService.getImportInvoiceById(id).isEmpty()) {

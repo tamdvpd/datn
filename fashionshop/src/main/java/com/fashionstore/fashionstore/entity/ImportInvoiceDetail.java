@@ -1,22 +1,13 @@
 package com.fashionstore.fashionstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "ImportInvoiceDetails")
@@ -25,36 +16,45 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ImportInvoiceDetail {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Nhiều dòng chi tiết thuộc 1 hóa đơn nhập
+    // Nhiều - một với ImportInvoice
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "import_invoice_id", nullable = false)
+    @JsonIgnoreProperties({ "importInvoiceDetails", "hibernateLazyInitializer", "handler" })
     private ImportInvoice importInvoice;
 
-    // 1 dòng chi tiết tương ứng 1 biến thể sản phẩm
+    // Nhiều - một với ProductDetail
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
+    @NotNull(message = "Chi tiết sản phẩm không được để trống")
+    // @JsonIgnoreProperties({ "product", "hibernateLazyInitializer", "handler" })
     private ProductDetail productDetail;
 
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng phải >= 1")
     @Column(nullable = false)
     private Integer quantity;
 
+    @NotNull(message = "Đơn giá không được để trống")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Đơn giá phải > 0")
+    @Digits(integer = 13, fraction = 2, message = "Đơn giá không hợp lệ")
     @Column(name = "unit_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal unitPrice;
 
-    // Người thực hiện nhập hàng (tùy chọn)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({ "importInvoiceDetails", "hibernateLazyInitializer", "handler" })
     private User user;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

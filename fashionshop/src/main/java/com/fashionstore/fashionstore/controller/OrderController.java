@@ -2,19 +2,22 @@ package com.fashionstore.fashionstore.controller;
 
 import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.service.OrderService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
-@CrossOrigin(origins = "*") // Cho phép frontend gọi từ domain khác
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
@@ -23,36 +26,49 @@ public class OrderController {
     private final OrderService orderService;
 
     // ====================================
-    // ✅ 1. ADMIN - Lấy tất cả đơn hàng (không phân trang)
+    // ✅ 1. ADMIN - Lấy tất cả đơn hàng (PHÂN TRANG THỐNG NHẤT)
     // ====================================
     @GetMapping("/admin")
-    public ResponseEntity<List<Order>> getAllOrdersForAdmin() {
-        return ResponseEntity.ok(orderService.getAllOrders());
-    }
-
-    // ====================================
-    // ✅ 2. ADMIN - Lấy đơn hàng có phân trang
-    // ====================================
-    @GetMapping("/admin/page")
-    public ResponseEntity<Page<Order>> getAllOrdersPageable(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    public ResponseEntity<Page<Order>> getAllOrdersForAdminPaged(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction) {
+        Pageable pageable = buildPageable(page, size, sortBy, direction);
         return ResponseEntity.ok(orderService.getAllOrders(pageable));
     }
 
     // ====================================
-    // ✅ 3. USER - Lấy đơn hàng theo email + trạng thái (nếu có)
+    // ✅ 2. ADMIN - Lọc theo trạng thái (PHÂN TRANG THỐNG NHẤT)
+    // ====================================
+    @GetMapping("/admin/status")
+    public ResponseEntity<Page<Order>> getOrdersByStatusForAdmin(
+            @RequestParam String status,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction) {
+        Pageable pageable = buildPageable(page, size, sortBy, direction);
+        return ResponseEntity.ok(orderService.getOrdersByStatus(status, pageable));
+    }
+
+    // ====================================
+    // ✅ 3. USER - Lấy đơn hàng theo userId + (optional) status (PHÂN TRANG THỐNG
+    // NHẤT)
     // ====================================
     @GetMapping("/user")
-    public ResponseEntity<List<Order>> getOrdersByUserEmailAndStatus(
-            @RequestParam String email,
-            @RequestParam(required = false) String status) {
-        List<Order> orders = (status != null && !status.isBlank())
-                ? orderService.getOrdersByUserEmailAndStatus(email, status)
-                : orderService.getOrdersByUserEmail(email);
-
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<Page<Order>> getOrdersByUserIdAndStatus(
+            @RequestParam Integer userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String direction) {
+        Pageable pageable = buildPageable(page, size, sortBy, direction);
+        Page<Order> result = (status != null && !status.isBlank())
+                ? orderService.getOrdersByUserIdAndStatus(userId, status, pageable)
+                : orderService.getOrdersByUserId(userId, pageable);
+        return ResponseEntity.ok(result);
     }
 
     // ====================================
@@ -63,6 +79,8 @@ public class OrderController {
             @PathVariable Integer id,
             @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "false") boolean admin) {
+
+        // Lấy bản thô để kiểm tra tồn tại + quyền
         Optional<Order> optionalOrder = orderService.getOrderById(id);
         if (optionalOrder.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -71,15 +89,18 @@ public class OrderController {
         Order order = optionalOrder.get();
         String orderEmail = order.getUser().getEmail();
 
-        if (admin || (email != null && email.equalsIgnoreCase(orderEmail))) {
-            return ResponseEntity.ok(order);
-        } else {
+        boolean allowed = admin || (email != null && email.equalsIgnoreCase(orderEmail));
+        if (!allowed) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        // ✅ Sau khi qua quyền: trả về bản đã fetch đầy đủ để FE hiển thị Tên/Màu/Size
+        Order full = orderService.getOrderByIdWithDetails(id).orElse(order);
+        return ResponseEntity.ok(full);
     }
 
     // ====================================
-    // ✅ 5. Tạo đơn hàng (tự động tính tiền, không cần DTO)
+    // ✅ 5. Tạo đơn hàng
     // ====================================
     @PostMapping
     public ResponseEntity<Order> create(@RequestBody Order order) {
@@ -102,7 +123,6 @@ public class OrderController {
         if (!admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
         try {
             Order updated = orderService.updateOrder(id, order);
             return ResponseEntity.ok(updated);
@@ -122,7 +142,6 @@ public class OrderController {
         if (!admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền cập nhật trạng thái đơn hàng.");
         }
-
         try {
             Optional<Order> updated = orderService.updateOrderStatus(id, status);
             return updated.map(ResponseEntity::ok)
@@ -142,12 +161,26 @@ public class OrderController {
         if (!admin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
         if (!orderService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "id", "status", "totalAmount", "createdAt", "updatedAt");
+
+    private Pageable buildPageable(Integer page, Integer size, String sortBy, String direction) {
+        int safePage = (page == null || page < 0) ? 0 : page;
+        int safeSize = (size == null || size < 1) ? 10 : Math.min(size, 100);
+
+        String safeSortBy = (sortBy == null || !ALLOWED_SORT_FIELDS.contains(sortBy))
+                ? "createdAt"
+                : sortBy;
+
+        Sort.Direction dir = ("asc".equalsIgnoreCase(direction)) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return PageRequest.of(safePage, safeSize, Sort.by(dir, safeSortBy));
+    }
+
 }

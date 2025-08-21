@@ -6,6 +6,7 @@ import com.fashionstore.fashionstore.service.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -50,17 +51,18 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     private void checkDuplicateAndValidate(String email, String phoneNumber, Integer currentId) {
-        // Kiểm tra định dạng số điện thoại: bắt đầu bằng 0 và đủ 10 chữ số
+        List<String> errors = new ArrayList<>();
+
+        // Kiểm tra định dạng số điện thoại
         if (!Pattern.matches("^0\\d{9}$", phoneNumber)) {
-            throw new RuntimeException("Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số");
+            errors.add("Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và đủ 10 chữ số).");
         }
 
-        // Kiểm tra định dạng email (nếu cần, có thể dùng annotation @Email ở entity tốt
-        // hơn)
+        // Kiểm tra định dạng email
         if (email != null && !email.isBlank()) {
             String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
             if (!Pattern.matches(emailRegex, email)) {
-                throw new RuntimeException("Email không đúng định dạng!");
+                errors.add("Email không đúng định dạng.");
             }
         }
 
@@ -68,7 +70,8 @@ public class SupplierServiceImpl implements SupplierService {
         List<Supplier> emailMatches = supplierRepository.findByEmail(email);
         for (Supplier s : emailMatches) {
             if (currentId == null || !s.getId().equals(currentId)) {
-                throw new RuntimeException("Email đã tồn tại!");
+                errors.add("Email đã tồn tại.");
+                break;
             }
         }
 
@@ -76,8 +79,14 @@ public class SupplierServiceImpl implements SupplierService {
         List<Supplier> phoneMatches = supplierRepository.findByPhoneNumber(phoneNumber);
         for (Supplier s : phoneMatches) {
             if (currentId == null || !s.getId().equals(currentId)) {
-                throw new RuntimeException("Số điện thoại đã tồn tại!");
+                errors.add("Số điện thoại đã tồn tại.");
+                break;
             }
+        }
+
+        // Nếu có lỗi thì ném ra RuntimeException chứa toàn bộ lỗi
+        if (!errors.isEmpty()) {
+            throw new RuntimeException(String.join(" | ", errors));
         }
     }
 }

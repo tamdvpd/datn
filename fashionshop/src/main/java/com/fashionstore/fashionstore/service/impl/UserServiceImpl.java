@@ -18,7 +18,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // TIÊM PasswordEncoder chính xác
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<User> getAllUsers() {
@@ -76,25 +76,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-public Optional<User> login(String email, String password) {
-    Optional<User> userOpt = userRepository.findByEmail(email);
-    
-    if (userOpt.isPresent()) {
-        User user = userOpt.get();
+    public Optional<User> login(String email, String password) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
 
-        if (Boolean.FALSE.equals(user.getStatus())) {
-            // Vẫn trả Optional để Controller biết tài khoản bị khóa
-            return Optional.of(user); 
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+
+            if (Boolean.FALSE.equals(user.getStatus())) {
+                // Vẫn trả Optional để Controller biết tài khoản bị khóa
+                return Optional.of(user);
+            }
+
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return Optional.of(user);
+            }
         }
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return Optional.of(user);
-        }
+        return Optional.empty();
     }
-    
-    return Optional.empty();
-}
-
 
     @Override
     public boolean changePassword(Integer id, String oldPassword, String newPassword) {
@@ -139,5 +138,42 @@ public Optional<User> login(String email, String password) {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    @Override
+    public Page<User> searchUsersPage(String q, String role, Boolean status, Pageable pageable) {
+        return userRepository.searchUsersPage(q, role, status, pageable);
+    }
+
+    @Override
+    public User createAdminUser(String email, String fullName, String rawPassword, String role,
+            Boolean status, String phoneNumber, String address, String imageUrl) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Thiếu email");
+        }
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new RuntimeException("Thiếu password");
+        }
+        if (email.length() > 100) {
+            throw new RuntimeException("Email vượt quá 100 ký tự (ràng buộc entity)");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        User u = new User();
+        u.setEmail(email.trim());
+        u.setFullName(fullName == null ? "" : fullName.trim());
+        u.setPassword(passwordEncoder.encode(rawPassword));
+        u.setRole((role == null || role.isBlank()) ? "ADMIN" : role.trim().toUpperCase());
+        u.setStatus(status == null ? Boolean.TRUE : status);
+        u.setProvider("LOCAL");
+        u.setProviderId("ADMIN_CREATE_" + email.trim());
+        u.setPhoneNumber(phoneNumber);
+        u.setAddress(address);
+        u.setImageUrl(imageUrl);
+
+        return userRepository.save(u);
+    }
+    
 
 }

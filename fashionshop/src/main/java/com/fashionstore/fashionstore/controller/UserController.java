@@ -399,4 +399,50 @@ public class UserController {
         return ResponseEntity.ok("Đặt lại mật khẩu thành công");
     }
 
+    // ====== Tạo tài khoản (Admin) KHÔNG cần OTP ======
+    @PostMapping("/admin/create")
+    public ResponseEntity<?> adminCreateUser(@RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            String fullName = (String) body.get("fullName");
+            String password = (String) body.get("password");
+            String role = (String) body.getOrDefault("role", "ADMIN");
+            Boolean status = body.get("status") == null ? Boolean.TRUE : Boolean.valueOf(body.get("status").toString());
+            String phoneNumber = (String) body.get("phoneNumber");
+            String address = (String) body.get("address");
+            String imageUrl = (String) body.get("imageUrl");
+
+            // (Khuyến nghị) Nếu đã bật Spring Security: kiểm tra chỉ ADMIN mới được gọi
+            User created = userService.createAdminUser(email, fullName, password, role, status, phoneNumber, address,
+                    imageUrl);
+            created.setPassword(null); // ẩn password khi trả về
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    // ====== Phân trang + tìm kiếm người dùng cho trang quản trị ======
+    @GetMapping("/admin/page")
+    public ResponseEntity<org.springframework.data.domain.Page<User>> pageUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort, // ví dụ: fullName,asc
+            @RequestParam(required = false) String q, // tên/email
+            @RequestParam(required = false) String role, // USER/ADMIN/(STAFF nếu dùng)
+            @RequestParam(required = false) Boolean status // true/false
+    ) {
+        String[] sp = sort.split(",", 2);
+        var sortObj = (sp.length == 2)
+                ? org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.fromString(sp[1]), sp[0])
+                : org.springframework.data.domain.Sort.by(sp[0]);
+
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size, sortObj);
+        var result = userService.searchUsersPage(q, role, status, pageable);
+        result.forEach(u -> u.setPassword(null)); // ẩn mật khẩu
+
+        return ResponseEntity.ok(result);
+    }
+
 }

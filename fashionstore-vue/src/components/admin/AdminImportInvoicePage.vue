@@ -50,12 +50,9 @@
           <td class="p-2 border">{{ formatDate(inv.importDate) }}</td>
           <td class="p-2 border">{{ inv.note || '' }}</td>
           <td class="p-2 border text-center">
-            <button
-  @click="goToDetail(inv.id)"
-  class="text-blue-600 hover:text-blue-800 underline"
->
-  🔍
-</button>
+            <button @click="showFormInvoiceDetail(inv.id)" class="text-blue-600 hover:text-blue-800 underline">
+              🔍
+            </button>
           </td>
           <td class="p-2 border text-center">
             <button @click="editInvoice(inv)" class="text-yellow-600 hover:text-yellow-800">✏️</button>
@@ -73,13 +70,20 @@
         <p><strong>Tổng hóa đơn:</strong> {{ totalInvoicesCount }} phiếu</p>
       </div>
     </div>
+    <ImportInvoiceDetail v-if="showInvoiceDetail" :invoiceId="selectedInvoiceId"></ImportInvoiceDetail>
   </div>
 </template>
 
 <script>
+import ImportInvoiceDetail from './AdminImportInvoiceDetail.vue'
 export default {
+  components: {
+    ImportInvoiceDetail,
+  },
   data() {
     return {
+      showInvoiceDetail : false,
+      selectedInvoiceId: null,
       importInvoices: [],
       suppliers: [],
       showForm: false,
@@ -187,8 +191,9 @@ export default {
       return date.toLocaleDateString('vi-VN');
     },
     
-    goToDetail(id) {
-      this.$router.push(`/import-invoices/${id}`);
+    showFormInvoiceDetail(id) {
+      this.showInvoiceDetail = true;
+      this.selectedInvoiceId = id;
     }
   },
   mounted() {

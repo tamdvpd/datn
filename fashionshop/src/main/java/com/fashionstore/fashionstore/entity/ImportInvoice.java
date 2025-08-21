@@ -1,7 +1,6 @@
 package com.fashionstore.fashionstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -40,7 +39,6 @@ public class ImportInvoice {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "importInvoice", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
     @Builder.Default
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 

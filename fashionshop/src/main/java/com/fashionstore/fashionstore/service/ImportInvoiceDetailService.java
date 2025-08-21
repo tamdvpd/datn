@@ -1,7 +1,6 @@
 package com.fashionstore.fashionstore.service;
 
 import com.fashionstore.fashionstore.entity.ImportInvoiceDetail;
-
 import java.util.List;
 
 public interface ImportInvoiceDetailService {
@@ -13,5 +12,9 @@ public interface ImportInvoiceDetailService {
 
     ImportInvoiceDetail create(ImportInvoiceDetail detail);
 
+    ImportInvoiceDetail update(Integer id, ImportInvoiceDetail detail);
+
     void delete(Integer id);
+
+    Double getTotalAmountByInvoice(Integer importInvoiceId);
 }

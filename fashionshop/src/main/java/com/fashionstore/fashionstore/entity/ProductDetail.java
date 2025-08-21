@@ -103,6 +103,7 @@ public class ProductDetail {
 
     // Các quan hệ khác
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)

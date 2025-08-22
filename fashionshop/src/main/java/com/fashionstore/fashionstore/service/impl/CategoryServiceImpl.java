@@ -6,7 +6,8 @@ import com.fashionstore.fashionstore.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,7 +57,11 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Integer id) {
         categoryRepository.deleteById(id);
     }
-
+    
+    @Override
+    public Page<Category> getAllCategories(Pageable pageable) {
+        return categoryRepository.findAll(pageable);
+    }
     /**
      * Lưu ảnh vào thư mục uploads/categories
      */

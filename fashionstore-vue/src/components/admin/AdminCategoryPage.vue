@@ -8,7 +8,7 @@
       </button>
     </div>
 
-    <!-- Form thêm/sửa danh mục -->
+    <!-- Form thêm/sửa -->
     <transition name="fade-slide">
       <div v-if="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
         <div class="card-header bg-info text-white">
@@ -21,11 +21,18 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label class="form-label">Tên danh mục</label>
-                <input v-model="form.name" type="text" class="form-control" placeholder="Tên danh mục" required />
+                <input v-model="form.name" type="text" class="form-control" required />
               </div>
               <div class="col-md-6">
                 <label class="form-label">Mô tả</label>
-                <input v-model="form.description" type="text" class="form-control" placeholder="Mô tả" />
+                <input v-model="form.description" type="text" class="form-control" />
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Ảnh</label>
+              <input type="file" accept="image/*" @change="handleImageChange" class="form-control" />
+              <div class="mt-2">
+                <img v-if="imagePreview" :src="imagePreview" class="img-thumbnail" style="width:100px;height:100px;object-fit:cover;" />
               </div>
             </div>
             <div class="mb-3">
@@ -62,6 +69,7 @@
             <th>ID</th>
             <th>Tên danh mục</th>
             <th>Mô tả</th>
+            <th>Ảnh</th>
             <th>Trạng thái</th>
             <th>Ngày tạo</th>
             <th>Ngày cập nhật</th>
@@ -74,6 +82,9 @@
             <td>{{ category.id }}</td>
             <td class="fw-semibold">{{ category.name }}</td>
             <td>{{ category.description }}</td>
+            <td>
+              <img v-if="category.imageUrl" :src="`http://localhost:8080${category.imageUrl}`" class="img-thumbnail" style="width:50px;height:50px;object-fit:cover;" />
+            </td>
             <td>
               <span :class="category.status ? 'badge bg-success' : 'badge bg-danger'">
                 {{ category.status ? 'Hiển thị' : 'Ẩn' }}
@@ -91,6 +102,26 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Phân trang -->
+    <nav class="d-flex justify-content-center mt-3">
+      <ul class="pagination">
+        <li class="page-item" :class="{ disabled: page === 0 }">
+          <button class="page-link" @click="changePage(page - 1)">«</button>
+        </li>
+        <li
+          class="page-item"
+          v-for="p in totalPages"
+          :key="p"
+          :class="{ active: p - 1 === page }"
+        >
+          <button class="page-link" @click="changePage(p - 1)">{{ p }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: page === totalPages - 1 }">
+          <button class="page-link" @click="changePage(page + 1)">»</button>
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -100,81 +131,117 @@ export default {
     return {
       categories: [],
       showForm: false,
-      form: {
-        id: null,
-        name: '',
-        description: '',
-        status: 'true'
-      }
+      imagePreview: null,
+      form: { id: null, name: "", description: "", status: "true", image: null, imageUrl: "" },
+      page: 0,
+      size: 10,
+      totalPages: 0,
     };
   },
   methods: {
-    fetchCategories() {
-      fetch('http://localhost:8080/api/categories')
-        .then(res => res.json())
-        .then(data => (this.categories = data))
-        .catch(err => console.error('Fetch categories error:', err));
+    async fetchCategories() {
+      try {
+        const res = await fetch(`http://localhost:8080/api/categories/paged?page=${this.page}&size=${this.size}`);
+        const data = await res.json();
+        this.categories = data.content;
+        this.totalPages = data.totalPages;
+      } catch (err) {
+        console.error("Fetch categories error:", err);
+      }
     },
-    handleSubmit() {
+    handleImageChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      this.form.image = file;
+      const reader = new FileReader();
+      reader.onload = (e) => (this.imagePreview = e.target.result);
+      reader.readAsDataURL(file);
+    },
+    async handleSubmit() {
       const isUpdate = this.form.id !== null;
-      const url = isUpdate
-        ? `http://localhost:8080/api/categories/${this.form.id}`
-        : 'http://localhost:8080/api/categories';
-      const method = isUpdate ? 'PUT' : 'POST';
-      const body = JSON.stringify({
-        name: this.form.name,
-        description: this.form.description,
-        status: this.form.status === 'true'
-      });
+      const url = isUpdate ? `http://localhost:8080/api/categories/${this.form.id}` : "http://localhost:8080/api/categories";
+      const method = isUpdate ? "PUT" : "POST";
+      const formData = new FormData();
+      formData.append("name", this.form.name);
+      formData.append("description", this.form.description);
+      formData.append("status", this.form.status === "true");
+      if (this.form.image) formData.append("image", this.form.image);
 
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body
-      })
-        .then(() => {
-          this.fetchCategories();
-          this.resetForm();
-          this.showForm = false;
-        })
-        .catch(err => console.error('Submit error:', err));
+      try {
+        await fetch(url, { method, body: formData });
+        this.fetchCategories();
+        this.resetForm();
+        this.showForm = false;
+      } catch (err) {
+        console.error("Submit error:", err);
+      }
     },
     editCategory(category) {
       this.form = {
         id: category.id,
         name: category.name,
         description: category.description,
-        status: category.status ? 'true' : 'false'
+        status: category.status ? "true" : "false",
+        image: null,
+        imageUrl: category.imageUrl,
       };
+      this.imagePreview = category.imageUrl ? `http://localhost:8080${category.imageUrl}` : null;
       this.showForm = true;
     },
-    deleteCategory(id) {
-      if (confirm('Bạn có chắc chắn muốn xoá danh mục này?')) {
-        fetch(`http://localhost:8080/api/categories/${id}`, { method: 'DELETE' })
-          .then(() => this.fetchCategories())
-          .catch(err => console.error('Delete error:', err));
+    async deleteCategory(id) {
+      if (confirm("Bạn có chắc chắn muốn xoá danh mục này?")) {
+        try {
+          await fetch(`http://localhost:8080/api/categories/${id}`, { method: "DELETE" });
+          this.fetchCategories();
+        } catch (err) {
+          console.error("Delete error:", err);
+        }
       }
     },
     resetForm() {
-      this.form = { id: null, name: '', description: '', status: 'true' };
+      this.form = { id: null, name: "", description: "", status: "true", image: null, imageUrl: "" };
+      this.imagePreview = null;
     },
     toggleForm() {
       this.showForm = !this.showForm;
       if (!this.showForm) this.resetForm();
     },
     formatDate(dateStr) {
-      if (!dateStr) return '';
-      return new Date(dateStr).toLocaleString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
+      if (!dateStr) return "";
+      return new Date(dateStr).toLocaleString("vi-VN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
       });
-    }
+    },
+    changePage(p) {
+      if (p >= 0 && p < this.totalPages) {
+        this.page = p;
+        this.fetchCategories();
+      }
+    },
   },
   mounted() {
     this.fetchCategories();
-  }
+  },
 };
 </script>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>

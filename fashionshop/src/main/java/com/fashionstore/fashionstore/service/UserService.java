@@ -38,4 +38,10 @@ public interface UserService {
     long countUsers();
 
     Optional<User> findByEmail(String email);
+
+    Page<User> searchUsersPage(String q, String role, Boolean status, Pageable pageable);
+
+    User createAdminUser(String email, String fullName, String rawPassword, String role,
+            Boolean status, String phoneNumber, String address, String imageUrl);
+
 }

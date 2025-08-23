@@ -16,5 +16,5 @@ public interface ImportInvoiceDetailService {
 
     void delete(Integer id);
 
-    Double getTotalAmountByInvoice(Integer importInvoiceId);
-}
+    Double getTotalAmountByInvoice(Integer importInvoiceId);}
+

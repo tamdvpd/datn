@@ -6,11 +6,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,120 +32,77 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductDetailRepository productDetailRepository;
 
+    private final String DOMAIN = "http://localhost:8080";
+
+    // ✅ Lấy tất cả sản phẩm
     @Override
     public List<Product> getAllProducts() {
-        String domain = "http://localhost:8080";
         List<Product> products = productRepository.findAll();
-
-        for (Product product : products) {
-            // ✅ Cập nhật đường dẫn ảnh sản phẩm
-            String image = product.getImageUrl();
-            if (image != null && !image.startsWith("/images/products/")) {
-                product.setImageUrl(domain + "/images/products/" + image);
-            }
-
-            // ✅ Lấy các chi tiết sản phẩm của product
-            List<ProductDetail> details = productDetailRepository.findByProductId(product.getId());
-            if (!details.isEmpty()) {
-                ProductDetail bestDetail = details.get(0);
-
-                for (ProductDetail detail : details) {
-                    // Ưu tiên theo discountPrice nếu có
-                    if (detail.getDiscountPrice() != null && bestDetail.getDiscountPrice() != null) {
-                        if (detail.getDiscountPrice().compareTo(bestDetail.getDiscountPrice()) < 0) {
-                            bestDetail = detail;
-                        }
-                    } else if (detail.getDiscountPrice() != null) {
-                        bestDetail = detail;
-                    } else if (bestDetail.getDiscountPrice() == null &&
-                            detail.getPrice().compareTo(bestDetail.getPrice()) < 0) {
-                        bestDetail = detail;
-                    }
-                }
-
-                // ✅ Gán giá hiển thị vào product (transient)
-                product.setDisplayPrice(bestDetail.getPrice());
-                product.setDisplayDiscountPrice(bestDetail.getDiscountPrice());
-            }
-        }
-
+        products.forEach(this::setProductDisplayInfo);
         return products;
     }
 
+    // ✅ Lấy sản phẩm phân trang
     @Override
     public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable);
+        Page<Product> products = productRepository.findAll(pageable);
+        products.forEach(this::setProductDisplayInfo);
+        return products;
     }
 
+    // ✅ Lấy sản phẩm theo ID
     @Override
     public Optional<Product> getProductById(Integer id) {
         Optional<Product> productOpt = productRepository.findById(id);
-        String domain = "http://localhost:8080";
-        productOpt.ifPresent(product -> {
-            // Ép load productDetails
-            List<ProductDetail> details = product.getProductDetails();
-            for (ProductDetail detail : details) {
-                String image = detail.getImageUrl();
-                if (image != null && !image.startsWith("http")) {
-                    detail.setImageUrl(domain + "/images/productDetails/" + image);
-                }
-            }
-
-            // Xử lý imageUrl của sản phẩm chính
-            String image = product.getImageUrl();
-            if (image != null && !image.startsWith("http")) {
-                product.setImageUrl(domain + "/images/products/" + image);
-            }
-        });
+        productOpt.ifPresent(this::setProductDisplayInfo);
         return productOpt;
     }
 
+    // ✅ Tạo sản phẩm
     @Override
     public Product createProduct(Product product, MultipartFile imageFile) {
         product.setCreatedAt(LocalDateTime.now());
         product.setUpdatedAt(LocalDateTime.now());
-        Product saveProduct = productRepository.save(product);
+        Product saved = productRepository.save(product);
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = storeImageWithId(saveProduct.getId(), imageFile);
-            saveProduct.setImageUrl(imageUrl);
-            saveProduct = productRepository.save(saveProduct);
+            String imageUrl = storeImageWithId(saved.getId(), imageFile);
+            saved.setImageUrl(imageUrl);
+            saved = productRepository.save(saved);
         }
-
-        return saveProduct;
+        return saved;
     }
 
+    // ✅ Cập nhật sản phẩm (truyền object)
     @Override
     public Product updateProduct(Integer id, Product updatedProduct, MultipartFile imageFile) {
+        updatedProduct.setId(id);
         updatedProduct.setUpdatedAt(LocalDateTime.now());
 
-        // Gán lại Category theo ID
-        Category category = new Category();
-        category.setId(updatedProduct.getCategory().getId());
-        updatedProduct.setCategory(category);
+        if (updatedProduct.getCategory() != null) {
+            Category category = categoryRepository.findById(updatedProduct.getCategory().getId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            updatedProduct.setCategory(category);
+        }
 
-        updatedProduct.setId(id); // đảm bảo ID đúng
-        Product saveProduct = productRepository.save(updatedProduct);
+        Product saved = productRepository.save(updatedProduct);
 
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = storeImageWithId(saveProduct.getId(), imageFile);
-            saveProduct.setImageUrl(imageUrl);
-            saveProduct = productRepository.save(saveProduct);
+            String imageUrl = storeImageWithId(saved.getId(), imageFile);
+            saved.setImageUrl(imageUrl);
+            saved = productRepository.save(saved);
         }
-
-        return saveProduct;
+        return saved;
     }
 
+    // ✅ Cập nhật sản phẩm (trường lẻ)
     @Override
-    public Product updateProduct(Integer id, String name, String description, String brand, Boolean status,
-            Integer categoryId, MultipartFile image) {
+    public Product updateProduct(Integer id, String name, String description, String brand,
+            Boolean status, Integer categoryId, MultipartFile image) {
 
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (!optionalProduct.isPresent()) {
-            throw new RuntimeException("Product not found with id: " + id);
-        }
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        Product product = optionalProduct.get();
         product.setName(name);
         product.setDescription(description);
         product.setBrand(brand);
@@ -153,29 +110,114 @@ public class ProductServiceImpl implements ProductService {
         product.setUpdatedAt(LocalDateTime.now());
 
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException("Category not found"));
         product.setCategory(category);
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = storeImageWithId(product.getId(), image);
             product.setImageUrl(imageUrl);
         }
-
         return productRepository.save(product);
     }
 
+    // ✅ Xoá sản phẩm
     @Override
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
 
     @Override
+    public Page<Product> searchProducts(String keyword, Integer categoryId,
+            BigDecimal minPrice, BigDecimal maxPrice,
+            String sortBy, String order,
+            int page, int size) {
+
+        // === Chọn sort theo sortBy ===
+        Sort sort;
+        switch (sortBy != null ? sortBy : "") {
+            case "az":
+                sort = Sort.by("name").ascending();
+                break;
+            case "za":
+                sort = Sort.by("name").descending();
+                break;
+            case "priceAsc":
+                sort = Sort.by("displayPrice").ascending();
+                break;
+            case "priceDesc":
+                sort = Sort.by("displayPrice").descending();
+                break;
+            case "bestSeller":
+                sort = Sort.by("totalSold").descending();
+                break;
+            case "newest":
+                sort = Sort.by("createdAt").descending();
+                break;
+            default:
+                sort = Sort.by("id").ascending();
+        }
+
+        // === Override order nếu có ===
+        if (order != null) {
+            if ("asc".equalsIgnoreCase(order))
+                sort = sort.ascending();
+            if ("desc".equalsIgnoreCase(order))
+                sort = sort.descending();
+        }
+
+        // === Tạo Pageable với sort ===
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // === Gọi repository để tìm kiếm ===
+        Page<Product> products = productRepository.searchProducts(
+                keyword, categoryId, minPrice, maxPrice, pageable);
+
+        // === Thiết lập hiển thị giá và ảnh cho từng sản phẩm ===
+        products.forEach(this::setProductDisplayInfo);
+
+        return products;
+    }
+
+    // ✅ Tìm kiếm sản phẩm không phân trang (dùng trong admin/kho)
+    @Override
     public List<ProductDetail> searchProducts(String name, Integer categoryId, BigDecimal minPrice,
             BigDecimal maxPrice) {
         return productDetailRepository.searchProducts(name, categoryId, minPrice, maxPrice);
     }
 
-    // ✅ Lưu ảnh theo ID sản phẩm
+    // ✅ Lấy sản phẩm bán chạy
+    @Override
+    public List<Product> getBestSellers(int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("totalSold").descending());
+        Page<Product> products = productRepository.findAll(pageable);
+        products.forEach(this::setProductDisplayInfo);
+        return products.getContent();
+    }
+
+    // === Private methods ===
+
+    // Set ảnh & giá hiển thị
+    private void setProductDisplayInfo(Product product) {
+        if (product.getImageUrl() != null && !product.getImageUrl().startsWith("http")) {
+            product.setImageUrl(DOMAIN + "/images/products/" + product.getImageUrl());
+        }
+
+        List<ProductDetail> details = productDetailRepository.findByProductId(product.getId());
+        if (!details.isEmpty()) {
+            ProductDetail bestDetail = details.stream()
+                    .min(Comparator.comparing(detail -> {
+                        if (detail.getDiscountPrice() != null)
+                            return detail.getDiscountPrice();
+                        return detail.getPrice();
+                    }))
+                    .orElse(details.get(0));
+
+            product.setDisplayPrice(bestDetail.getPrice());
+            product.setDisplayDiscountPrice(bestDetail.getDiscountPrice());
+        }
+    }
+
+    // Lưu ảnh
     private String storeImageWithId(Integer productId, MultipartFile file) {
         try {
             String baseDir = System.getProperty("user.dir");
@@ -194,7 +236,6 @@ public class ProductServiceImpl implements ProductService {
 
             String fileName = productId + extension;
             Path filePath = uploadPath.resolve(fileName);
-
             file.transferTo(filePath.toFile());
 
             return fileName;

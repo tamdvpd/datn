@@ -14,28 +14,20 @@
           />
         </router-link>
 
-        <form class="d-flex me-auto ms-5" @submit.prevent="onSearch">
-          <input
-            class="form-control me-2"
-            type="search"
-            v-model="searchQuery"
-            placeholder="Tìm kiếm sản phẩm..."
-          />
-          <button class="btn btn-outline-success" type="submit">Tìm</button>
-        </form>
+      
 
         <div class="d-flex align-items-center">
-          <router-link to="/cart" class="btn btn-outline-primary me-2"
-            >🛒 Giỏ hàng</router-link
-          >
+          <router-link to="/cart" class="btn btn-outline-primary me-2">
+            🛒 Giỏ hàng
+          </router-link>
 
           <div v-if="!currentUser">
-            <router-link to="/login" class="btn btn-outline-secondary me-2"
-              >Đăng nhập</router-link
-            >
-            <router-link to="/register" class="btn btn-outline-secondary"
-              >Đăng ký</router-link
-            >
+            <router-link to="/login" class="btn btn-outline-secondary me-2">
+              Đăng nhập
+            </router-link>
+            <router-link to="/register" class="btn btn-outline-secondary">
+              Đăng ký
+            </router-link>
           </div>
 
           <div v-else class="dropdown">
@@ -57,14 +49,11 @@
                   👤 Thông tin cá nhân
                 </router-link>
               </li>
-
-              <!-- 👇 Thêm mới ở đây -->
               <li>
                 <router-link to="/order" class="dropdown-item">
-                  📦 Đơn hàng của tôi
+                  📦 Đơn hàng
                 </router-link>
               </li>
-
               <li><hr class="dropdown-divider" /></li>
               <li>
                 <router-link to="/change-password" class="dropdown-item">
@@ -100,9 +89,13 @@ export default {
     this.loadCurrentUser();
   },
   methods: {
-    onSearch() {
-      this.$emit("search", this.searchQuery);
-    },
+    // 👉 Hàm tìm kiếm, chuyển hướng sang trang products kèm keyword
+  onSearch() {
+  this.$router.push({
+    path: "/product",
+    query: { keyword: this.searchQuery },
+  });
+},
     loadCurrentUser() {
       const user = localStorage.getItem("user");
       if (user) {

@@ -1,43 +1,52 @@
 <template>
   <div>
     <MainHeader />
+
     <main>
-      <div class="container mt-4">
+      <div class="container">
         <div class="row">
-          <!-- Sidebar -->
-          <div class="col-4">
-            <ul class="list-group">
-              <button><li class="list-group-item">Deal sốc hội viên</li></button>
-              <button><li class="list-group-item">Áo</li></button>
-              <button><li class="list-group-item">Set bộ</li></button>
-              <button><li class="list-group-item">Quần</li></button>
-              <button><li class="list-group-item">Phụ kiện</li></button>
-              <button><li class="list-group-item">Sản phẩm khác</li></button>
-            </ul>
-          </div>
 
           <!-- Banner -->
-          <div class="col-8">
-            <img
-              src="@/assets/img/banner.jpg"
-              width="100%"
-              class="img-fluid rounded shadow"
-              alt="Banner"
-            />
-          </div>
+         <img
+          src="https://bizweb.dktcdn.net/100/462/587/themes/880841/assets/slider_1.jpg?1755556746118"
+          style="width: 100%; height: 400px; object-fit: cover;"
+          class="rounded shadow"
+          alt="Banner"
+/>
         </div>
+<!-- tìm kiếm -->
+      <div class="row mb-3 search-sort-bar mt-5">
+  <div class="col-md-3 mb-2 d-flex justify-content-center">
+    <input
+      type="text"
+      class="form-control search-input"
+      placeholder="Tìm kiếm sản phẩm..."
+      v-model="keyword"
+      @keyup.enter="applyFilters"
+    />
+    <button class="btn btn-primary ms-2" @click="applyFilters">
+      <i class="fas fa-search"></i> Tìm
+    </button>
+  </div>
+  <div class="col-md-3 mb-2">
+    <select class="form-select sort-select" v-model="sortOption" @change="applyFilters">
+      <option value="">Sắp xếp</option>
+      <option value="name-asc">Tên: sản phẩm A → Z</option>
+      <option value="name-desc">Tên: sản phẩm Z → A</option>
+      <option value="price-asc">Giá: Thấp → Cao</option>
+      <option value="price-desc">Giá: Cao → Thấp</option>
+    </select>
+  </div>
+</div>
+
 
         <!-- SẢN PHẨM BÁN CHẠY -->
         <div class="section-title">SẢN PHẨM BÁN CHẠY</div>
         <div class="row g-3">
-          <div class="col-md-3" v-for="prod in products.slice(0, 4)" :key="prod.id">
+          <div class="col-md-3" v-for="prod in filteredProducts.slice(0, 4)" :key="prod.id">
             <div class="product-card">
               <div class="product-image">
-                <img
-                  :src="getImageUrl(prod.imageUrl)"
-                  class="img-fluid"
-                  alt="Product Image"
-                />
+                <img :src="getImageUrl(prod.imageUrl)" class="img-fluid" alt="Product Image" />
                 <div class="discount-badge" v-if="getDiscountPercent(prod)">
                   {{ getDiscountPercent(prod) }}
                 </div>
@@ -59,9 +68,6 @@
               </div>
 
               <div class="action-buttons">
-                <button class="action-btn buy-now" @click.stop="addToCart(prod)">
-                  <i class="fas fa-shopping-cart"></i> Mua ngay
-                </button>
                 <router-link :to="`/products/${prod.id}`" class="action-btn wishlist">
                   <i class="fas fa-info-circle"></i> Chi tiết
                 </router-link>
@@ -73,14 +79,10 @@
         <!-- TẤT CẢ SẢN PHẨM -->
         <div class="section-title">TẤT CẢ SẢN PHẨM</div>
         <div class="row g-3">
-          <div class="col-md-3" v-for="prod in products" :key="'all-' + prod.id">
+          <div class="col-md-3" v-for="prod in filteredProducts" :key="'all-' + prod.id">
             <div class="product-card">
               <div class="product-image">
-                <img
-                  :src="getImageUrl(prod.imageUrl)"
-                  class="img-fluid"
-                  alt="Product Image"
-                />
+                <img :src="getImageUrl(prod.imageUrl)" class="img-fluid" alt="Product Image" />
                 <div class="discount-badge" v-if="getDiscountPercent(prod)">
                   {{ getDiscountPercent(prod) }}
                 </div>
@@ -102,9 +104,7 @@
               </div>
 
               <div class="action-buttons">
-                <button class="action-btn buy-now" @click.stop="addToCart(prod)">
-                  <i class="fas fa-shopping-cart"></i> Mua ngay
-                </button>
+                
                 <router-link :to="`/products/${prod.id}`" class="action-btn wishlist">
                   <i class="fas fa-info-circle"></i> Chi tiết
                 </router-link>
@@ -112,9 +112,9 @@
             </div>
           </div>
         </div>
-
       </div>
     </main>
+
     <MainFooter />
   </div>
 </template>
@@ -132,60 +132,70 @@ export default {
   data() {
     return {
       products: [],
+      filteredProducts: [],
+      keyword: '',
+      sortOption: '',
     };
   },
   methods: {
     formatPrice(value) {
       if (!value) return '';
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-      }).format(value);
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
     },
     addToCart(product) {
       // Logic thêm vào giỏ
+      console.log('Thêm vào giỏ:', product.name);
     },
-   getImageUrl(imagePath) {
-  if (!imagePath) return '';
-  // Nếu đã là URL (bắt đầu bằng http), thì giữ nguyên
-  if (imagePath.startsWith('http')) return imagePath;
-  return `http://localhost:8080/images/${imagePath}`;
-}
-,
+    getImageUrl(imagePath) {
+      if (!imagePath) return '';
+      if (imagePath.startsWith('http')) return imagePath;
+      return `http://localhost:8080/images/${imagePath}`;
+    },
     getDiscountPercent(prod) {
-      if (
-        prod.displayPrice &&
-        prod.displayDiscountPrice &&
-        prod.displayDiscountPrice < prod.displayPrice
-      ) {
-        const percent =
-          ((prod.displayPrice - prod.displayDiscountPrice) / prod.displayPrice) * 100;
+      if (prod.displayPrice && prod.displayDiscountPrice && prod.displayDiscountPrice < prod.displayPrice) {
+        const percent = ((prod.displayPrice - prod.displayDiscountPrice) / prod.displayPrice) * 100;
         return `-${Math.round(percent)}%`;
       }
       return null;
+    },
+    applyFilters() {
+      let result = this.products.filter(p =>
+        p.name.toLowerCase().includes(this.keyword.toLowerCase())
+      );
+
+      if (this.sortOption === 'name-asc') result.sort((a, b) => a.name.localeCompare(b.name));
+      else if (this.sortOption === 'name-desc') result.sort((a, b) => b.name.localeCompare(a.name));
+      else if (this.sortOption === 'price-asc')
+        result.sort((a, b) => (a.displayDiscountPrice || a.displayPrice) - (b.displayDiscountPrice || b.displayPrice));
+      else if (this.sortOption === 'price-desc')
+        result.sort((a, b) => (b.displayDiscountPrice || b.displayPrice) - (a.displayDiscountPrice || a.displayPrice));
+
+      this.filteredProducts = result;
     }
   },
   mounted() {
-  fetch('http://localhost:8080/products')
-    .then(res => res.json())
-    .then(data => {
-      // ✅ Lọc ra sản phẩm đang hoạt động (status = true)
-      this.products = data.filter(p => p.status);
-    })
-    .catch(err => console.error('Lỗi tải sản phẩm:', err));
-},
+    fetch('http://localhost:8080/products')
+      .then(res => res.json())
+      .then(data => {
+        this.products = data.filter(p => p.status);
+        this.filteredProducts = this.products; // hiển thị mặc định
+      })
+      .catch(err => console.error('Lỗi tải sản phẩm:', err));
+  },
 };
 </script>
 
 <style scoped>
+/* --- giữ nguyên toàn bộ style từ file cũ --- */
 .section-title {
   font-size: 24px;
   font-weight: bold;
-  margin-top: 40px;
+  margin-top: 20px;
   margin-bottom: 20px;
   text-transform: uppercase;
   border-bottom: 2px solid #ddd;
   padding-bottom: 5px;
+  
 }
 
 .product-card {

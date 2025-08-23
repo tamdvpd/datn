@@ -50,43 +50,43 @@ public class SupplierServiceImpl implements SupplierService {
         supplierRepository.deleteById(id);
     }
 
-   private void checkDuplicateAndValidate(String email, String phoneNumber, Integer currentId) {
-    List<String> errors = new ArrayList<>();
+    private void checkDuplicateAndValidate(String email, String phoneNumber, Integer currentId) {
+        List<String> errors = new ArrayList<>();
 
-    // Kiểm tra định dạng số điện thoại
-    if (!Pattern.matches("^0\\d{9}$", phoneNumber)) {
-        errors.add("Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và đủ 10 chữ số).");
-    }
+        // Kiểm tra định dạng số điện thoại
+        if (!Pattern.matches("^0\\d{9}$", phoneNumber)) {
+            errors.add("Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và đủ 10 chữ số).");
+        }
 
-    // Kiểm tra định dạng email
-    if (email != null && !email.isBlank()) {
-        String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-        if (!Pattern.matches(emailRegex, email)) {
-            errors.add("Email không đúng định dạng.");
+        // Kiểm tra định dạng email
+        if (email != null && !email.isBlank()) {
+            String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+            if (!Pattern.matches(emailRegex, email)) {
+                errors.add("Email không đúng định dạng.");
+            }
+        }
+
+        // Kiểm tra email đã tồn tại
+        List<Supplier> emailMatches = supplierRepository.findByEmail(email);
+        for (Supplier s : emailMatches) {
+            if (currentId == null || !s.getId().equals(currentId)) {
+                errors.add("Email đã tồn tại.");
+                break;
+            }
+        }
+
+        // Kiểm tra số điện thoại đã tồn tại
+        List<Supplier> phoneMatches = supplierRepository.findByPhoneNumber(phoneNumber);
+        for (Supplier s : phoneMatches) {
+            if (currentId == null || !s.getId().equals(currentId)) {
+                errors.add("Số điện thoại đã tồn tại.");
+                break;
+            }
+        }
+
+        // Nếu có lỗi thì ném ra RuntimeException chứa toàn bộ lỗi
+        if (!errors.isEmpty()) {
+            throw new RuntimeException(String.join(" | ", errors));
         }
     }
-
-    // Kiểm tra email đã tồn tại
-    List<Supplier> emailMatches = supplierRepository.findByEmail(email);
-    for (Supplier s : emailMatches) {
-        if (currentId == null || !s.getId().equals(currentId)) {
-            errors.add("Email đã tồn tại.");
-            break;
-        }
-    }
-
-    // Kiểm tra số điện thoại đã tồn tại
-    List<Supplier> phoneMatches = supplierRepository.findByPhoneNumber(phoneNumber);
-    for (Supplier s : phoneMatches) {
-        if (currentId == null || !s.getId().equals(currentId)) {
-            errors.add("Số điện thoại đã tồn tại.");
-            break;
-        }
-    }
-
-    // Nếu có lỗi thì ném ra RuntimeException chứa toàn bộ lỗi
-    if (!errors.isEmpty()) {
-        throw new RuntimeException(String.join(" | ", errors));
-    }
-}
 }

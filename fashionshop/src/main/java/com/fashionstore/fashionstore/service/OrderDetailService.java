@@ -9,14 +9,8 @@ import java.util.Optional;
 
 public interface OrderDetailService {
 
-    // ======================================
-    // ✅ 1. LẤY DANH SÁCH CHI TIẾT ĐƠN HÀNG
-    // ======================================
-
-    // Lấy toàn bộ chi tiết đơn hàng (không phân trang)
     List<OrderDetail> getAllOrderDetails();
 
-    // Lấy chi tiết đơn hàng có phân trang
     Page<OrderDetail> getAllOrderDetails(Pageable pageable);
 
     // Lấy chi tiết đơn hàng theo ID

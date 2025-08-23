@@ -3,6 +3,7 @@ package com.fashionstore.fashionstore.controller;
 import com.fashionstore.fashionstore.entity.User;
 import com.fashionstore.fashionstore.repository.UserRepository;
 import com.fashionstore.fashionstore.service.EmailService;
+import com.fashionstore.fashionstore.service.FileStorageService;
 import com.fashionstore.fashionstore.service.GoogleOAuthService;
 import com.fashionstore.fashionstore.service.JwtService;
 import com.fashionstore.fashionstore.service.UserService;
@@ -10,6 +11,10 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.fashionstore.fashionstore.service.FileStorageService;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 
@@ -22,6 +27,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.Collections;
 
@@ -42,6 +49,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final GoogleOAuthService googleOAuthService;
+    private final FileStorageService fileStorageService;
 
     public static class ErrorResponse {
         private String message;
@@ -397,6 +405,83 @@ public class UserController {
         // dọn cờ reset để OTP không dùng lại được
         emailService.clearResetVerified(email);
         return ResponseEntity.ok("Đặt lại mật khẩu thành công");
+    }
+
+    // ====== Tạo tài khoản (Admin) KHÔNG cần OTP ======
+    @PostMapping("/admin/create")
+    public ResponseEntity<?> adminCreateUser(@RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            String fullName = (String) body.get("fullName");
+            String password = (String) body.get("password");
+            String role = (String) body.getOrDefault("role", "ADMIN");
+            Boolean status = body.get("status") == null ? Boolean.TRUE : Boolean.valueOf(body.get("status").toString());
+            String phoneNumber = (String) body.get("phoneNumber");
+            String address = (String) body.get("address");
+            String imageUrl = (String) body.get("imageUrl");
+
+            // (Khuyến nghị) Nếu đã bật Spring Security: kiểm tra chỉ ADMIN mới được gọi
+            User created = userService.createAdminUser(email, fullName, password, role, status, phoneNumber, address,
+                    imageUrl);
+            created.setPassword(null); // ẩn password khi trả về
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    // ====== Phân trang + tìm kiếm người dùng cho trang quản trị ======
+    @GetMapping("/admin/page")
+    public ResponseEntity<org.springframework.data.domain.Page<User>> pageUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort, // ví dụ: fullName,asc
+            @RequestParam(required = false) String q, // tên/email
+            @RequestParam(required = false) String role, // USER/ADMIN/(STAFF nếu dùng)
+            @RequestParam(required = false) Boolean status // true/false
+    ) {
+        String[] sp = sort.split(",", 2);
+        var sortObj = (sp.length == 2)
+                ? org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.fromString(sp[1]), sp[0])
+                : org.springframework.data.domain.Sort.by(sp[0]);
+
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size, sortObj);
+        var result = userService.searchUsersPage(q, role, status, pageable);
+        result.forEach(u -> u.setPassword(null)); // ẩn mật khẩu
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping(value = "/{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateAvatar(
+            @PathVariable Integer id,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            User user = userService.getUserById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // TODO (nếu có Spring Security): chỉ owner hoặc ADMIN mới được đổi
+
+            String newUrl = fileStorageService.saveAvatar(file);
+            fileStorageService.deleteAvatarIfExists(user.getImageUrl());
+
+            user.setImageUrl(newUrl);
+            userRepository.save(user);
+
+            String base = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString(); // http://localhost:8080
+            return ResponseEntity.ok(Map.of(
+                    "message", "Avatar updated",
+                    "imageUrl", newUrl, // relative
+                    "imageUrlAbs", base + newUrl // absolute
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse("File path không hợp lệ"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ErrorResponse("Lỗi lưu avatar"));
+        }
     }
 
 }

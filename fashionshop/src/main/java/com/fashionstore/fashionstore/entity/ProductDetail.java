@@ -6,30 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 @Data
 @Entity
@@ -38,15 +21,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "ProductDetails")
+// ✅ tránh vòng lặp, cho phép serialize sâu (productDetail -> product)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class ProductDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // giữ nguyên để FE đọc product.name
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    @JsonIgnoreProperties("productDetails")
+    @JsonIgnoreProperties("productDetails") // ẩn list ngược bên Product
     @NotNull(message = "Sản phẩm không được null")
     private Product product;
 
@@ -88,7 +74,6 @@ public class ProductDetail {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // ✅ Tự động cập nhật thời gian
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -101,7 +86,7 @@ public class ProductDetail {
         updatedAt = LocalDateTime.now();
     }
 
-    // Các quan hệ khác
+    // ===== Quan hệ ngược: ẨN đi để tránh vòng lặp & payload nặng =====
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
@@ -111,15 +96,20 @@ public class ProductDetail {
     private List<Cart> carts = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<InventoryAdjustmentDetail> inventoryAdjustmentDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<InventoryLog> inventoryLogs = new ArrayList<>();
 
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
-    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties("productDetail")
+
+    @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
+    @JsonIgnore
+
     private List<Review> reviews = new ArrayList<>();
-}
+}   

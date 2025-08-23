@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="action-buttons mt-4">
-                        <router-link :to="`/`" class="btn btn-primary me-3">
+                        <router-link :to="`/order`" class="btn btn-primary me-3">
                             <i class="bi bi-eye me-2"></i>Xem đơn hàng
                         </router-link>
                         <router-link to="/" class="btn btn-outline-secondary">

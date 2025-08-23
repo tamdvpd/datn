@@ -19,7 +19,7 @@
         <input name="brand" v-model="form.brand" placeholder="Thương hiệu" class="border p-3 rounded-lg" />
 
         <input ref="imageInput" name="image" type="file" @change="onFileChange" accept="image/*" class="border p-3 rounded-lg" />
-        <img v-if="imagePreview" :src="imagePreview" alt="Xem trước ảnh" class="w-20 h-20 object-cover mt-2 rounded-md border" />
+        <img v-if="imagePreview" :src="imagePreview" alt="Xem trước ảnh" class="w-5 h-5 object-cover mt-2 rounded-md border" />
 
         <!-- Trạng thái -->
         <div class="flex items-center gap-2">

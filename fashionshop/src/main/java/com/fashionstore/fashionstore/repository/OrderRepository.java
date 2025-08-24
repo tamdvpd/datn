@@ -42,14 +42,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @EntityGraph(attributePaths = { "user", "orderDetails" })
     List<Order> findByStatus(String status);
 
-    @EntityGraph(attributePaths = {
-            "user",
-            "orderDetails",
-            "orderDetails.productDetail",
-            "orderDetails.productDetail.product"
-    })
+    @Query("select distinct o from Order o " +
+            "left join fetch o.user " +
+            "left join fetch o.orderDetails od " +
+            "left join fetch od.productDetail pd " +
+            "left join fetch pd.product " +
+            "left join fetch o.shippingProvider " +
+            "left join fetch o.paymentMethod " +
+            "where o.id = :id")
+    Optional<Order> findOneWithDetailsById(@Param("id") Integer id);
 
     boolean existsById(Integer id);
 
-    Optional<Order> findOneWithDetailsById(Integer id);
 }

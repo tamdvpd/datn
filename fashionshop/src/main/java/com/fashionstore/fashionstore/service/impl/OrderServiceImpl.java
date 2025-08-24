@@ -152,4 +152,38 @@ public class OrderServiceImpl implements OrderService {
     public Optional<Order> getOrderByIdWithDetails(Integer id) {
         return orderRepository.findOneWithDetailsById(id);
     }
+
+    // OrderServiceImpl.java
+    @Override
+    public boolean cancelByUser(Integer id, String email) {
+        return orderRepository.findById(id).map(o -> {
+            if (!o.getUser().getEmail().equalsIgnoreCase(email))
+                return false;
+            String s = o.getStatus();
+            if (List.of("Pending Confirmation", "CONFIRMED", "PROCESSING").contains(s)) {
+                o.setStatus("CANCELLED");
+                o.setUpdatedAt(LocalDateTime.now());
+                orderRepository.save(o);
+                return true;
+            }
+            return false;
+        }).orElse(false);
+    }
+
+    @Override
+    public boolean markReceivedByUser(Integer id, String email) {
+        return orderRepository.findById(id).map(o -> {
+            if (!o.getUser().getEmail().equalsIgnoreCase(email))
+                return false;
+            String s = o.getStatus();
+            if (List.of("SHIPPED", "DELIVERED").contains(s)) {
+                o.setStatus("COMPLETED");
+                o.setUpdatedAt(LocalDateTime.now());
+                orderRepository.save(o);
+                return true;
+            }
+            return false;
+        }).orElse(false);
+    }
+
 }

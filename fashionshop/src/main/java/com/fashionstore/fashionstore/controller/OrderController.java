@@ -3,19 +3,12 @@ package com.fashionstore.fashionstore.controller;
 import com.fashionstore.fashionstore.entity.Order;
 import com.fashionstore.fashionstore.service.OrderService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -75,30 +68,25 @@ public class OrderController {
     // ✅ 4. GET BY ID (admin hoặc đúng người dùng)
     // ====================================
     @GetMapping("/{id}")
-public ResponseEntity<Order> getById(
-        @PathVariable Integer id,
-        @RequestParam(required = false) String email,
-        @RequestParam(defaultValue = "false") boolean admin) {
+    public ResponseEntity<Order> getById(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String email,
+            @RequestParam(defaultValue = "false") boolean admin) {
+        Optional<Order> optionalOrder = orderService.getOrderById(id);
+        if (optionalOrder.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-    // Lấy bản thô để kiểm tra tồn tại + quyền
-    Optional<Order> optionalOrder = orderService.getOrderById(id);
-    if (optionalOrder.isEmpty()) {
-        return ResponseEntity.notFound().build();
+        Order order = optionalOrder.get();
+        String orderEmail = order.getUser().getEmail();
+
+        boolean allowed = admin || (email != null && email.equalsIgnoreCase(orderEmail));
+        if (!allowed) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        Order full = orderService.getOrderByIdWithDetails(id).orElse(order);
+        return ResponseEntity.ok(full);
     }
-
-    Order order = optionalOrder.get();
-    String orderEmail = order.getUser().getEmail();
-
-    boolean allowed = admin || (email != null && email.equalsIgnoreCase(orderEmail));
-    if (!allowed) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-    }
-
-    // ✅ Sau khi qua quyền: trả về bản đã fetch đầy đủ để FE hiển thị Tên/Màu/Size
-    Order full = orderService.getOrderByIdWithDetails(id).orElse(order);
-    return ResponseEntity.ok(full);
-}
-
 
     // ====================================
     // ✅ 5. Tạo đơn hàng
@@ -152,22 +140,6 @@ public ResponseEntity<Order> getById(
         }
     }
 
-    // ====================================
-    // ✅ 8. Xóa đơn hàng (ADMIN)
-    // ====================================
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Integer id,
-            @RequestParam(defaultValue = "false") boolean admin) {
-        if (!admin) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        if (!orderService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        orderService.deleteOrder(id);
-        return ResponseEntity.noContent().build();
-    }
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
             "id", "status", "totalAmount", "createdAt", "updatedAt");
 
@@ -181,6 +153,39 @@ public ResponseEntity<Order> getById(
 
         Sort.Direction dir = ("asc".equalsIgnoreCase(direction)) ? Sort.Direction.ASC : Sort.Direction.DESC;
         return PageRequest.of(safePage, safeSize, Sort.by(dir, safeSortBy));
+    }
+
+    // OrderController.java
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelByUser(
+            @PathVariable Integer id,
+            @RequestParam String email) {
+        var ok = orderService.cancelByUser(id, email);
+        return ok ? ResponseEntity.ok("Đã huỷ đơn.")
+                : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Không thể huỷ đơn ở trạng thái hiện tại.");
+    }
+
+    @PostMapping("/{id}/received")
+    public ResponseEntity<?> userMarkReceived(
+            @PathVariable Integer id,
+            @RequestParam String email) {
+
+        var opt = orderService.getOrderById(id);
+        if (opt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Order order = opt.get();
+        if (!order.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Bạn không có quyền với đơn này.");
+        }
+
+        try {
+            orderService.updateOrderStatus(id, "COMPLETED");
+            return ResponseEntity.ok("Đơn hàng đã được xác nhận hoàn tất.");
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
 
 }

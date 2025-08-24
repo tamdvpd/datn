@@ -16,19 +16,6 @@
           <option disabled value="">-- Chọn nhà cung cấp --</option>
           <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
         </select>
-        <input
-         v-model.number="form.totalAmount"
-         type="number"
-         min="100000"   
-         inputmode="decimal"
-         placeholder="Tổng tiền (VNĐ)"
-         class="border p-2 rounded appearance-none"
-         required
-         @wheel.prevent
-/>
-        <p v-if="errors.totalAmount" class="text-red-600 text-sm mt-1">
-          {{ errors.totalAmount }}
-        </p>
 
         <input v-model="form.note" placeholder="Ghi chú" class="border p-2 rounded" />
 
@@ -49,9 +36,9 @@
         <tr>
           <th class="p-2 border">ID</th>
           <th class="p-2 border">Nhà cung cấp</th>
-          <th class="p-2 border">Tổng tiền</th>
           <th class="p-2 border">Ngày nhập</th>
           <th class="p-2 border">Ghi chú</th>
+          <th class="p-2 border text-center">Chi tiết</th>
           <th class="p-2 border text-center">Sửa</th>
           <th class="p-2 border text-center">Xoá</th>
         </tr>
@@ -60,9 +47,13 @@
         <tr v-for="inv in importInvoices" :key="inv.id" class="hover:bg-gray-50">
           <td class="p-2 border text-center">{{ inv.id }}</td>
           <td class="p-2 border">{{ inv.supplier?.name || 'Không rõ' }}</td>
-          <td class="p-2 border font-semibold">{{ formatCurrency(inv.totalAmount) }}</td>
           <td class="p-2 border">{{ formatDate(inv.importDate) }}</td>
           <td class="p-2 border">{{ inv.note || '' }}</td>
+          <td class="p-2 border text-center">
+            <button @click="showFormInvoiceDetail(inv.id)" class="text-blue-600 hover:text-blue-800 underline">
+              🔍
+            </button>
+          </td>
           <td class="p-2 border text-center">
             <button @click="editInvoice(inv)" class="text-yellow-600 hover:text-yellow-800">✏️</button>
           </td>
@@ -77,33 +68,34 @@
     <div class="flex justify-end mt-4">
       <div class="text-right">
         <p><strong>Tổng hóa đơn:</strong> {{ totalInvoicesCount }} phiếu</p>
-        <p><strong>Tổng tiền:</strong> {{ formatCurrency(totalAmount) }}</p>
       </div>
     </div>
+    <ImportInvoiceDetail v-if="showInvoiceDetail" :invoiceId="selectedInvoiceId"></ImportInvoiceDetail>
   </div>
 </template>
 
 <script>
+import ImportInvoiceDetail from './AdminImportInvoiceDetail.vue'
 export default {
+  components: {
+    ImportInvoiceDetail,
+  },
   data() {
     return {
+      showInvoiceDetail : false,
+      selectedInvoiceId: null,
       importInvoices: [],
       suppliers: [],
       showForm: false,
       isEditing: false,
-      errors: {},
       form: {
         id: null,
         supplierId: '',
-        totalAmount: '',
         note: ''
       }
     };
   },
   computed: {
-    totalAmount() {
-      return this.importInvoices.reduce((sum, inv) => sum + (Number(inv.totalAmount) || 0), 0);
-    },
     totalInvoicesCount() {
       return this.importInvoices.length;
     }
@@ -128,47 +120,37 @@ export default {
       }
     },
     async handleSubmit() {
-  this.errors = {};
-  const amount = parseFloat(this.form.totalAmount);
-  if (amount < 100000) {
-  this.errors.totalAmount = 'Tổng tiền phải lớn hơn hoặc bằng 100.000 VNĐ';
-  return;
-}
+      const today = new Date().toISOString().split('T')[0];
+      const invoiceData = {
+        supplier: { id: this.form.supplierId },
+        importDate: today,
+        note: this.form.note
+      };
 
-  const today = new Date().toISOString().split('T')[0];
+      try {
+        const url = this.isEditing
+          ? `http://localhost:8080/api/import-invoices/${this.form.id}`
+          : 'http://localhost:8080/api/import-invoices';
 
-  const invoiceData = {
-    supplier: { id: this.form.supplierId },
-    totalAmount: amount,
-    importDate: today,
-    note: this.form.note
-  };
+        const res = await fetch(url, {
+          method: this.isEditing ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(invoiceData)
+        });
 
-  try {
-    const url = this.isEditing
-      ? `http://localhost:8080/api/import-invoices/${this.form.id}`
-      : 'http://localhost:8080/api/import-invoices';
+        if (!res.ok) throw new Error('Lưu phiếu nhập thất bại');
 
-    const res = await fetch(url, {
-      method: this.isEditing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(invoiceData)
-    });
-
-    if (!res.ok) throw new Error('Lưu phiếu nhập thất bại');
-
-    await this.fetchInvoices();
-    this.resetForm();
-    this.showForm = false;
-  } catch (err) {
-    alert('❌ ' + err.message);
-  }
-},
+        await this.fetchInvoices();
+        this.resetForm();
+        this.showForm = false;
+      } catch (err) {
+        alert('❌ ' + err.message);
+      }
+    },
     editInvoice(inv) {
       this.form = {
         id: inv.id,
         supplierId: inv.supplier?.id || '',
-        totalAmount: inv.totalAmount,
         note: inv.note
       };
       this.isEditing = true;
@@ -193,10 +175,8 @@ export default {
       this.form = {
         id: null,
         supplierId: '',
-        totalAmount: '',
         note: ''
       };
-      this.errors = {};
       this.isEditing = false;
     },
     toggleForm() {
@@ -210,9 +190,10 @@ export default {
       const date = new Date(dateStr);
       return date.toLocaleDateString('vi-VN');
     },
-    formatCurrency(amount) {
-      const num = Number(amount);
-      return isNaN(num) ? '0₫' : num.toLocaleString('vi-VN') + '₫';
+    
+    showFormInvoiceDetail(id) {
+      this.showInvoiceDetail = true;
+      this.selectedInvoiceId = id;
     }
   },
   mounted() {
@@ -221,16 +202,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-/* Loại bỏ nút tăng giảm cho input number */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"] {
-  -moz-appearance: textfield;
-}
-</style>

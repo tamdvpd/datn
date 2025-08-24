@@ -5,11 +5,21 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+// ❌ bỏ import JsonManagedReference
+// import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.math.BigDecimal;
 
 @Data
 @Entity
 @Table(name = "Orders")
+// ✅ Dùng IdentityInfo để chống vòng lặp, cho phép serialize quan hệ sâu
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,25 +27,28 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    // Giữ ID cho gọn JSON (ok)
+    @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
-    // Đơn vị vận chuyển
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipping_provider_id", nullable = false)
+    @JsonIgnore
     private ShippingProvider shippingProvider;
 
-    // Phương thức thanh toán
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_method_id", nullable = false)
+    @JsonIgnore
     private PaymentMethod paymentMethod;
 
-    // Mã giảm giá (có thể null)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
+    @JsonIgnore
     private Coupon coupon;
 
+    // ✅ Tránh null khi tạo đơn (để FE/serialize không bị rỗng)
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Column(name = "discount_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal discountAmount = BigDecimal.ZERO;
@@ -44,9 +57,25 @@ public class Order {
     private BigDecimal shippingFee = BigDecimal.ZERO;
 
     @Column(nullable = false, length = 50)
-    private String status = "PENDING"; // Ví dụ: PENDING, CONFIRMED, ...
+    private String status;
 
-    // mã vận đơn của đơn vị vận chuyển
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("statusVi")
+    public String getStatusVi() {
+        if (status == null)
+            return "";
+        return switch (status.toUpperCase()) {
+            case "Pending Confirmation" -> "Chờ xác nhận";
+            case "CONFIRMED" -> "Đã xác nhận";
+            case "PROCESSING" -> "Đang xử lý";
+            case "SHIPPED" -> "Đang giao";
+            case "DELIVERED" -> "Đã giao";
+            case "COMPLETED" -> "Hoàn tất";
+            case "CANCELLED" -> "Đã hủy";
+            default -> status;
+        };
+    }
+
     @Column(name = "tracking_code", length = 100)
     private String trackingCode;
 
@@ -68,7 +97,7 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @PrePersist

@@ -1,28 +1,55 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <router-link to="/" class="d-inline-block">
+      <!-- Logo -->
+      <router-link to="/" class="logo-link">
         <img src="@/assets/img/LogoChinh.png" class="logo mb-3" alt="Logo" />
       </router-link>
 
       <h3 class="text-center mb-4">Đăng nhập</h3>
 
       <form @submit.prevent="handleLogin">
+        <!-- Email -->
         <div class="form-group mb-3">
-          <input v-model="loginForm.email" type="email" class="form-control" placeholder="Email" required />
+          <input
+            v-model="loginForm.email"
+            type="email"
+            class="form-control"
+            placeholder="Email"
+            required
+          />
         </div>
+
+        <!-- Mật khẩu + link quên mật khẩu -->
         <div class="form-group mb-3">
-          <input v-model="loginForm.password" type="password" class="form-control" placeholder="Mật khẩu" required />
+          <input
+            v-model="loginForm.password"
+            type="password"
+            class="form-control"
+            placeholder="Mật khẩu"
+            required
+          />
+          <div class="text-end mt-1">
+            <router-link to="/forgot-password" class="small text-primary">
+              Quên mật khẩu?
+            </router-link>
+          </div>
         </div>
+
+        <!-- Nút đăng nhập -->
         <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
 
+        <!-- Google Login -->
         <div class="mt-3 text-center">
           <GoogleLogin :onSuccess="onGoogleSuccess" :onError="onGoogleError" />
         </div>
       </form>
 
+      <!-- Chuyển sang đăng ký -->
       <div class="text-center mt-3">
-        <span>Chưa có tài khoản? <router-link to="/register">Đăng ký</router-link></span>
+        <span>Chưa có tài khoản?
+          <router-link to="/register">Đăng ký</router-link>
+        </span>
       </div>
     </div>
   </div>
@@ -43,31 +70,27 @@ const loginForm = ref({
 
 onMounted(() => {
   const jwt = localStorage.getItem("jwt");
-  if (jwt) {
-    router.push("/");
-  }
+  if (jwt) router.push("/");
 });
 
 function handleLogin() {
   axios
     .post("http://localhost:8080/users/auth/login", loginForm.value)
     .then((response) => {
-      alert("Đăng nhập thành công!");
+      alert("✅ Đăng nhập thành công!");
       localStorage.setItem("jwt", response.data.jwt || "");
       localStorage.setItem("user", JSON.stringify(response.data));
       router.push("/");
     })
     .catch((error) => {
-      const msg = error.response?.data?.message || "Đăng nhập thất bại";
+      const msg = error.response?.data?.message || "❌ Đăng nhập thất bại";
       alert(msg);
     });
 }
 
-// ✅ Xử lý đăng nhập bằng Google
+// Đăng nhập bằng Google
 const onGoogleSuccess = async (response) => {
-  console.log("📥 Google response:", response);
-
-  const idToken = response.credential;
+  const idToken = response?.credential;
   if (!idToken) {
     alert("Không nhận được idToken từ Google");
     return;
@@ -85,13 +108,7 @@ const onGoogleSuccess = async (response) => {
     if (res.ok && data.jwt) {
       localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("user", JSON.stringify(data.user || {}));
-
-      if (data.newUser === true) {
-        alert("✅ Tài khoản mới đã được tạo từ Google và bạn đã được đăng nhập!");
-      } else {
-        alert("✅ Đăng nhập Google thành công!");
-      }
-
+      alert(data.newUser ? "✅ Đã tạo tài khoản Google & đăng nhập!" : "✅ Đăng nhập Google thành công!");
       router.push("/");
     } else {
       alert(data.message || "Đăng nhập Google thất bại.");
@@ -102,9 +119,7 @@ const onGoogleSuccess = async (response) => {
   }
 };
 
-const onGoogleError = () => {
-  alert("Google login không thành công.");
-};
+const onGoogleError = () => alert("❌ Google login không thành công.");
 </script>
 
 <style scoped>
@@ -123,9 +138,6 @@ const onGoogleError = () => {
   width: 100%;
   max-width: 400px;
 }
-.logo {
-  display: block;
-  margin: 0 auto;
-  max-width: 180px;
-}
+.logo-link { display: block; text-align: center; }
+.logo { display: block; margin: 0 auto; max-width: 180px; height: auto; }
 </style>

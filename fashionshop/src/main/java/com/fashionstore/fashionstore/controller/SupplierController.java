@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3001")
 @RestController
@@ -37,43 +39,38 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getActiveSuppliers());
     }
 
-    // Tạo mới
+    // Tạo mới nhà cung cấp
     @PostMapping
     public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
         try {
-            if (supplier.getStatus() == null) {
-                supplier.setStatus(true); // Mặc định là hoạt động nếu không truyền
-            }
-            Supplier created = supplierService.createSupplier(supplier);
+            supplier.setStatus(supplier.getStatus() == null ? true : supplier.getStatus());
+            Supplier created = supplierService.createSupplier(supplier); // kiểm tra trùng trong service
             return ResponseEntity.status(201).body(created);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
-    // Cập nhật
+    // Cập nhật nhà cung cấp
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSupplier(@PathVariable Integer id, @Valid @RequestBody Supplier supplier) {
-        if (supplierService.getSupplierById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
         try {
             supplier.setId(id);
             Supplier updated = supplierService.updateSupplier(id, supplier);
             return ResponseEntity.ok(updated);
-        } catch (RuntimeException ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
-    // Xoá
+    // Xóa nhà cung cấp
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Integer id) {
-        if (supplierService.getSupplierById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        supplierService.deleteSupplier(id);
+        supplierService.deleteSupplier(id); // nếu không tồn tại thì service sẽ xử lý
         return ResponseEntity.noContent().build();
     }
 }

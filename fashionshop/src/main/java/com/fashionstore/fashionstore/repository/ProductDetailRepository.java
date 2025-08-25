@@ -66,6 +66,7 @@ public interface ProductDetailRepository extends JpaRepository<ProductDetail, In
             FROM ProductDetail pd
             JOIN pd.product p
             """)
+            
     List<Object[]> findAllCurrentStocks();
 
     List<ProductDetail> findByProductId(Integer productId);

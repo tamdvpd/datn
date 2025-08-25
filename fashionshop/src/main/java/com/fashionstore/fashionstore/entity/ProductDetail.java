@@ -16,32 +16,29 @@ import lombok.*;
 
 @Data
 @Entity
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "ProductDetails")
-// ✅ tránh vòng lặp, cho phép serialize sâu (productDetail -> product)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class ProductDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // giữ nguyên để FE đọc product.name
-    @ManyToOne(fetch = FetchType.LAZY)
+    // ---------------- Quan hệ chính ----------------
+    @ManyToOne(fetch = FetchType.LAZY) // để LAZY cho nhẹ
     @JoinColumn(name = "product_id", nullable = false)
-    @JsonIgnoreProperties("productDetails") // ẩn list ngược bên Product
-    @NotNull(message = "Sản phẩm không được null")
+    @JsonIgnoreProperties({ "productDetails", "hibernateLazyInitializer", "handler" })
     private Product product;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     @NotBlank(message = "Màu sắc không được để trống")
     @Size(max = 50, message = "Màu sắc tối đa 50 ký tự")
     private String color;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     @NotBlank(message = "Kích thước không được để trống")
     @Size(max = 50, message = "Kích thước tối đa 50 ký tự")
     private String size;
@@ -86,7 +83,7 @@ public class ProductDetail {
         updatedAt = LocalDateTime.now();
     }
 
-    // ===== Quan hệ ngược: ẨN đi để tránh vòng lặp & payload nặng =====
+    // ---------------- Quan hệ ngược (ẩn đi để tránh vòng lặp) ----------------
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
@@ -107,9 +104,7 @@ public class ProductDetail {
     @JsonIgnore
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
-
     private List<Review> reviews = new ArrayList<>();
-}   
+}

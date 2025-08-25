@@ -111,7 +111,7 @@ public class ProductController {
         }
     }
 
-    // ✅ API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
+    //  API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
             @RequestParam(required = false) String keyword,
@@ -128,7 +128,7 @@ public class ProductController {
         return ResponseEntity.ok(result);
     }
 
-    // ✅ API lấy danh sách màu sắc và kích thước distinct từ ProductDetail
+    //  API lấy danh sách màu sắc và kích thước distinct từ ProductDetail
     @GetMapping("/distinct-filters")
     public ResponseEntity<Map<String, List<String>>> getDistinctFilters() {
         Map<String, List<String>> filters = new HashMap<>();
@@ -137,7 +137,7 @@ public class ProductController {
         return ResponseEntity.ok(filters);
     }
 
-    // ✅ API sản phẩm bán chạy (best sellers)
+    //  API sản phẩm bán chạy (best sellers)
     @GetMapping("/best-sellers")
     public ResponseEntity<List<Product>> getBestSellers(
             @RequestParam(defaultValue = "10") int limit) {

@@ -7,15 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin/inventoryLogs")
@@ -24,17 +17,13 @@ public class InventoryLogController {
 
     private final InventoryLogService inventoryLogService;
 
-    /**
-     * Lấy toàn bộ lịch sử nhập/xuất/điều chỉnh kho
-     */
+    /** Lấy toàn bộ lịch sử nhập/xuất/điều chỉnh kho */
     @GetMapping
     public ResponseEntity<List<InventoryLog>> getAllLogs() {
         return ResponseEntity.ok(inventoryLogService.getAllInventoryLogs());
     }
 
-    /**
-     * Lấy 1 log theo ID
-     */
+    /** Lấy 1 log theo ID */
     @GetMapping("/{id}")
     public ResponseEntity<InventoryLog> getLogById(@PathVariable Integer id) {
         return inventoryLogService.getInventoryLogById(id)
@@ -42,59 +31,62 @@ public class InventoryLogController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    /**
-     * Tính tồn kho hiện tại của 1 sản phẩm chi tiết
-     */
+    /** Tính tồn kho hiện tại của 1 sản phẩm chi tiết */
     @GetMapping("/stock/{productDetailId}")
     public ResponseEntity<Integer> getCurrentStock(@PathVariable Integer productDetailId) {
         int stock = inventoryLogService.getCurrentStock(productDetailId);
         return ResponseEntity.ok(stock);
     }
 
-    /**
-     * Nhập hàng (IMPORT)
-     */
+    /** Nhập kho (IMPORT) */
     @PostMapping("/import")
-    public ResponseEntity<String> importProduct(
-            @RequestParam Integer productDetailId,
-            @RequestParam int quantity,
-            @RequestParam(required = false) Integer importInvoiceId,
-            @RequestParam(required = false) String note
-    ) {
+    public ResponseEntity<String> importProduct(@RequestBody Map<String, Object> payload) {
+        Integer productDetailId = (Integer) payload.get("productDetailId");
+        Integer quantity = (Integer) payload.get("quantity");
+        Integer importInvoiceId = (Integer) payload.get("importInvoiceId");
+        String note = (String) payload.get("note");
+
+        if (productDetailId == null || quantity == null || quantity <= 0)
+            return ResponseEntity.badRequest().body("Thông tin nhập kho không hợp lệ");
+
         inventoryLogService.importProduct(productDetailId, quantity, importInvoiceId, note);
         return ResponseEntity.ok("Nhập hàng thành công");
     }
 
-    /**
-     * Xuất kho (EXPORT)
-     */
+    /** Xuất kho (EXPORT) */
     @PostMapping("/export")
-    public ResponseEntity<String> exportProduct(
-            @RequestParam Integer productDetailId,
-            @RequestParam int quantity,
-            @RequestParam(required = false) Integer orderId
-    ) {
+    public ResponseEntity<String> exportProduct(@RequestBody Map<String, Object> payload) {
+        Integer productDetailId = (Integer) payload.get("productDetailId");
+        Integer quantity = (Integer) payload.get("quantity");
+        Integer orderId = (Integer) payload.get("orderId");
+
+        if (productDetailId == null || quantity == null || quantity <= 0)
+            return ResponseEntity.badRequest().body("Thông tin xuất kho không hợp lệ");
+
         inventoryLogService.exportProduct(productDetailId, quantity, orderId);
         return ResponseEntity.ok("Xuất hàng thành công");
     }
 
-    /**
-     * Điều chỉnh tồn kho thủ công (ADJUSTMENT)
-     */
+    /** Điều chỉnh tồn kho thủ công (ADJUSTMENT) */
     @PostMapping("/adjust")
-    public ResponseEntity<String> adjustStock(
-            @RequestParam Integer productDetailId,
-            @RequestParam int quantityChange,
-            @RequestParam(required = false) String note,
-            @RequestParam Long userId,
-            @RequestParam(required = false) Integer adjustmentId
-    ) {
+    public ResponseEntity<String> adjustStock(@RequestBody Map<String, Object> payload) {
+        Integer productDetailId = (Integer) payload.get("productDetailId");
+        Integer quantityChange = (Integer) payload.get("quantityChange");
+        String note = (String) payload.get("note");
+        Long userId = payload.get("userId") instanceof Integer ? ((Integer) payload.get("userId")).longValue()
+                : (Long) payload.get("userId");
+        Integer adjustmentId = (Integer) payload.get("adjustmentId");
+
+        if (productDetailId == null || quantityChange == null || userId == null)
+            return ResponseEntity.badRequest().body("Thông tin điều chỉnh không hợp lệ");
+
         inventoryLogService.adjustStock(productDetailId, quantityChange, note, userId, adjustmentId);
         return ResponseEntity.ok("Điều chỉnh tồn kho thành công");
     }
 
     /**
-     * Lấy danh sách sản phẩm + tồn kho hiện tại (bảng kho hàng) với filter & pagination
+     * Lấy danh sách sản phẩm + tồn kho hiện tại (bảng kho hàng) với filter &
+     * pagination
      */
     @GetMapping("/warehouse")
     public ResponseEntity<Map<String, Object>> getWarehouseStock(
@@ -108,15 +100,13 @@ public class InventoryLogController {
             @RequestParam(required = false) Double discountMin,
             @RequestParam(required = false) Double discountMax,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int sizePage
-    ) {
+            @RequestParam(defaultValue = "10") int sizePage) {
         Page<Object[]> pageResult = inventoryLogService.getWarehouseStockWithFilters(
                 product, color, size,
                 stockMin, stockMax,
                 priceMin, priceMax,
                 discountMin, discountMax,
-                PageRequest.of(page, sizePage)
-        );
+                PageRequest.of(page, sizePage));
 
         List<Map<String, Object>> data = new ArrayList<>();
         for (Object[] row : pageResult.getContent()) {
@@ -141,9 +131,7 @@ public class InventoryLogController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Lấy danh sách các bộ lọc (colors, sizes)
-     */
+    /** Lấy danh sách các bộ lọc (colors, sizes) */
     @GetMapping("/warehouse/filters")
     public ResponseEntity<Map<String, List<String>>> getWarehouseFilters() {
         return ResponseEntity.ok(inventoryLogService.getFilterOptions());

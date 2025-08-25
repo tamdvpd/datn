@@ -31,7 +31,7 @@ public class ImportInvoiceDetail {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
     @NotNull(message = "Chi tiết sản phẩm không được để trống")
-    // @JsonIgnoreProperties({ "product", "hibernateLazyInitializer", "handler" })
+   // @JsonIgnoreProperties({ "product", "hibernateLazyInitializer", "handler" })
     private ProductDetail productDetail;
 
     @NotNull(message = "Số lượng không được để trống")
@@ -52,7 +52,7 @@ public class ImportInvoiceDetail {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-
+     
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

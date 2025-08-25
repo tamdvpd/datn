@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2 class="text-center d-block">🏷️ Quản lý mã giảm giá</h2>
-    <!-- ✅ FORM GỘP: Thêm & Sửa -->
+    <!--FORM GỘP: Thêm & Sửa -->
     <transition name="fade-slide">
       <div v-if="showForm" class="card shadow-sm mx-auto mb-4" style="max-width: 800px;">
         <div class="card-header" :class="isEditing ? 'bg-warning text-dark' : 'bg-primary text-white'">
@@ -81,7 +81,7 @@
             <th class="border px-4 py-2">Ngày hết hạn</th>
             <th class="border px-4 py-2">Số lượng</th>
             <th class="border px-4 py-2">Trạng thái</th>
-            <th class="border px-4 py-2">Cập nhật</th>
+            <!-- <th class="border px-4 py-2">Cập nhật</th> -->
             <th class="border px-4 py-2">Sửa</th>
             <th class="border px-4 py-2">Xóa</th>
           </tr>
@@ -98,7 +98,7 @@
                 {{ coupon.status ? 'Hoạt động' : 'Không hoạt động' }}
               </span>
             </td>
-            <td class="border px-4 py-2">{{ formatDateTime(coupon.updatedAt) }}</td>
+            <!-- <td class="border px-4 py-2">{{ formatDateTime(coupon.updatedAt) }}</td> -->
             <td class="border px-4 py-2">
               <button class="btn btn-outline-warning" @click="showEdit(coupon)">
                 <i class="bi bi-pencil-square"></i>
@@ -113,16 +113,18 @@
         </tbody>
       </table>
     </div>
-    <nav aria-label="Page navigation example" class="mt-4">
+    <nav aria-label="Page navigation" class="mt-4">
       <ul class="pagination justify-content-center">
-        <li class="page-item disabled">
-          <a class="page-link">Previous</a>
+        <li class="page-item" :class="{ disabled: currentPage === 0 }">
+          <a class="page-link" href="#" @click.prevent="fetchCoupons(currentPage - 1)">Previous</a>
         </li>
-        <li class="page-item"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-          <a class="page-link" href="#">Next</a>
+        <li v-for="page in visiblePages" :key="page" class="page-item" :class="{ active: currentPage === page }">
+          <a class="page-link" href="#" @click.prevent="fetchCoupons(page)">
+            {{ page + 1 }}
+          </a>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages - 1 }">
+          <a class="page-link" href="#" @click.prevent="fetchCoupons(currentPage + 1)">Next</a>
         </li>
       </ul>
     </nav>
@@ -152,7 +154,9 @@ export default {
       validationErrors: {},
       showNotification: false,
       notificationMessage: '',
-      notificationType: 'success'
+      notificationType: 'success',
+      currentPage: 0,
+      totalPages: 0,
     };
   },
   methods: {
@@ -235,10 +239,13 @@ export default {
           });
       }
     },
-    fetchCoupons() {
-      axios.get('http://localhost:8080/api/coupons')
+    fetchCoupons(page) {
+      const pageNumber = page !== undefined ? page : 0; // fix lỗi
+      axios.get(`http://localhost:8080/api/coupons?page=${pageNumber}`)
         .then(response => {
-          this.coupons = response.data;
+          this.coupons = response.data.content;
+          this.currentPage = response.data.number;
+          this.totalPages = response.data.totalPages;
         })
         .catch(error => {
           this.showNotify('Tải danh sách mã giảm giá thất bại!');
@@ -257,8 +264,27 @@ export default {
       return dateStr ? new Date(dateStr).toLocaleString() : 'N/A';
     }
   },
+  computed: {
+    visiblePages() {
+      const maxPagesToShow = 5;
+      const pages = [];
+      let start = Math.max(0, this.currentPage - Math.floor(maxPagesToShow / 2));
+      let end = start + maxPagesToShow;
+
+      if (end > this.totalPages) {
+        end = this.totalPages;
+        start = Math.max(0, end - maxPagesToShow);
+      }
+
+      for (let i = start; i < end; i++) {
+        pages.push(i);
+      }
+
+      return pages;
+    }
+  },
   mounted() {
-    this.fetchCoupons();
+    this.fetchCoupons(this.currentPage);
   }
 };
 </script>

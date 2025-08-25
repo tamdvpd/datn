@@ -41,19 +41,19 @@ public class ImportInvoiceDetailServiceImpl implements ImportInvoiceDetailServic
     @Override
     @Transactional
     public ImportInvoiceDetail create(ImportInvoiceDetail detail) {
-        // Lấy ProductDetail từ DB
+        ImportInvoice invoice = importInvoiceRepository.findById(detail.getImportInvoice().getId())
+                .orElseThrow(() -> new RuntimeException("❌ Phiếu nhập không tồn tại"));
+
+        if (invoice.getStatus() == ImportInvoice.Status.COMPLETED) {
+            throw new RuntimeException("⚠️ Không thể thêm chi tiết cho phiếu đã nhập kho!");
+        }
+
         ProductDetail pd = productDetailRepository.findById(detail.getProductDetail().getId())
                 .orElseThrow(() -> new RuntimeException("❌ Chi tiết sản phẩm không tồn tại"));
 
-        // Cộng thêm tồn kho
-        pd.setQuantity(pd.getQuantity() + detail.getQuantity());
-        productDetailRepository.save(pd);
-        detail.setProductDetail(pd);
-
-        // Lấy ImportInvoice từ DB
-        ImportInvoice invoice = importInvoiceRepository.findById(detail.getImportInvoice().getId())
-                .orElseThrow(() -> new RuntimeException("❌ Phiếu nhập không tồn tại"));
         detail.setImportInvoice(invoice);
+        detail.setProductDetail(pd);
+        detail.setImported(false); // mặc định chưa nhập kho
 
         return importInvoiceDetailRepository.save(detail);
     }
@@ -64,27 +64,14 @@ public class ImportInvoiceDetailServiceImpl implements ImportInvoiceDetailServic
         ImportInvoiceDetail existing = importInvoiceDetailRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("❌ Chi tiết phiếu nhập không tồn tại"));
 
-        // Lấy ProductDetail từ DB
-        ProductDetail pd = productDetailRepository.findById(detail.getProductDetail().getId())
-                .orElseThrow(() -> new RuntimeException("❌ Chi tiết sản phẩm không tồn tại"));
+        if (existing.isImported() || existing.getImportInvoice().getStatus() == ImportInvoice.Status.COMPLETED) {
+            throw new RuntimeException("⚠️ Không thể sửa chi tiết phiếu đã nhập kho!");
+        }
 
-        // Tính chênh lệch số lượng và cập nhật tồn kho
-        int diffQuantity = detail.getQuantity() - existing.getQuantity();
-        pd.setQuantity(pd.getQuantity() + diffQuantity);
-        productDetailRepository.save(pd);
-
-        // Cập nhật thông tin chi tiết
         existing.setQuantity(detail.getQuantity());
         existing.setUnitPrice(detail.getUnitPrice());
-        existing.setProductDetail(pd);
+        existing.setProductDetail(detail.getProductDetail());
         existing.setUser(detail.getUser());
-
-        // Cập nhật ImportInvoice nếu có
-        if (detail.getImportInvoice() != null) {
-            ImportInvoice invoice = importInvoiceRepository.findById(detail.getImportInvoice().getId())
-                    .orElseThrow(() -> new RuntimeException("❌ Phiếu nhập không tồn tại"));
-            existing.setImportInvoice(invoice);
-        }
 
         return importInvoiceDetailRepository.save(existing);
     }
@@ -95,20 +82,46 @@ public class ImportInvoiceDetailServiceImpl implements ImportInvoiceDetailServic
         ImportInvoiceDetail existing = importInvoiceDetailRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("❌ Chi tiết phiếu nhập không tồn tại"));
 
-        ProductDetail pd = existing.getProductDetail();
-
-        //  Chỉ cho phép xóa nếu kho đã hết hàng
-        if (pd.getQuantity() > 0) {
-            throw new RuntimeException("⚠️ Sản phẩm còn tồn kho, không thể xóa chi tiết nhập này!");
+        if (existing.isImported() || existing.getImportInvoice().getStatus() == ImportInvoice.Status.COMPLETED) {
+            throw new RuntimeException("⚠️ Không thể xóa chi tiết phiếu đã nhập kho!");
         }
 
-        importInvoiceDetailRepository.deleteById(id);
+        importInvoiceDetailRepository.delete(existing);
+    }
+
+    @Override
+    @Transactional
+    public ImportInvoiceDetail importStock(Integer detailId) {
+        ImportInvoiceDetail detail = importInvoiceDetailRepository.findById(detailId)
+                .orElseThrow(() -> new RuntimeException("❌ Chi tiết phiếu nhập không tồn tại"));
+
+        if (detail.isImported()) {
+            throw new RuntimeException("⚠️ Sản phẩm đã nhập kho rồi!");
+        }
+
+        // Cộng tồn kho
+        ProductDetail pd = detail.getProductDetail();
+        pd.setQuantity(pd.getQuantity() + detail.getQuantity());
+        productDetailRepository.save(pd);
+
+        // Đánh dấu đã nhập
+        detail.setImported(true);
+        importInvoiceDetailRepository.save(detail);
+
+        // Kiểm tra nếu tất cả chi tiết đã nhập → chuyển phiếu sang COMPLETED
+        ImportInvoice invoice = detail.getImportInvoice();
+        boolean allImported = invoice.getImportInvoiceDetails().stream().allMatch(ImportInvoiceDetail::isImported);
+        if (allImported) {
+            invoice.setStatus(ImportInvoice.Status.COMPLETED);
+            importInvoiceRepository.save(invoice);
+        }
+
+        return detail;
     }
 
     @Override
     public Double getTotalAmountByInvoice(Integer importInvoiceId) {
         List<ImportInvoiceDetail> details = importInvoiceDetailRepository.findByImportInvoiceId(importInvoiceId);
-
         return details.stream()
                 .map(d -> d.getUnitPrice().multiply(BigDecimal.valueOf(d.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)

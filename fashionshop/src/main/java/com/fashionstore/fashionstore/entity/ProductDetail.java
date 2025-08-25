@@ -5,10 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -28,7 +26,7 @@ public class ProductDetail {
     private Integer id;
 
     // ---------------- Quan hệ chính ----------------
-    @ManyToOne(fetch = FetchType.LAZY) // để LAZY cho nhẹ
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     @JsonIgnoreProperties({ "productDetails", "hibernateLazyInitializer", "handler" })
     private Product product;
@@ -46,7 +44,7 @@ public class ProductDetail {
     @Column(nullable = false)
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 0, message = "Số lượng phải >= 0")
-    private Integer quantity;
+    private Integer quantity; // Dùng quantity làm stock
 
     @Column(nullable = false, precision = 12, scale = 2)
     @NotNull(message = "Giá sản phẩm không được để trống")
@@ -83,7 +81,7 @@ public class ProductDetail {
         updatedAt = LocalDateTime.now();
     }
 
-    // ---------------- Quan hệ ngược (ẩn đi để tránh vòng lặp) ----------------
+    // ---------------- Quan hệ ngược ----------------
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
@@ -107,4 +105,13 @@ public class ProductDetail {
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
+
+    // ---------------- Stock getter/setter ----------------
+    public Integer getStock() {
+        return this.quantity;
+    }
+
+    public void setStock(Integer stock) {
+        this.quantity = stock;
+    }
 }

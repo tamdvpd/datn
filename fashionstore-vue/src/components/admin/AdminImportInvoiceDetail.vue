@@ -75,7 +75,7 @@
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
           <tr v-for="d in details" :key="d.id" class="hover:bg-gray-50">
-            <td class="px-3 py-2">{{ d.productDetail?.product?.name || 'N/A' }}</td>
+            <td class="px-2 py-2">{{ d.productDetail?.product?.name || 'N/A' }}</td>
             <td class="px-4 py-2 text-center">{{ d.productDetail?.color }}</td>
             <td class="px-4 py-2 text-center">{{ d.productDetail?.size }}</td>
             <td class="px-4 py-2 text-center">{{ d.quantity }}</td>
@@ -83,7 +83,7 @@
             <td class="px-4 py-2 text-center font-semibold text-green-600">
               {{ formatCurrency(d.quantity * d.unitPrice) }}
             </td>
-            <td class="px-4 py-2 text-center">
+            <td class="px-3 py-2 text-center">
               <button @click="editDetail(d)" class="btn btn-sm btn-outline-primary me-2" title="Sửa"><i class="bi bi-pencil-square"></i></button>
               <button @click="deleteDetail(d.id)" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3-fill"></i></button>
             </td>
@@ -254,4 +254,4 @@ export default {
     }
   }
 };
-</script>
+</script> 

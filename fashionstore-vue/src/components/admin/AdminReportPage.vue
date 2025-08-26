@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4">
+  <div class="p-1">
     <div>
       <!-- Thống kê user -->
       <div class="mb-5">
@@ -96,21 +96,88 @@
         </div>
       </div>
 
-      <!-- Thống kê sản phẩm -->
+      <!-- Thống kê doanh thu -->
       <div class="mb-5">
-        <h4 class="section-title">🛍️ Thống kê sản phẩm</h4>
-        <div class="placeholder-section">
-          <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
-          <p class="text-muted">Thống kê sản phẩm sẽ được hiển thị tại đây</p>
+        <h4 class="section-title">📈 Thống kê doanh thu</h4>
+        <div class="row g-3">
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-info">
+              <div class="stat-icon">📅</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.revenue.day) }}đ</h5>
+                <p class="stat-label">Hôm nay</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-info">
+              <div class="stat-icon">📊</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.revenue.week) }}đ</h5>
+                <p class="stat-label">Tuần</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-info">
+              <div class="stat-icon">📈</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.revenue.month) }}đ</h5>
+                <p class="stat-label">Tháng</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-info">
+              <div class="stat-icon">🗓️</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.revenue.year) }}đ</h5>
+                <p class="stat-label">Năm</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
       <!-- Thống kê đơn hàng -->
       <div class="mb-5">
-        <h4 class="section-title">📦 Thống kê đơn hàng</h4>
-        <div class="placeholder-section">
-          <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-          <p class="text-muted">Thống kê đơn hàng sẽ được hiển thị tại đây</p>
+        <h4 class="section-title">📈 Thống kê đơn hàng</h4>
+        <div class="row g-3">
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-warning">
+              <div class="stat-icon">🕒</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.order.pending) }}</h5>
+                <p class="stat-label">Chờ xác nhận</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-primary">
+              <div class="stat-icon">🚚</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.order.shipping) }}</h5>
+                <p class="stat-label">Đang giao hàng</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-success">
+              <div class="stat-icon">✅</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.order.completed) }}</h5>
+                <p class="stat-label">Đã hoàn thành</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="stat-card bg-secondary">
+              <div class="stat-icon">❌</div>
+              <div class="stat-content">
+                <h5 class="stat-number">{{ formatNumber(this.order.cancelled) }}</h5>
+                <p class="stat-label">Bị hủy</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -124,6 +191,8 @@ export default {
   data() {
     return {
       user: {},
+      revenue: {},
+      order: {},
     };
   },
   methods: {
@@ -137,6 +206,26 @@ export default {
         throw error;
       }
     },
+    async fetchRevenueStatistics() {
+      try {
+        axios.get('http://localhost:8080/api/statistic/revenue').then(response => {
+          this.revenue = response.data;
+        });
+      } catch (error) {
+        console.error('Lấy thống kê doanh thu thất bại:', error);
+        throw error;
+      }
+    },
+    async fetchOrderStatistics() {
+      try {
+        axios.get('http://localhost:8080/api/statistic/order').then(response => {
+          this.order = response.data;
+        });
+      } catch (error) {
+        console.error('Lấy thống kê đơn hàng thất bại:', error);
+        throw error;
+      }
+    },
 
     formatNumber(number) {
       return new Intl.NumberFormat('vi-VN').format(number);
@@ -144,6 +233,8 @@ export default {
   },
   mounted() {
     this.fetchUserStatistics();
+    this.fetchRevenueStatistics();
+    this.fetchOrderStatistics();
   }
 };
 </script>

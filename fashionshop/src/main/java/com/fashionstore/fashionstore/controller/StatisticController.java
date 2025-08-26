@@ -21,4 +21,14 @@ public class StatisticController {
     public ResponseEntity<Map<String, Long>> statisticUser() {
         return ResponseEntity.ok(statisticService.statisticUser());
     }
+
+    @GetMapping("/revenue")
+    public ResponseEntity<Map<String, Long>> statisticRevenue() {
+        return ResponseEntity.ok(statisticService.statisticRevenue());
+    }
+
+    @GetMapping("/order")
+    public ResponseEntity<Map<String, Long>> statisticOrder() {
+        return ResponseEntity.ok(statisticService.statisticOrder());
+    }
 }

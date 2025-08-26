@@ -34,4 +34,9 @@ public interface OrderService {
     // OrderService.java
     Optional<Order> getOrderByIdWithDetails(Integer id);
 
+    // OrderService.java
+    boolean cancelByUser(Integer id, String email);
+
+    boolean markReceivedByUser(Integer id, String email);
+
 }

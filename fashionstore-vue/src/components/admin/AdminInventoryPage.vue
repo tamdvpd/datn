@@ -1,42 +1,6 @@
 <template>
   <div class="container my-4">
-    <!-- ======================= FORM NHẬP HÀNG ======================= -->
-    <section class="mb-5">
-   <div class="card shadow-sm">
-  <div class="card-header bg-primary text-white">
-    <h5 class="mb-0">➕ Nhập hàng</h5>
-  </div>
-  <div class="card-body">
-    <form @submit.prevent="submitImport" class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label">Tên sản phẩm</label>
-        <select v-model.number="newLog.productDetailId" class="form-select" required>
-          <option disabled value="">-- Chọn sản phẩm --</option>
-          <option v-for="item in stocks" :key="item.productDetailId" :value="item.productDetailId">
-            {{ item.productName }} - {{ item.color }} - {{ item.size }}
-          </option>
-        </select>
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Số lượng</label>
-        <input v-model.number="newLog.quantity" type="number" class="form-control" required min="1" />
-      </div>
-
-      <div class="col-md-4">
-        <label class="form-label">Ghi chú</label>
-        <input v-model="newLog.note" type="text" class="form-control" />
-      </div>
-
-      <div class="col-12 text-end">
-        <button type="submit" class="btn btn-success">
-          <i class="bi bi-box-arrow-in-down me-1"></i> Nhập hàng
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-    </section>
+  
 
     <!-- ======================= BẢNG KHO HÀNG ======================= -->
     <section class="mb-5">

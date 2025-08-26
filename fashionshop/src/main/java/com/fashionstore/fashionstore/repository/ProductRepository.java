@@ -27,4 +27,5 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     // Lấy tất cả sản phẩm đang hoạt động (status = true)
     Page<Product> findByStatusTrue(Pageable pageable);
+
 }

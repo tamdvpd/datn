@@ -4,15 +4,87 @@
 
     <main class="main-content">
       <h2 class="section-title">SẢN PHẨM</h2>
-      <section aria-label="Danh sách sản phẩm" class="product-grid">
+
+      <!-- Search + Sort -->
+      <section class="toolbar" aria-label="Bộ lọc sản phẩm">
+        <div class="toolbar-inner">
+          <div class="search-wrap">
+            <input
+              v-model.trim="searchQuery"
+              @keyup.enter="applyFilters"
+              type="text"
+              class="search-input"
+              placeholder="Tìm kiếm sản phẩm..."
+              aria-label="Tìm kiếm sản phẩm"
+            />
+            <button class="search-button" @click="applyFilters" aria-label="Tìm">
+              Tìm
+            </button>
+          </div>
+
+          <select class="sort-select" v-model="sortOption" @change="applyFilters" aria-label="Sắp xếp">
+            <option value="">Sắp xếp</option>
+            <option value="name-asc">Tên: A → Z</option>
+            <option value="name-desc">Tên: Z → A</option>
+            <option value="price-asc">Giá: Thấp → Cao</option>
+            <option value="price-desc">Giá: Cao → Thấp</option>
+          </select>
+        </div>
+
+        <p class="hint" v-if="!loading && filteredProducts.length">
+          Tìm thấy <strong>{{ filteredProducts.length }}</strong> sản phẩm
+        </p>
+      </section>
+
+      <!-- Loading skeleton -->
+      <section v-if="loading" class="product-grid" aria-busy="true">
+        <article v-for="n in 8" :key="'skeleton-'+n" class="product-card skeleton">
+          <div class="image-skeleton"></div>
+          <div class="line-skeleton w-80"></div>
+          <div class="line-skeleton w-40"></div>
+        </article>
+      </section>
+
+      <!-- Empty state -->
+      <section v-else-if="!filteredProducts.length" class="empty-state">
+        <p>Không có sản phẩm phù hợp. Hãy thử từ khoá khác hoặc xoá bộ lọc.</p>
+        <button class="search-button" @click="resetFilters">Xoá bộ lọc</button>
+      </section>
+
+      <!-- Product grid -->
+      <section v-else aria-label="Danh sách sản phẩm" class="product-grid">
         <article
-          v-for="(product, index) in filteredProducts"
-          :key="index"
+          v-for="product in filteredProducts"
+          :key="product.id"
           class="product-card"
         >
-          <img :alt="product.alt" class="product-image" :src="product.image" />
-          <h3 class="product-name">{{ product.name }}</h3>
-          <p class="product-price">{{ product.price }}</p>
+          <router-link
+            class="image-link"
+            :to="`/products/${product.id}`"
+            :aria-label="`Xem chi tiết ${product.name}`"
+          >
+            <img
+              :alt="product.alt || product.name"
+              class="product-image"
+              :src="getImageUrl(product.image)"
+            />
+            <span v-if="discountPercent(product)" class="discount-badge">
+              -{{ discountPercent(product) }}%
+            </span>
+          </router-link>
+
+          <router-link :to="`/products/${product.id}`" class="product-name">
+            {{ product.name }}
+          </router-link>
+
+          <p class="price-row">
+            <span class="price-current">
+              {{ formatVnd(product.discountPrice ?? product.price) }}
+            </span>
+            <span v-if="product.discountPrice" class="price-original">
+              {{ formatVnd(product.price) }}
+            </span>
+          </p>
         </article>
       </section>
     </main>
@@ -25,356 +97,305 @@
 import MainHeader from '@/components/MainHeader.vue';
 import MainFooter from '@/components/MainFooter.vue';
 
+const API_BASE = import.meta?.env?.VITE_API_BASE || 'http://localhost:8080';
+
 export default {
-  name: "HaravanProductPage",
-  components: {
-    MainHeader,
-    MainFooter
-  },
+  name: 'HaravanProductPage',
+  components: { MainHeader, MainFooter },
   data() {
     return {
-      searchQuery: "",
-      products: [
-        {
-          name: "Áo sơ mi dài tay trơn GATB011",
-          price: "550,000 VND",
-          image:
-            "https://tse2.mm.bing.net/th?id=OIP.8Jf8KBowjgTKL6ekrtQuegHaHa&pid=Api&P=0&h=180",
-          alt:
-            "Áo sơ mi dài tay trơn màu xanh nhạt, kiểu dáng cổ bẻ, gấp tay áo gọn gàng",
-        },
-        {
-          name: "Áo polo trơn bo kẻ thiếu logo ngực GSTP066",
-          price: "342,250 VND",
-          image:
-            "https://tse4.mm.bing.net/th?id=OIP._5l5qjFUHOJXAixo70MvggHaHa&pid=Api&P=0&h=180",
-          alt: "Áo polo trơn bo kẻ thiếu logo ngực màu nâu đậm, cổ bẻ, nút áo",
-        },
-        {
-          name: "Quần kaki cái basic GABK021",
-          price: "450,000 VND",
-          image:
-            "https://tse3.mm.bing.net/th?id=OIP.g2XJAdc9jiIcXK0E_LU4jQHaHa&pid=Api&P=0&h=180",
-          alt: "Quần kaki màu be basic, kiểu dáng quần dài, ống côn",
-        },
-        {
-          name: "Áo polo kẻ ngang bo tay phối màu GSTP039",
-          price: "299,000 VND",
-          image:
-            "https://tse3.mm.bing.net/th?id=OIP.yBqhpeoPDn90ptOZ2K1LmwHaHa&pid=Api&P=0&h=180",
-          alt: "Áo polo kẻ ngang bo tay phối màu trắng và đen, cổ bẻ, nút áo",
-        },
-        {
-          name: "Kính Chống Tia UV | Gọng Vuông",
-          price: "130,000 VND",
-          image:
-            "https://tse3.mm.bing.net/th?id=OIP.P_vf5KJLUqkvKVfHgO_K3wHaEo&pid=Api&P=0&h=180",
-          alt: "Kính chống tia UV gọng vuông màu đen, kiểu dáng hiện đại",
-        },
-        {
-          name: "Mũ Lưỡi Trai/ Nón Chống Tia UV",
-          price: "90,000 VND",
-          image:
-            "https://tse2.mm.bing.net/th?id=OIP.lcMFbREe3gjSIdQwrdlWkgHaHa&pid=Api&P=0&h=180",
-          alt: "Mũ lưỡi trai màu đen chống tia UV, kiểu dáng thể thao",
-        },
-        {
-          name: "Áo Khoác Nỉ Form Rộng Unisex",
-          price: "380,000 VND",
-          image:
-            "https://tse4.mm.bing.net/th?id=OIP.Wtv_t4d6CQZfv2xtEKXRtwHaHa&pid=Api&P=0&h=180",
-          alt: "Áo khoác nỉ form rộng unisex màu xám nhạt, có mũ trùm đầu",
-        },
-        {
-          name: "Giày Sneaker Nam Nữ Hot Trend",
-          price: "720,000 VND",
-          image:
-            "https://tse2.mm.bing.net/th?id=OIP.DpkC3n4GINLmGQ847q8kswHaHa&pid=Api&P=0&h=180",
-          alt: "Giày sneaker màu trắng phối xanh và đỏ, kiểu dáng thể thao",
-        },
-      ],
+      loading: true,
+      error: '',
+      searchQuery: '',
+      sortOption: '',
+      products: [],       // raw từ BE
+      viewProducts: [],   // sau khi map/chuẩn hoá
+      filteredProducts: []
     };
   },
-  computed: {
-    filteredProducts() {
-      if (!this.searchQuery.trim()) {
-        return this.products;
-      }
-      const q = this.searchQuery.trim().toLowerCase();
-      return this.products.filter((p) => p.name.toLowerCase().includes(q));
-    },
-  },
   methods: {
-    onSearch() {},
+    async fetchProducts() {
+      this.loading = true;
+      this.error = '';
+      try {
+        const res = await fetch(`${API_BASE}/products`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        // Lọc status = true & chuẩn hoá trường để FE dùng thống nhất
+        this.viewProducts = (data || [])
+          .filter(p => p?.status !== false) // nếu có trường status thì chỉ lấy true
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            image: p.imageUrl, // BE trả imageUrl (đường dẫn tương đối) -> sẽ ghép ở getImageUrl
+            price: p.displayPrice ?? p.price ?? 0,
+            discountPrice: p.displayDiscountPrice ?? p.discount_price ?? null,
+            alt: p.name
+          }));
+
+        this.applyFilters();
+      } catch (e) {
+        this.error = 'Không tải được sản phẩm.';
+        console.error('Fetch products error:', e);
+      } finally {
+        this.loading = false;
+      }
+    },
+    getImageUrl(imagePath) {
+      if (!imagePath) return '';
+      if (imagePath.startsWith('http')) return imagePath;
+      return `${API_BASE}/images/${imagePath}`;
+    },
+    formatVnd(val) {
+      if (val == null) return '';
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+    },
+    discountPercent(p) {
+      const base = Number(p?.price || 0);
+      const sale = Number(p?.discountPrice || 0);
+      if (base > 0 && sale > 0 && sale < base) {
+        return Math.round(((base - sale) / base) * 100);
+      }
+      return null;
+    },
+    applyFilters() {
+      let list = [...this.viewProducts];
+
+      // search
+      const q = this.searchQuery.trim().toLowerCase();
+      if (q) list = list.filter(p => p.name.toLowerCase().includes(q));
+
+      // sort
+      switch (this.sortOption) {
+        case 'name-asc':
+          list.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'name-desc':
+          list.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        case 'price-asc':
+          list.sort((a, b) => (a.discountPrice ?? a.price) - (b.discountPrice ?? b.price));
+          break;
+        case 'price-desc':
+          list.sort((a, b) => (b.discountPrice ?? b.price) - (a.discountPrice ?? a.price));
+          break;
+      }
+
+      this.filteredProducts = list;
+    },
+    resetFilters() {
+      this.searchQuery = '';
+      this.sortOption = '';
+      this.applyFilters();
+    }
   },
+  mounted() {
+    this.fetchProducts();
+  }
 };
 </script>
 
 <style scoped>
-/* Base Styles */
-/* Đặt margin và padding của body về 0 để giao diện chiếm full chiều rộng */
-html,
-body {
+/* ===== Layout base ===== */
+html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow-x: hidden; /* Ngăn cuộn ngang không mong muốn */
+  overflow-x: hidden;
 }
-
 .haravan-product-page {
-  font-family: sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #333; /* A softer dark gray for text */
-  min-height: 100vh; /* Đảm bảo trang chiếm ít nhất 100% chiều cao viewport */
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  color: #333;
+  min-height: 100vh;
   display: flex;
-  flex-direction: column; /* Sắp xếp các phần tử theo chiều dọc */
+  flex-direction: column;
 }
-
-/* Top Announcement Bar */
-.top-bar {
-  background-color: #00c0f1; /* Darker blue */
-  color: white;
-  font-size: 0.75rem; /* 12px */
-  padding: 0.25rem 1rem; /* 4px 16px */
-  text-align: center;
-  width: 100%; /* Chiếm full chiều rộng */
-  box-sizing: border-box; /* Bao gồm padding trong chiều rộng */
-}
-
-/* Header */
-.main-header {
-  background-color: #00c0f1; /* A vibrant blue */
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem; /* 12px 16px */
-  gap: 1rem; /* 16px */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  width: 100%; /* Chiếm full chiều rộng */
-  box-sizing: border-box; /* Bao gồm padding trong chiều rộng */
-}
-
-@media (min-width: 768px) {
-  .main-header {
-    gap: 1.5rem; /* 24px */
-    padding: 0.75rem 2rem; /* Tăng padding ngang trên màn hình lớn */
-  }
-}
-
-.header-logo .logo-img {
-  height: 3rem; /* 48px */
-  width: auto;
-}
-
-.search-form {
-  display: flex;
-  flex-grow: 1;
-  max-width: 40rem; /* Keeps search bar a reasonable size on large screens */
-  border-radius: 0.375rem; /* 6px */
-  overflow: hidden;
-}
-
-.search-input {
-  flex-grow: 1;
-  border: 1px solid #d1d5db; /* Light gray border */
-  padding: 0.5rem 1rem; /* 8px 16px */
-  font-size: 0.875rem; /* 14px */
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.search-input:focus {
-  border-color: #3b82f6; /* Blue on focus */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Blue ring on focus */
-}
-
-.search-button {
-  background-color: #2563eb; /* A slightly darker blue for button */
-  color: white;
-  padding: 0.5rem 1.25rem; /* 8px 20px */
-  font-size: 0.875rem; /* 14px */
-  font-weight: 600; /* semi-bold */
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.search-button:hover {
-  background-color: #00c0f1; /* Darker blue on hover */
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem; /* 16px */
-  margin-left: auto;
-}
-
-@media (min-width: 768px) {
-  .header-actions {
-    gap: 1.5rem; /* 24px */
-  }
-}
-
-.action-button {
-  color: white;
-  font-size: 1rem; /* 16px */
-  display: flex;
-  flex-direction: column; /* Sắp xếp icon và text theo chiều dọc */
-  align-items: center;
-  gap: 0.25rem; /* 4px */
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.action-button:hover {
-  color: #bfdbfe; /* Lighter blue on hover */
-}
-
-.action-button i {
-  font-size: 1.125rem; /* 18px */
-}
-
-.action-text {
-  font-weight: 500; /* medium */
-  font-size: 0.75rem; /* Tăng kích thước chữ cho text */
-  white-space: nowrap; /* Ngăn text bị xuống dòng */
-}
-
-/* Navigation Bar */
-.main-nav {
-  background-color: #00c0f1; /* Blue */
-  color: white;
-  font-size: 0.875rem; /* 14px */
-  font-weight: 600; /* semi-bold */
-  padding: 0.75rem 1rem; /* 12px 16px */
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 2rem; /* 16px 32px */
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow */
-  width: 100%; /* Chiếm full chiều rộng */
-  box-sizing: border-box; /* Bao gồm padding trong chiều rộng */
-}
-
-@media (min-width: 768px) {
-  .main-nav {
-    justify-content: flex-start;
-    padding: 0.75rem 2rem; /* Tăng padding ngang trên màn hình lớn */
-  }
-}
-
-.nav-link {
-  color: white;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.05em; /* tracking-wide */
-  transition: color 0.2s ease;
-}
-
-.nav-link:hover {
-  color: #bfdbfe; /* Lighter blue on hover */
-}
-
-/* Main Content */
 .main-content {
-  flex-grow: 1; /* Cho phép main content chiếm hết không gian còn lại */
-  padding: 2rem 1rem; /* 32px 16px */
-  background-color: #f9fafb; /* Very light gray */
-  width: 100%; /* Chiếm full chiều rộng */
-  box-sizing: border-box; /* Bao gồm padding trong chiều rộng */
+  flex-grow: 1;
+  padding: 2rem 1rem;
+  background-color: #f9fafb;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* ===== Title ===== */
 .section-title {
-  font-size: 2.25rem; /* 36px */
-  font-weight: 800; /* extra-bold */
-  color: #1e3a8a; /* Darker blue */
-  margin-bottom: 2rem; /* 32px */
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-bottom: 1rem;
   text-align: center;
-  max-width: 80rem; /* Optional: Keep text width readable */
+  max-width: 80rem;
   margin-left: auto;
   margin-right: auto;
 }
-
 @media (min-width: 768px) {
   .section-title {
     text-align: left;
-    padding-left: 1rem; /* Thêm padding để căn chỉnh với lưới sản phẩm */
+    padding-left: 1rem;
   }
 }
 
+/* ===== Toolbar ===== */
+.toolbar {
+  max-width: 80rem;
+  margin: 0 auto 1rem;
+  padding: 0 1rem;
+}
+.toolbar-inner {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+.search-wrap {
+  display: flex;
+  gap: 0.5rem;
+}
+.search-input {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  border-radius: 6px;
+  background: #fff;
+}
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,.25);
+}
+.search-button {
+  background-color: #2563eb;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.search-button:hover { background-color: #1d4ed8; }
+.sort-select {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+.hint { color: #6b7280; margin: .5rem 0 0 0; }
+
+/* ===== Grid ===== */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
-  gap: 1.5rem; /* 24px */
-  max-width: 80rem; /* Giới hạn chiều rộng lưới sản phẩm */
-  margin-left: auto;
-  margin-right: auto;
-  /* padding-left và padding-right đã được bao gồm trong main-content padding */
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 1.5rem;
+  max-width: 80rem;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
 }
+@media (min-width: 640px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
 
-@media (min-width: 640px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 768px) {
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
+/* ===== Card ===== */
 .product-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
   text-align: center;
-  background-color: white;
-  border-radius: 0.5rem; /* 8px */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* lg shadow */
-  padding: 1.5rem; /* 24px */
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 14px rgba(0,0,0,.06);
+  padding: 1rem;
+  transition: box-shadow .25s ease, transform .25s ease;
+  position: relative;
 }
-
 .product-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* xl shadow */
-  transform: translateY(-0.25rem); /* -4px */
+  box-shadow: 0 14px 24px rgba(0,0,0,.08);
+  transform: translateY(-3px);
 }
-
+.image-link { display: block; position: relative; }
 .product-image {
-  margin-bottom: 1rem; /* 16px */
-  width: 13rem; /* 208px */
-  height: 13rem; /* 208px */
+  margin-bottom: 0.75rem;
+  width: 13rem;
+  height: 13rem;
   object-fit: contain;
+  max-width: 100%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
-
+.discount-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ef4444;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
 .product-name {
-  font-size: 1rem; /* 16px */
-  font-weight: 700; /* bold */
-  color: #1f2937; /* Very dark gray */
-  margin-bottom: 0.5rem; /* 8px */
-  line-height: 1.375; /* tight leading */
-  min-height: 2.75rem; /* Đảm bảo chiều cao tối thiểu cho 2 dòng */
-  overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.375;
+  min-height: 2.75rem;
+  margin: 0 0 .25rem 0;
+  text-decoration: none;
+}
+.product-name:hover { text-decoration: underline; }
+
+/* ===== Price ===== */
+.price-row {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  align-items: baseline;
+}
+.price-current {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #dc2626;
+}
+.price-original {
+  font-size: .95rem;
+  color: #9ca3af;
+  text-decoration: line-through;
 }
 
-.product-price {
-  font-size: 1.25rem; /* 20px */
-  font-weight: 800; /* extra-bold */
-  color: #dc2626; /* Red */
-  margin-top: auto; /* Đẩy giá xuống cuối card */
+/* ===== Skeleton ===== */
+.skeleton { overflow: hidden; }
+.image-skeleton,
+.line-skeleton {
+  background: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+  background-size: 200% 100%;
+  animation: shimmer 1.25s infinite;
+  border-radius: 8px;
+}
+.image-skeleton { width: 13rem; height: 13rem; margin: 0 auto .75rem; }
+.line-skeleton { height: 14px; margin: 6px auto; }
+.w-80 { width: 80%; }
+.w-40 { width: 40%; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===== Empty ===== */
+.empty-state {
+  max-width: 80rem;
+  margin: 1rem auto 0;
+  padding: 0 1rem;
+  text-align: center;
+  color: #6b7280;
 }
 </style>

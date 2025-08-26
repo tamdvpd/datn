@@ -14,10 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "Suppliers", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "phone_number")
-})
+@Table(name = "Suppliers")
 public class Supplier {
 
     @Id
@@ -36,7 +33,10 @@ public class Supplier {
     private String email;
 
     @NotBlank(message = "Số điện thoại không được để trống.")
-    @Pattern(regexp = "^0\\d{9}$", message = "Số điện thoại không đúng định dạng (bắt đầu bằng 0 và đủ 10 số).")
+    @Pattern(
+        regexp = "^0\\d{9}$", 
+        message = "Số điện thoại không đúng định dạng (bắt đầu bằng 0 và đủ 10 số)."
+    )
     @Column(name = "phone_number", length = 15, unique = true, nullable = false)
     private String phoneNumber;
 
@@ -45,8 +45,8 @@ public class Supplier {
     @Column(length = 255, nullable = false)
     private String address;
 
-    @NotNull
-    @Column(nullable = false, columnDefinition = "BIT DEFAULT 1")
+    @Builder.Default
+    @Column(name = "status", nullable = false) // map đúng với cột status trong DB
     private Boolean status = true;
 
     @Column(name = "created_at", updatable = false)
@@ -61,12 +61,12 @@ public class Supplier {
         this.createdAt = now;
         this.updatedAt = now;
     }
-
+    
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
+    
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<ImportInvoice> importInvoices = new ArrayList<>();

@@ -111,7 +111,9 @@ public class ProductController {
         }
     }
 
-    //  API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
+
+    // API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
+
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
             @RequestParam(required = false) String keyword,
@@ -137,10 +139,13 @@ public class ProductController {
         return ResponseEntity.ok(filters);
     }
 
-    //  API sản phẩm bán chạy (best sellers)
+
+    // API sản phẩm bán chạy (best sellers)
+
     @GetMapping("/best-sellers")
     public ResponseEntity<List<Product>> getBestSellers(
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(productService.getBestSellers(limit));
     }
 }
+

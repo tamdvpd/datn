@@ -41,22 +41,25 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
     public ImportInvoice createImportInvoice(ImportInvoice invoice) {
         Supplier supplier = invoice.getSupplier();
 
-        if (supplier.getId() != null) {
-            // Nếu ID có sẵn → tìm nhà cung cấp hiện có
-            supplier = supplierRepository.findById(supplier.getId())
-                    .orElseThrow(() -> new RuntimeException("❌ Không tìm thấy nhà cung cấp"));
-
-            if (!Boolean.TRUE.equals(supplier.getStatus())) {
-                throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể tạo phiếu nhập.");
-            }
-        } else {
-            // Nếu ID null → tạo nhà cung cấp mới
-            supplier.setStatus(true); // mặc định active
-            supplier = supplierRepository.save(supplier);
+        if (supplier == null || supplier.getId() == null) {
+            throw new RuntimeException("❌ Vui lòng chọn nhà cung cấp đã tồn tại");
         }
 
+        supplier = supplierRepository.findById(supplier.getId())
+                .orElseThrow(() -> new RuntimeException("❌ Không tìm thấy nhà cung cấp"));
+
+        if (!Boolean.TRUE.equals(supplier.getStatus())) {
+            throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể tạo phiếu nhập");
+        }
+
+        // Gán lại nhà cung cấp
         invoice.setSupplier(supplier);
-        invoice.setImportDate(LocalDate.now());
+
+        // Thiết lập ngày nhập và trạng thái
+        if (invoice.getImportDate() == null) {
+            invoice.setImportDate(LocalDate.now());
+        }
+        
         invoice.setStatus(ImportInvoice.Status.PENDING);
 
         // Thiết lập quan hệ 2 chiều với chi tiết nếu có
@@ -80,7 +83,6 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
         existing.setImportDate(invoice.getImportDate());
         existing.setNote(invoice.getNote());
 
-        // Thiết lập quan hệ 2 chiều với chi tiết nếu có
         if (invoice.getImportInvoiceDetails() != null) {
             invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(existing));
             existing.setImportInvoiceDetails(invoice.getImportInvoiceDetails());

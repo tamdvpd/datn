@@ -80,4 +80,6 @@ export default {
     this.fetchWishlist();
   },
 };
+
 </script>
+

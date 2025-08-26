@@ -26,7 +26,7 @@ public class CategoryController {
     public ResponseEntity<List<Category>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
-
+    
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Integer id) {
         return ResponseEntity.of(categoryService.getCategoryById(id));
@@ -37,7 +37,7 @@ public class CategoryController {
             @PageableDefault(size = 10, page = 0) Pageable pageable) {
         return ResponseEntity.ok(categoryService.getAllCategories(pageable));
     }
-
+    
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Category> createCategory(
             @RequestParam("name") String name,

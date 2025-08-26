@@ -5,6 +5,7 @@
     </div>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container">
+        <!-- Logo -->
         <router-link to="/" class="navbar-brand">
           <img
             src="@/assets/img/LogoChinh.png"
@@ -14,31 +15,39 @@
           />
         </router-link>
 
-      
 
-        <div class="d-flex align-items-center">
-          <router-link to="/cart" class="btn btn-outline-primary me-2">
+        <!-- Nhóm button bên phải -->
+        <div class="d-flex align-items-center ms-auto">
+          <!-- Nút sản phẩm gọn -->
+          <router-link to="/product" class="btn btn-warning btn-sm me-2">
+            🛍️ Sản phẩm
+          </router-link>
+
+          <!-- Giỏ hàng -->
+          <router-link to="/cart" class="btn btn-outline-primary btn-sm me-2">
+
             🛒 Giỏ hàng
           </router-link>
 
+          <!-- Nếu chưa đăng nhập -->
           <div v-if="!currentUser">
-            <router-link to="/login" class="btn btn-outline-secondary me-2">
+
+            <router-link to="/login" class="btn btn-outline-secondary btn-sm me-2">
               Đăng nhập
             </router-link>
-            <router-link to="/register" class="btn btn-outline-secondary">
+            <router-link to="/register" class="btn btn-outline-secondary btn-sm">
+
               Đăng ký
             </router-link>
           </div>
 
+          <!-- Nếu đã đăng nhập -->
           <div v-else class="dropdown">
             <img
-              :src="
-                currentUser.imageUrl ||
-                require('@/assets/img/default-avatar.png')
-              "
+              :src="currentUser.imageUrl || require('@/assets/img/default-avatar.png')"
               alt="Avatar"
-              width="40"
-              height="40"
+              width="36"
+              height="36"
               class="rounded-circle me-2 dropdown-toggle"
               data-bs-toggle="dropdown"
               style="cursor: pointer"
@@ -57,7 +66,7 @@
               <li><hr class="dropdown-divider" /></li>
               <li>
                 <router-link to="/change-password" class="dropdown-item">
-                  Đổi mật khẩu
+                  🔑 Đổi mật khẩu
                 </router-link>
               </li>
               <li>
@@ -65,7 +74,7 @@
               </li>
               <li v-if="currentUser.role === 'ADMIN'">
                 <router-link to="/admin" class="dropdown-item">
-                  🛠️ Quản lý Admin
+                  ⚙️ Quản lý Admin
                 </router-link>
               </li>
             </ul>
@@ -81,7 +90,6 @@ export default {
   name: "MainHeader",
   data() {
     return {
-      searchQuery: "",
       currentUser: null,
     };
   },
@@ -89,13 +97,8 @@ export default {
     this.loadCurrentUser();
   },
   methods: {
-    // 👉 Hàm tìm kiếm, chuyển hướng sang trang products kèm keyword
-  onSearch() {
-  this.$router.push({
-    path: "/product",
-    query: { keyword: this.searchQuery },
-  });
-},
+
+
     loadCurrentUser() {
       const user = localStorage.getItem("user");
       if (user) {
@@ -119,19 +122,14 @@ export default {
 .navbar {
   background-color: #00c0f1 !important;
 }
-.navbar .form-control,
-.navbar .btn {
-  border-color: white;
-}
-.navbar .btn-outline-success {
-  color: white;
-  border-color: white;
-}
-.navbar .btn-outline-success:hover {
-  background-color: white;
-  color: #00c0f1;
-}
 .navbar-brand img {
   filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
+}
+/* chỉnh nút sản phẩm nhỏ gọn */
+.btn-warning.btn-sm {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 6px;
 }
 </style>

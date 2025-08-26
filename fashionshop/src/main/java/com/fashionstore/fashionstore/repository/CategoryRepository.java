@@ -11,7 +11,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     // Kiểm tra danh mục có tồn tại theo tên (dùng để tránh trùng khi thêm mới)
     boolean existsByName(String name);
-
+    
     // Tìm danh mục theo tên (không phân biệt hoa thường)
     Optional<Category> findByNameIgnoreCase(String name);
 }

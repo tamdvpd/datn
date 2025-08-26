@@ -45,4 +45,5 @@ public interface ProductService {
             BigDecimal maxPrice);
 
     List<Product> getBestSellers(int limit);
+
 }

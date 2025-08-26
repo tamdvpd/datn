@@ -83,7 +83,12 @@
             <td class="fw-semibold">{{ category.name }}</td>
             <td>{{ category.description }}</td>
             <td>
-              <img v-if="category.imageUrl" :src="`http://localhost:8080${category.imageUrl}`" class="img-thumbnail" style="width:50px;height:50px;object-fit:cover;" />
+              <img 
+                v-if="category.imageUrl" 
+                :src="`http://localhost:8080/images/categories/${category.imageUrl}`" 
+                class="img-thumbnail" 
+                style="width:50px;height:50px;object-fit:cover;" 
+              />
             </td>
             <td>
               <span :class="category.status ? 'badge bg-success' : 'badge bg-danger'">
@@ -168,12 +173,15 @@ export default {
       if (this.form.image) formData.append("image", this.form.image);
 
       try {
-        await fetch(url, { method, body: formData });
+        const res = await fetch(url, { method, body: formData });
+        if (!res.ok) throw new Error("Lỗi khi lưu danh mục!");
         this.fetchCategories();
         this.resetForm();
         this.showForm = false;
+        alert(isUpdate ? "Cập nhật danh mục thành công!" : "Thêm danh mục thành công!");
       } catch (err) {
         console.error("Submit error:", err);
+        alert(err.message);
       }
     },
     editCategory(category) {
@@ -185,17 +193,23 @@ export default {
         image: null,
         imageUrl: category.imageUrl,
       };
-      this.imagePreview = category.imageUrl ? `http://localhost:8080${category.imageUrl}` : null;
+      this.imagePreview = category.imageUrl ? `http://localhost:8080/uploads/${category.imageUrl}` : null;
       this.showForm = true;
     },
     async deleteCategory(id) {
-      if (confirm("Bạn có chắc chắn muốn xoá danh mục này?")) {
-        try {
-          await fetch(`http://localhost:8080/api/categories/${id}`, { method: "DELETE" });
+      if (!confirm("Bạn có chắc chắn muốn xoá danh mục này?")) return;
+      try {
+        const res = await fetch(`http://localhost:8080/api/categories/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const errData = await res.json();
+          alert(errData.message || "Xóa thất bại!");
+        } else {
           this.fetchCategories();
-        } catch (err) {
-          console.error("Delete error:", err);
+          alert("Xóa danh mục thành công!");
         }
+      } catch (err) {
+        console.error("Delete error:", err);
+        alert("Có lỗi xảy ra khi xóa danh mục.");
       }
     },
     resetForm() {

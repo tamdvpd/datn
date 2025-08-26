@@ -34,7 +34,8 @@ public class InventoryLog {
     private Integer quantity;
 
     @Column(name = "reference_type", length = 50)
-    private String referenceType; //  "ImportInvoice"
+
+    private String referenceType; // "ImportInvoice"
 
     @Column(name = "reference_id")
     private Integer referenceId; // Id của phiếu nhập/ xuất
@@ -68,4 +69,6 @@ public class InventoryLog {
     public Integer getProductDetailId() {
         return productDetail != null ? productDetail.getId() : null;
     }
+
 }
+

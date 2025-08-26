@@ -114,4 +114,6 @@ public class ProductDetail {
     public void setStock(Integer stock) {
         this.quantity = stock;
     }
+
 }
+

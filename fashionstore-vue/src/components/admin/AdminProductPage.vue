@@ -1,105 +1,142 @@
 <template>
-  <div class="p-6 bg-white rounded-xl shadow-lg max-w-7xl mx-auto">
+  <div class="container py-4">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-6 border-b pb-2">
-      <h2 class="text-2xl font-bold text-gray-800">Quản lý sản phẩm</h2>
-      <button @click="toggleForm" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-semibold">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+      <h2 class="fw-bold text-dark">📦 Quản lý sản phẩm</h2>
+      <button @click="toggleForm" class="btn btn-primary">
+        <i class="bi" :class="showForm ? 'bi-x-circle' : 'bi-plus-circle'"></i>
         {{ showForm ? 'Đóng' : 'Thêm mới' }}
       </button>
     </div>
 
     <!-- Form -->
-    <div v-if="showForm" class="mb-10 bg-gray-50 p-6 rounded-xl shadow">
-      <h3 class="text-xl font-semibold text-gray-800 mb-4">
-        {{ form.id ? '✏️ Cập nhật sản phẩm' : '➕ Thêm sản phẩm mới' }}
-      </h3>
-      <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input name="name" v-model="form.name" placeholder="Tên sản phẩm" required class="border p-3 rounded-lg" />
-        <input name="description" v-model="form.description" placeholder="Mô tả" class="border p-3 rounded-lg" />
-        <input name="brand" v-model="form.brand" placeholder="Thương hiệu" class="border p-3 rounded-lg" />
+    <div v-if="showForm" class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">
+          {{ form.id ? '✏️ Cập nhật sản phẩm' : '➕ Thêm sản phẩm mới' }}
+        </h5>
+        <form @submit.prevent="handleSubmit" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Tên sản phẩm</label>
+            <input v-model="form.name" type="text" class="form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Thương hiệu</label>
+            <input v-model="form.brand" type="text" class="form-control" />
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Mô tả</label>
+            <textarea v-model="form.description" class="form-control" rows="2"></textarea>
+          </div>
 
-        <input ref="imageInput" name="image" type="file" @change="onFileChange" accept="image/*" class="border p-3 rounded-lg" />
-        <img v-if="imagePreview" :src="imagePreview" alt="Xem trước ảnh" class="w-20 h-20 object-cover mt-2 rounded-md border" />
+          <div class="col-md-6">
+            <label class="form-label">Ảnh sản phẩm</label>
+            <input ref="imageInput" type="file" @change="onFileChange" accept="image/*" class="form-control" />
+            <div v-if="imagePreview" class="mt-2">
+              <img :src="imagePreview" alt="Xem trước ảnh" class="img-thumbnail" style="max-height: 200px" />
+            </div>
+          </div>
 
-        <!-- Trạng thái -->
-        <div class="flex items-center gap-2">
-          <label class="text-gray-700 font-medium">Trạng thái:</label>
-          <label><input name="status" type="radio" value="true" v-model="form.status" class="mr-1" /> Hiển thị</label>
-          <label class="ml-4"><input name="status" type="radio" value="false" v-model="form.status" class="mr-1" /> Ẩn</label>
-        </div>
+          <div class="col-md-6">
+            <label class="form-label d-block">Trạng thái</label>
+            <div class="form-check form-check-inline">
+              <input v-model="form.status" class="form-check-input" type="radio" value="true" id="status1" />
+              <label class="form-check-label" for="status1">Hiển thị</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input v-model="form.status" class="form-check-input" type="radio" value="false" id="status2" />
+              <label class="form-check-label" for="status2">Ẩn</label>
+            </div>
+          </div>
 
-        <!-- Danh mục -->
-        <select v-model="form.categoryId" required class="border p-3 rounded-lg">
-          <option disabled value="">-- Chọn danh mục --</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-        </select>
+          <div class="col-md-6">
+            <label class="form-label">Danh mục</label>
+            <select v-model="form.categoryId" class="form-select" required>
+              <option disabled value="">-- Chọn danh mục --</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
 
-        <!-- Buttons -->
-        <div class="md:col-span-2 flex gap-3 mt-2">
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"> {{ form.id ? 'Cập nhật' : 'Thêm' }} </button>
-          <button type="button" @click="resetForm" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded-lg"> Huỷ </button>
-        </div>
-      </form>
+          <div class="col-12 d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-success">
+              <i class="bi bi-check2-circle"></i> {{ form.id ? 'Cập nhật' : 'Thêm' }}
+            </button>
+            <button type="button" @click="resetForm" class="btn btn-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i> Huỷ
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm text-left border border-gray-200 rounded-lg shadow">
-        <thead class="bg-blue-100 text-gray-700">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle shadow-sm">
+        <thead class="table-primary">
           <tr>
-            <th class="px-4 py-2 border">ID</th>
-            <th class="px-4 py-2 border">Tên</th>
-            <th class="px-4 py-2 border">Mô tả</th>
-            <th class="px-4 py-2 border">Thương hiệu</th>
-            <th class="px-4 py-2 border">Ảnh</th>
-            <th class="px-4 py-2 border">Trạng thái</th>
-            <th class="px-4 py-2 border">Ngày tạo</th>
-            <th class="px-4 py-2 border">Ngày cập nhật</th>
-            <th class="px-4 py-2 border">Sửa</th>
-            <th class="px-4 py-2 border">Xoá</th>
-            <th class="px-4 py-2 border">Chi tiết</th>
-
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Mô tả</th>
+            <th>Thương hiệu</th>
+            <th>Ảnh</th>
+            <th>Trạng thái</th>
+            <th>Ngày tạo</th>
+            <th>Ngày cập nhật</th>
+            <th colspan="3" class="text-center">Hành động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="prod in products" :key="prod.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2 border">{{ prod.id }}</td>
-            <td class="px-4 py-2 border">{{ prod.name }}</td>
-            <td class="px-4 py-2 border">{{ prod.description }}</td>
-            <td class="px-4 py-2 border">{{ prod.brand }}</td>
-            <td class="px-4 py-2 border text-center">
-             <img
-              v-if="prod.imageUrl"
-              :src="getImageUrl(prod.imageUrl)"
-              class="w-6 h-6 object-contain mx-auto rounded border"
-              style="width: 48px; height: 48px;"
-            />
-
-
+          <tr v-for="prod in products" :key="prod.id">
+            <td>{{ prod.id }}</td>
+            <td>{{ prod.name }}</td>
+            <td>{{ prod.description }}</td>
+            <td>{{ prod.brand }}</td>
+            <td class="text-center">
+              <img v-if="prod.imageUrl" :src="getImageUrl(prod.imageUrl)" class="img-thumbnail" style="max-width: 60px" />
             </td>
-            <td class="px-4 py-2 border">
-              <span :class="prod.status ? 'text-green-600' : 'text-red-600'">
+            <td>
+              <span :class="prod.status ? 'text-success fw-bold' : 'text-danger fw-bold'">
                 {{ prod.status ? 'Hiển thị' : 'Ẩn' }}
               </span>
             </td>
-            <td class="px-4 py-2 border">{{ formatDate(prod.createdAt) }}</td>
-            <td class="px-4 py-2 border">{{ formatDate(prod.updatedAt) }}</td>
-            <td class="px-4 py-2 border text-center">
-              <button @click="editProduct(prod)" class="text-yellow-600 hover:text-yellow-800 text-lg">✏️</button>
+            <td>{{ formatDate(prod.createdAt) }}</td>
+            <td>{{ formatDate(prod.updatedAt) }}</td>
+            <td class="text-center">
+              <button @click="editProduct(prod)" class="btn btn-warning btn-sm"><i class="bi bi-pencil"></i></button>
             </td>
-            <td class="px-4 py-2 border text-center">
-              <button @click="deleteProduct(prod.id)" class="text-red-600 hover:text-red-800 text-lg">🗑️</button>
+            <td class="text-center">
+              <button @click="deleteProduct(prod.id)" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></button>
             </td>
-            <td class="px-4 py-2 border text-center">
-              <button @click="toggleProductDetailPage(prod.id)" class="text-red-600 hover:text-red-800 text-lg">+</button>
+            <td class="text-center">
+              <button @click="toggleProductDetailPage(prod.id)" class="btn btn-info btn-sm"><i class="bi bi-plus-circle"></i></button>
             </td>
           </tr>
         </tbody>
       </table>
-        <AdminProductDetailPage v-if="showDetailComponent" :productId="selectedProductId" />
+                  <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" :class="{ disabled: currentPage === 0 }">
+                    <a class="page-link" href="#"
+                        @click.prevent="fetchProducts(currentPage - 1)">Previous</a>
+                </li>
+                <li v-for="page in visiblePages" :key="page" class="page-item"
+                    :class="{ active: currentPage === page }">
+                    <a class="page-link" href="#" @click.prevent="fetchProducts(page)">
+                        {{ page + 1 }}
+                    </a>
+                </li>
+                <li class="page-item" :class="{ disabled: currentPage === totalPages - 1 }">
+                    <a class="page-link" href="#" @click.prevent="fetchProducts(currentPage + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
+
+    <!-- Chi tiết sản phẩm -->
+    <AdminProductDetailPage v-if="showDetailComponent" :productId="selectedProductId" />
   </div>
 </template>
+
 
 <script>
 import AdminProductDetailPage from './AdminProductDetailPage.vue'
@@ -120,6 +157,8 @@ export default {
         status: true,
         categoryId: ''
       },
+      currentPage: 0,
+      totalPages: 0,
       isUpdate: false,
       imageFile: null,
       imagePreview: null,
@@ -135,10 +174,14 @@ export default {
     toggleForm() {
       this.showForm = !this.showForm;
     },
-    fetchProducts() {
-      fetch('http://localhost:8080/products')
+    fetchProducts(page) {
+      const pageNumber = page !== undefined ? page : 0; 
+      fetch(`http://localhost:8080/products/admin?page=${pageNumber}`)
         .then(res => res.json())
-        .then(data => this.products = data);
+        .then(data => {
+        this.products = data.content;
+        this.currentPage = data.number;
+        this.totalPages = data.totalPages;});
     },
     fetchCategories() {
       fetch('http://localhost:8080/api/categories')
@@ -230,12 +273,23 @@ export default {
       this.imageFile = null;
       this.showForm = true;
     },
-    deleteProduct(id) {
-      if (confirm('Bạn có chắc chắn muốn xoá sản phẩm này?')) {
-        fetch(`http://localhost:8080/products/${id}`, { method: 'DELETE' })
-          .then(() => this.fetchProducts());
+    async deleteProduct(id) {
+  if (confirm('Bạn có chắc chắn muốn xoá sản phẩm này?')) {
+    try {
+      const res = await fetch(`http://localhost:8080/products/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const errorText = await res.text();
+        alert(`❌ Xoá thất bại: ${errorText || res.statusText}`);
+        return;
       }
-    },
+      alert('✅ Xoá sản phẩm thành công!');
+      this.fetchProducts();
+    } catch (err) {
+      alert('❌ Có lỗi xảy ra khi xoá sản phẩm!');
+      console.error(err);
+    }
+  }
+},
     getImageUrl(path) {
       return path?.startsWith('http') ? path : `http://localhost:8080/images/products/${path}`;
     },
@@ -243,6 +297,25 @@ export default {
       return dateStr ? new Date(dateStr).toLocaleString('vi-VN') : '';
     }
   },
+      computed: {
+        visiblePages() {
+            const maxPagesToShow = 5;
+            const pages = [];
+            let start = Math.max(0, this.currentPage - Math.floor(maxPagesToShow / 2));
+            let end = start + maxPagesToShow;
+
+            if (end > this.totalPages) {
+                end = this.totalPages;
+                start = Math.max(0, end - maxPagesToShow);
+            }
+
+            for (let i = start; i < end; i++) {
+                pages.push(i);
+            }
+
+            return pages;
+        }
+    },
   mounted() {
     this.fetchProducts();
     this.fetchCategories();

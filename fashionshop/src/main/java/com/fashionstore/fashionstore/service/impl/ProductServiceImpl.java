@@ -10,7 +10,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +34,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductDetailRepository productDetailRepository;
+    private final com.fashionstore.fashionstore.repository.OrderDetailRepository orderDetailRepository;
 
     private final String DOMAIN = "http://localhost:8080";
 
@@ -123,7 +127,15 @@ public class ProductServiceImpl implements ProductService {
     // ✅ Xoá sản phẩm
     @Override
     public void deleteProduct(Integer id) {
-        productRepository.deleteById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        // ✅ Nếu sản phẩm đã có trong order detail thì không cho xóa
+        if (orderDetailRepository.existsByProductDetail_Product_Id(id)) {
+            throw new RuntimeException("Sản phẩm đã có trong đơn hàng, không thể xóa!");
+        }
+
+        productRepository.delete(product);
     }
 
     @Override

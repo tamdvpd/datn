@@ -73,7 +73,7 @@
         </section>
 
         <!-- SẢN PHẨM BÁN CHẠY (lấy từ DB) -->
-        <div class="section-title mt-4">SẢN PHẨM BÁN CHẠY</div>
+        <div class="section-title mt-4">SẢN PHẨM NỔI BẬT</div>
         <div class="row g-3">
           <div
             class="col-md-3"
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-        <!-- KHÁM PHÁ DANH MỤC (thay cho 'TẤT CẢ SẢN PHẨM') -->
+        <!-- KHÁM PHÁ DANH MỤC (thay cho 'TẤT CẢ SẢN PHẨM')
         <div class="section-title">KHÁM PHÁ DANH MỤC</div>
         <div class="row g-3">
           <div
@@ -144,7 +144,7 @@
               </div>
             </router-link>
           </div>
-        </div>
+        </div> -->
 
         <!-- CTA: Xem tất cả -->
         <div class="text-center mt-4">
@@ -154,6 +154,7 @@
         </div>
       </div>
     </main>
+    <div style="height: 40px;"></div>
 
     <MainFooter />
   </div>

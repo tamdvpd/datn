@@ -9,14 +9,12 @@
       <div class="card-header bg-primary text-white fw-bold">
         {{ isEdit ? '✏️ Cập nhật chi tiết nhập' : '➕ Thêm chi tiết nhập mới' }}
       </div>
-
       <div class="card-body">
         <form @submit.prevent="handleSubmit" class="row g-3">
-          <!-- Chọn sản phẩm -->
           <div class="col-md-4">
             <label class="form-label">Sản phẩm</label>
             <select
-              v-model="selectedProductId"
+              v-model.number="selectedProductId"
               @change="showOption(selectedProductId)"
               class="form-select form-select-sm"
             >
@@ -27,10 +25,9 @@
             </select>
           </div>
 
-          <!-- Chọn chi tiết (màu/kích cỡ) -->
           <div class="col-md-4">
             <label class="form-label">Màu sắc / Kích cỡ</label>
-            <select v-model="form.productDetailId" class="form-select form-select-sm">
+            <select v-model.number="form.productDetailId" class="form-select form-select-sm">
               <option disabled value="">-- Chọn option --</option>
               <option v-for="o in options" :key="o.id" :value="o.id">
                 {{ o.color }} / {{ o.size }}
@@ -38,41 +35,22 @@
             </select>
           </div>
 
-          <!-- Số lượng -->
           <div class="col-md-2">
             <label class="form-label">Số lượng</label>
-            <input
-              type="number"
-              v-model.number="form.quantity"
-              min="1"
-              class="form-control form-control-sm"
-            />
+            <input type="number" v-model.number="form.quantity" min="1" class="form-control form-control-sm"/>
           </div>
 
-          <!-- Đơn giá -->
           <div class="col-md-2">
             <label class="form-label">Đơn giá (VNĐ)</label>
-            <input
-              type="number"
-              v-model.number="form.unitPrice"
-              min="1000"
-              step="1000"
-              class="form-control form-control-sm"
-            />
+            <input type="number" v-model.number="form.unitPrice" min="1000" step="1000" class="form-control form-control-sm"/>
           </div>
 
-          <!-- Nút hành động -->
           <div class="col-12 d-flex justify-content-end gap-2 mt-3">
             <button class="btn btn-sm btn-primary" type="submit">
               <i class="bi bi-check-circle me-1"></i>
               {{ isEdit ? 'Cập nhật' : 'Thêm mới' }}
             </button>
-            <button
-              v-if="isEdit"
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              @click="resetForm"
-            >
+            <button v-if="isEdit" type="button" class="btn btn-sm btn-outline-secondary" @click="resetForm">
               Hủy
             </button>
           </div>
@@ -80,7 +58,7 @@
       </div>
     </div>
 
-    <!-- Bảng danh sách -->
+    <!-- Bảng danh sách chi tiết -->
     <div class="overflow-x-auto bg-white shadow rounded-xl border border-gray-200">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold">
@@ -92,13 +70,12 @@
             <th class="px-4 py-2 text-center">Đơn giá</th>
             <th class="px-4 py-2 text-center">Thành tiền</th>
             <th class="px-4 py-2 text-center">Thao tác</th>
+            <th class="px-4 py-2 text-center">Kho</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 bg-white">
           <tr v-for="d in details" :key="d.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2">
-              {{ d.productDetail?.product?.name || d.productDetail?.productName || d.productName || 'N/A' }}
-            </td>
+            <td class="px-2 py-2">{{ d.productDetail?.product?.name || 'N/A' }}</td>
             <td class="px-4 py-2 text-center">{{ d.productDetail?.color }}</td>
             <td class="px-4 py-2 text-center">{{ d.productDetail?.size }}</td>
             <td class="px-4 py-2 text-center">{{ d.quantity }}</td>
@@ -106,29 +83,19 @@
             <td class="px-4 py-2 text-center font-semibold text-green-600">
               {{ formatCurrency(d.quantity * d.unitPrice) }}
             </td>
+            <td class="px-3 py-2 text-center">
+              <button @click="editDetail(d)" class="btn btn-sm btn-outline-primary me-2" title="Sửa"><i class="bi bi-pencil-square"></i></button>
+              <button @click="deleteDetail(d.id)" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3-fill"></i></button>
+            </td>
             <td class="px-4 py-2 text-center">
-              <button
-                @click="editDetail(d)"
-                class="btn btn-sm btn-outline-primary me-2"
-                title="Sửa"
-              >
-                <i class="bi bi-pencil-square"></i>
-              </button>
-              <button
-                @click="deleteDetail(d.id)"
-                class="btn btn-sm btn-outline-danger"
-                title="Xóa"
-              >
-                <i class="bi bi-trash3-fill"></i>
+              <button @click="importToStock(d)" class="btn btn-sm btn-success" title="Nhập kho">
+                <i class="bi bi-box-seam"></i> Nhập kho
               </button>
             </td>
           </tr>
-          <!-- Dòng tổng -->
           <tr class="bg-gray-50 font-semibold text-blue-800">
             <td colspan="5" class="px-4 py-2 text-right">Tổng cộng:</td>
-            <td colspan="2" class="px-4 py-2 text-center">
-              {{ formatCurrency(totalAmount) }}
-            </td>
+            <td colspan="3" class="px-4 py-2 text-center">{{ formatCurrency(totalAmount) }}</td>
           </tr>
         </tbody>
       </table>
@@ -141,22 +108,15 @@ import axios from "axios";
 
 export default {
   name: "ImportInvoiceDetail",
-  props: {
-    invoiceId: { type: Number, required: true }
-  },
+  props: { invoiceId: { type: Number, required: true } },
   data() {
     return {
       details: [],
       productOptions: [],
       options: [],
-      selectedProductId: "",
+      selectedProductId: null,
       isEdit: false,
-      form: {
-        id: null,
-        productDetailId: "",
-        quantity: 1,
-        unitPrice: 0
-      }
+      form: { id: null, productDetailId: null, quantity: 1, unitPrice: 0 }
     };
   },
   computed: {
@@ -168,9 +128,7 @@ export default {
     async showOption(productId) {
       if (!productId) return;
       try {
-        const res = await axios.get(
-          `http://localhost:8080/productdetails/product/${productId}`
-        );
+        const res = await axios.get(`http://localhost:8080/productdetails/product/${productId}`);
         this.options = res.data;
       } catch (error) {
         console.error("Lỗi load option:", error);
@@ -178,10 +136,7 @@ export default {
     },
     async fetchDetails() {
       try {
-        const res = await axios.get(
-          `http://localhost:8080/api/import-invoice-details/by-invoice/${this.invoiceId}`
-        );
-        console.log("Chi tiết phiếu nhập:", res.data); // debug
+        const res = await axios.get(`http://localhost:8080/api/import-invoice-details/by-invoice/${this.invoiceId}`);
         this.details = res.data;
       } catch (err) {
         console.error("Lỗi load chi tiết phiếu nhập:", err);
@@ -200,9 +155,8 @@ export default {
         alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
         return;
       }
-
       const user = JSON.parse(localStorage.getItem("user"));
-      if (!user || !user.id) {
+      if (!user?.id) {
         alert("⚠️ Vui lòng đăng nhập!");
         this.$router.push("/login");
         return;
@@ -210,48 +164,28 @@ export default {
 
       try {
         if (this.isEdit) {
-          // cập nhật
           const updatedDetail = {
             id: this.form.id,
+            importInvoice: { id: this.invoiceId },
+            productDetail: { id: this.form.productDetailId },
+            quantity: this.form.quantity,
+            unitPrice: this.form.unitPrice,
+            user: { id: user.id }
+          };
+          await axios.put(`http://localhost:8080/api/import-invoice-details/${this.form.id}`, updatedDetail);
+          alert("✅ Cập nhật chi tiết thành công!");
+        } else {
+          const newDetail = {
             importInvoice: { id: this.invoiceId },
             productDetail: { id: this.form.productDetailId },
             user: { id: user.id },
             quantity: this.form.quantity,
             unitPrice: this.form.unitPrice
           };
-          await axios.put(
-            `http://localhost:8080/api/import-invoice-details/${this.form.id}`,
-            updatedDetail
-          );
-          alert("✅ Cập nhật chi tiết thành công!");
-        } else {
-          // thêm mới hoặc cộng dồn
-          const existing = this.details.find(
-            d => d.productDetail?.id === this.form.productDetailId
-          );
-          if (existing) {
-            const updated = {
-              ...existing,
-              quantity: existing.quantity + this.form.quantity,
-              unitPrice: this.form.unitPrice
-            };
-            await axios.put(
-              `http://localhost:8080/api/import-invoice-details/${existing.id}`,
-              updated
-            );
-            alert("✅ Đã cộng dồn số lượng sản phẩm!");
-          } else {
-            const newDetail = {
-              importInvoice: { id: this.invoiceId },
-              productDetail: { id: this.form.productDetailId },
-              user: { id: user.id },
-              quantity: this.form.quantity,
-              unitPrice: this.form.unitPrice
-            };
-            await axios.post("http://localhost:8080/api/import-invoice-details", newDetail);
-            alert("✅ Thêm chi tiết thành công!");
-          }
+          await axios.post("http://localhost:8080/api/import-invoice-details", newDetail);
+          alert("✅ Thêm chi tiết mới thành công!");
         }
+
         await this.fetchDetails();
         this.resetForm();
       } catch (err) {
@@ -261,37 +195,50 @@ export default {
     },
     editDetail(detail) {
       this.isEdit = true;
-      this.selectedProductId = detail.productDetail?.product?.id || "";
+      this.selectedProductId = detail.productDetail?.product?.id || null;
       this.showOption(this.selectedProductId);
       this.form = {
         id: detail.id,
-        productDetailId: detail.productDetail?.id,
+        productDetailId: detail.productDetail?.id || null,
         quantity: detail.quantity,
         unitPrice: detail.unitPrice
       };
     },
     async deleteDetail(id) {
-      if (confirm("Bạn có chắc muốn xóa?")) {
-        try {
-          await axios.delete(`http://localhost:8080/api/import-invoice-details/${id}`);
-          await this.fetchDetails();
-          alert("🗑️ Xóa thành công!");
-        } catch (err) {
-          console.error("Lỗi khi xóa:", err);
-          alert("❌ Xóa thất bại!");
-        }
+      if (!confirm("Bạn có chắc muốn xóa chi tiết này?")) return;
+      try {
+        await axios.delete(`http://localhost:8080/api/import-invoice-details/${id}`);
+        await this.fetchDetails();
+        alert("🗑️ Xóa thành công!");
+      } catch (err) {
+        console.error("Lỗi khi xóa:", err);
+        alert("❌ Không thể xóa chi tiết đã nhập kho!");
+      }
+    },
+    async importToStock(detail) {
+      if (!detail.productDetail?.id) {
+        alert("⚠️ Sản phẩm chưa chọn chi tiết");
+        return;
+      }
+      if (!confirm(`Bạn có chắc muốn nhập ${detail.quantity} sản phẩm này vào kho?`)) return;
+
+      try {
+        await axios.post(`http://localhost:8080/admin/inventoryLogs/import`, {
+          productDetailId: detail.productDetail.id,
+          quantity: detail.quantity
+        });
+        alert("✅ Nhập kho thành công!");
+        await this.fetchDetails();
+      } catch (err) {
+        console.error("Lỗi khi nhập kho:", err);
+        alert("❌ Nhập kho thất bại!");
       }
     },
     resetForm() {
       this.isEdit = false;
-      this.selectedProductId = "";
+      this.selectedProductId = null;
       this.options = [];
-      this.form = {
-        id: null,
-        productDetailId: "",
-        quantity: 1,
-        unitPrice: 0
-      };
+      this.form = { id: null, productDetailId: null, quantity: 1, unitPrice: 0 };
     },
     formatCurrency(value) {
       return (value || 0).toLocaleString("vi-VN") + "₫";
@@ -307,4 +254,4 @@ export default {
     }
   }
 };
-</script>
+</script> 

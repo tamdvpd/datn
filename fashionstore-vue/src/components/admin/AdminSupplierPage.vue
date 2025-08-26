@@ -90,22 +90,22 @@
 
         <p v-if="errors.general" class="error-message">{{ errors.general }}</p>
 
-        <div class="pt-6 border-t mt-6">
-          <div class="flex justify-between items-center w-full">
-            <button
-              type="button"
-              @click="resetForm"
-              class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold"
-            >
-              Quay lại
-            </button>
-            <button
-              type="submit"
-              class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold shadow-md"
-            >
-              {{ form.id ? 'Cập nhật' : 'Thêm' }}
-            </button>
-          </div>
+        <div class="pt-4 border-t mt-6">
+        <div class="flex justify-end items-center w-full gap-x-4">
+  <button
+    type="button"
+    @click="resetForm"
+    class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded font-semibold"
+  >
+    Quay lại
+  </button>
+  <button
+    type="submit"
+    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold shadow-md"
+  >
+    {{ form.id ? 'Cập nhật' : 'Thêm' }}
+  </button>
+</div>
         </div>
       </form>
     </div>
@@ -198,16 +198,18 @@ export default {
       this.showForm = true;
       this.isEditing = true;
     },
+
+    //  Quản lý nhà cung cấp: lấy tất cả (hoạt động + ngừng)
     async fetchSuppliers() {
       try {
         const response = await fetch('http://localhost:8080/api/suppliers');
         this.suppliers = await response.json();
-        // Mới nhất lên đầu
-        this.suppliers.sort((a, b) => b.id - a.id);
+        this.suppliers.sort((a, b) => b.id - a.id); // Mới nhất lên đầu
       } catch (err) {
         console.error('Lỗi khi tải nhà cung cấp:', err);
       }
     },
+
     validateForm() {
       this.errors = {};
       if (!this.form.name) this.errors.name = 'Tên nhà cung cấp không được để trống.';
@@ -218,6 +220,7 @@ export default {
       if (!this.form.address) this.errors.address = 'Địa chỉ không được để trống.';
       return Object.keys(this.errors).length === 0;
     },
+
     parseValidationErrors(errorResponseText) {
       try {
         const json = JSON.parse(errorResponseText);
@@ -232,6 +235,7 @@ export default {
         return { general: errorResponseText || 'Đã xảy ra lỗi không xác định.' };
       }
     },
+
     async handleSubmit() {
       if (!this.validateForm()) return;
 
@@ -254,13 +258,12 @@ export default {
           throw new Error(text);
         }
 
-        const savedSupplier = this.form.id ? { ...this.form } : await response.json();
+        const savedSupplier = await response.json();
 
         if (this.form.id) {
           const index = this.suppliers.findIndex(s => s.id === this.form.id);
           if (index !== -1) this.suppliers.splice(index, 1, savedSupplier);
         } else {
-          // Thêm mới lên đầu mảng
           this.suppliers.unshift(savedSupplier);
         }
 
@@ -271,6 +274,7 @@ export default {
         console.error('❌ Lỗi xử lý:', err.message);
       }
     },
+
     async deleteSupplier(id) {
       if (!confirm('Bạn có chắc chắn muốn xoá nhà cung cấp này?')) return;
       try {
@@ -287,6 +291,7 @@ export default {
         this.showNotify('Đã xảy ra lỗi khi xoá!', 'error');
       }
     },
+
     showNotify(message, type = 'success') {
       const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
       const notify = document.createElement('div');
@@ -299,6 +304,7 @@ export default {
 };
 </script>
 
+
 <style scoped>
 input:invalid {
   border-color: red;
@@ -308,9 +314,13 @@ input, select {
   max-width: 90%;
 }
 button {
-  background-color: white !important;
-  color: black !important;
+  background-color: rgb(240, 245, 242) !important;
+  color: #000000 !important;
 }
+button {
+  margin-right: 8px; /* tạo khoảng cách bên phải */
+}
+
 .error-message {
   color: #dc2626;
   font-weight: bold;

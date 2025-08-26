@@ -13,36 +13,37 @@ import com.fashionstore.fashionstore.entity.ProductDetail;
 
 public interface ProductService {
 
-    // Lấy tất cả sản phẩm
-    List<Product> getAllProducts();
+        // Lấy tất cả sản phẩm
+        List<Product> getAllProducts();
 
-    // Lấy sản phẩm phân trang
-    Page<Product> getAllProducts(Pageable pageable);
+        // Lấy sản phẩm phân trang
+        Page<Product> getAllProducts(Pageable pageable);
 
-    Optional<Product> getProductById(Integer id);
+        Optional<Product> getProductById(Integer id);
 
-    Product createProduct(Product product, MultipartFile imageFile);
+        Product createProduct(Product product, MultipartFile imageFile);
 
-    Product updateProduct(Integer id, Product updatedProduct, MultipartFile imageFile);
+        Product updateProduct(Integer id, Product updatedProduct, MultipartFile imageFile);
 
-    Product updateProduct(Integer id, String name, String description, String brand,
-            Boolean status, Integer categoryId, MultipartFile image);
+        Product updateProduct(Integer id, String name, String description, String brand,
+                        Boolean status, Integer categoryId, MultipartFile image);
 
-    // Xoá sản phẩm
-    void deleteProduct(Integer id);
+        // Xoá sản phẩm
+        void deleteProduct(Integer id);
 
-    Page<Product> searchProducts(String keyword,
-            Integer categoryId,
-            BigDecimal minPrice,
-            BigDecimal maxPrice,
-            String sortBy,
-            String order,
-            int page, int size);
+        Page<Product> searchProducts(String keyword,
+                        Integer categoryId,
+                        BigDecimal minPrice,
+                        BigDecimal maxPrice,
+                        String sortBy,
+                        String order,
+                        int page, int size);
 
-    List<ProductDetail> searchProducts(String name,
-            Integer categoryId,
-            BigDecimal minPrice,
-            BigDecimal maxPrice);
+        List<ProductDetail> searchProducts(String name,
+                        Integer categoryId,
+                        BigDecimal minPrice,
+                        BigDecimal maxPrice);
 
-    List<Product> getBestSellers(int limit);
+        List<Product> getBestSellers(int limit);
+
 }

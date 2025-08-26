@@ -15,6 +15,7 @@
           />
         </router-link>
 
+
         <!-- Nhóm button bên phải -->
         <div class="d-flex align-items-center ms-auto">
           <!-- Nút sản phẩm gọn -->
@@ -24,15 +25,18 @@
 
           <!-- Giỏ hàng -->
           <router-link to="/cart" class="btn btn-outline-primary btn-sm me-2">
+
             🛒 Giỏ hàng
           </router-link>
 
           <!-- Nếu chưa đăng nhập -->
           <div v-if="!currentUser">
+
             <router-link to="/login" class="btn btn-outline-secondary btn-sm me-2">
               Đăng nhập
             </router-link>
             <router-link to="/register" class="btn btn-outline-secondary btn-sm">
+
               Đăng ký
             </router-link>
           </div>
@@ -93,6 +97,8 @@ export default {
     this.loadCurrentUser();
   },
   methods: {
+
+
     loadCurrentUser() {
       const user = localStorage.getItem("user");
       if (user) {

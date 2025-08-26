@@ -7,9 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3001")
 @RestController
@@ -33,7 +31,7 @@ public class SupplierController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Lấy danh sách nhà cung cấp đang hoạt động
+    // Lấy danh sách nhà cung cấp đang hoạt động (dropdown hiển thị)
     @GetMapping("/active")
     public ResponseEntity<List<Supplier>> getActiveSuppliers() {
         return ResponseEntity.ok(supplierService.getActiveSuppliers());
@@ -41,36 +39,23 @@ public class SupplierController {
 
     // Tạo mới nhà cung cấp
     @PostMapping
-    public ResponseEntity<?> createSupplier(@Valid @RequestBody Supplier supplier) {
-        try {
-            supplier.setStatus(supplier.getStatus() == null ? true : supplier.getStatus());
-            Supplier created = supplierService.createSupplier(supplier); // kiểm tra trùng trong service
-            return ResponseEntity.status(201).body(created);
-        } catch (IllegalArgumentException ex) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", ex.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody Supplier supplier) {
+        Supplier created = supplierService.createSupplier(supplier);
+        return ResponseEntity.status(201).body(created);
     }
 
     // Cập nhật nhà cung cấp
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateSupplier(@PathVariable Integer id, @Valid @RequestBody Supplier supplier) {
-        try {
-            supplier.setId(id);
-            Supplier updated = supplierService.updateSupplier(id, supplier);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException ex) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", ex.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
+    public ResponseEntity<Supplier> updateSupplier(@PathVariable Integer id,
+            @Valid @RequestBody Supplier supplier) {
+        Supplier updated = supplierService.updateSupplier(id, supplier);
+        return ResponseEntity.ok(updated);
     }
 
     // Xóa nhà cung cấp
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Integer id) {
-        supplierService.deleteSupplier(id); // nếu không tồn tại thì service sẽ xử lý
+        supplierService.deleteSupplier(id);
         return ResponseEntity.noContent().build();
     }
 }

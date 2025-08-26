@@ -2,6 +2,8 @@ package com.fashionstore.fashionstore.service;
 
 import com.fashionstore.fashionstore.entity.Category;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,6 @@ public interface CategoryService {
     Category updateCategory(Category category, MultipartFile imageFile);
 
     void deleteCategory(Integer id);
+
+    Page<Category> getAllCategories(Pageable pageable);
 }

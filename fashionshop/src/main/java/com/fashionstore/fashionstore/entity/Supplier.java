@@ -14,10 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "Suppliers", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "phone_number")
-})
+@Table(name = "Suppliers")
 public class Supplier {
 
     @Id
@@ -45,8 +42,8 @@ public class Supplier {
     @Column(length = 255, nullable = false)
     private String address;
 
-    @NotNull
-    @Column(nullable = false, columnDefinition = "BIT DEFAULT 1")
+    @Builder.Default
+    @Column(name = "status", nullable = false) // map đúng với cột status trong DB
     private Boolean status = true;
 
     @Column(name = "created_at", updatable = false)

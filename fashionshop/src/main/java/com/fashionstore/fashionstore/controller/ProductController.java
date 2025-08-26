@@ -112,6 +112,7 @@ public class ProductController {
     }
 
     // API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
+
     @GetMapping("/search")
     public ResponseEntity<Page<Product>> searchProducts(
             @RequestParam(required = false) String keyword,
@@ -138,6 +139,7 @@ public class ProductController {
     }
 
     // API sản phẩm bán chạy (best sellers)
+
     @GetMapping("/best-sellers")
     public ResponseEntity<List<Product>> getBestSellers(
             @RequestParam(defaultValue = "10") int limit) {

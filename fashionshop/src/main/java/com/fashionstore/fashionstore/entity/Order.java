@@ -2,43 +2,37 @@ package com.fashionstore.fashionstore.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-// ❌ bỏ import JsonManagedReference
-// import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.*;
 
 @Data
 @Entity
 @Table(name = "Orders")
-// ✅ Dùng IdentityInfo để chống vòng lặp, cho phép serialize quan hệ sâu
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    // Giữ ID cho gọn JSON (ok)
     @JsonIdentityReference(alwaysAsId = true)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipping_provider_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "orders" })
     private ShippingProvider shippingProvider;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_method_id", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "orders" })
     private PaymentMethod paymentMethod;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -46,7 +40,6 @@ public class Order {
     @JsonIgnore
     private Coupon coupon;
 
-    // ✅ Tránh null khi tạo đơn (để FE/serialize không bị rỗng)
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
@@ -60,7 +53,7 @@ public class Order {
     private String status;
 
     @Transient
-    @com.fasterxml.jackson.annotation.JsonProperty("statusVi")
+    @JsonProperty("statusVi")
     public String getStatusVi() {
         if (status == null)
             return "";
@@ -98,6 +91,7 @@ public class Order {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("order")
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @PrePersist
@@ -109,5 +103,17 @@ public class Order {
     @PreUpdate
     public void onUpdated() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    @Transient
+    @JsonProperty("paymentMethodName")
+    public String getPaymentMethodName() {
+        return paymentMethod != null ? paymentMethod.getCode() : null;
+    }
+
+    @Transient
+    @JsonProperty("shippingProviderName")
+    public String getShippingProviderName() {
+        return shippingProvider != null ? shippingProvider.getName() : null;
     }
 }

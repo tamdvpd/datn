@@ -34,15 +34,24 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Supplier createSupplier(Supplier supplier) {
-        checkDuplicateAndValidate(supplier.getEmail(), supplier.getPhoneNumber(), null);
+        validateAndCheckDuplicate(supplier.getEmail(), supplier.getPhoneNumber(), null);
         return supplierRepository.save(supplier);
     }
 
     @Override
     public Supplier updateSupplier(Integer id, Supplier supplier) {
-        checkDuplicateAndValidate(supplier.getEmail(), supplier.getPhoneNumber(), id);
-        supplier.setId(id);
-        return supplierRepository.save(supplier);
+        Supplier existing = supplierRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Nhà cung cấp không tồn tại."));
+        validateAndCheckDuplicate(supplier.getEmail(), supplier.getPhoneNumber(), id);
+
+        // Cập nhật thông tin
+        existing.setName(supplier.getName());
+        existing.setEmail(supplier.getEmail());
+        existing.setPhoneNumber(supplier.getPhoneNumber());
+        existing.setAddress(supplier.getAddress());
+        existing.setStatus(supplier.getStatus());
+
+        return supplierRepository.save(existing);
     }
 
     @Override
@@ -50,7 +59,14 @@ public class SupplierServiceImpl implements SupplierService {
         supplierRepository.deleteById(id);
     }
 
-    private void checkDuplicateAndValidate(String email, String phoneNumber, Integer currentId) {
+    /**
+     * Kiểm tra định dạng và trùng lặp email/phone
+     * 
+     * @param email       Email cần kiểm tra
+     * @param phoneNumber Số điện thoại cần kiểm tra
+     * @param currentId   Id nhà cung cấp hiện tại (null nếu tạo mới)
+     */
+    private void validateAndCheckDuplicate(String email, String phoneNumber, Integer currentId) {
         List<String> errors = new ArrayList<>();
 
         // Kiểm tra định dạng số điện thoại
@@ -66,25 +82,25 @@ public class SupplierServiceImpl implements SupplierService {
             }
         }
 
-        // Kiểm tra email đã tồn tại
+        // Kiểm tra email trùng với nhà cung cấp khác
         List<Supplier> emailMatches = supplierRepository.findByEmail(email);
         for (Supplier s : emailMatches) {
             if (currentId == null || !s.getId().equals(currentId)) {
-                errors.add("Email đã tồn tại.");
+                errors.add("Email đã tồn tại ở nhà cung cấp khác.");
                 break;
             }
         }
 
-        // Kiểm tra số điện thoại đã tồn tại
+        // Kiểm tra số điện thoại trùng với nhà cung cấp khác
         List<Supplier> phoneMatches = supplierRepository.findByPhoneNumber(phoneNumber);
         for (Supplier s : phoneMatches) {
             if (currentId == null || !s.getId().equals(currentId)) {
-                errors.add("Số điện thoại đã tồn tại.");
+                errors.add("Số điện thoại đã tồn tại ở nhà cung cấp khác.");
                 break;
             }
         }
 
-        // Nếu có lỗi thì ném ra RuntimeException chứa toàn bộ lỗi
+        // Nếu có lỗi, ném ra RuntimeException
         if (!errors.isEmpty()) {
             throw new RuntimeException(String.join(" | ", errors));
         }

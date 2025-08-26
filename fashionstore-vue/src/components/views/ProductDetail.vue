@@ -15,41 +15,49 @@
             <div class="d-flex justify-content-center gap-2 flex-wrap">
               <img v-for="(detail, index) in productDetails.slice(0, 4)" :key="index"
                 :src="getImageUrl(detail.imageUrl)" @click="selectedImage = getImageUrl(detail.imageUrl)"
-                class="rounded border" :class="{ 'border-primary': selectedImage === getImageUrl(detail.imageUrl) }"
+                class="rounded border"
+                :class="{ 'border-primary': selectedImage === getImageUrl(detail.imageUrl) }"
                 style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" />
             </div>
           </div>
         </div>
-
 
         <!-- Thông tin sản phẩm -->
         <div class="col-lg-6 col-md-12">
           <div class="bg-white p-4 rounded shadow-sm h-100">
             <h2 class="fw-bold mb-2">{{ product.name }}</h2><br>
             <p class="text-muted mb-1">Thương hiệu: {{ product.brand || 'Đang cập nhật' }}</p><br>
-            <p class="fs-4 text-danger mb-4">
-              Giá: {{ formatPrice(selectedDetail?.price || 0) }}
-            </p>
-            <div class="row mb-3">
-              <!-- Chọn Size -->
-              <div class="col-md-3 col-6">
-                <label class="form-label fw-semibold small">Chọn Size:</label>
-                <select v-model="selectedSize" class="form-select form-select-sm" @change="onSizeChange">
-                  <option disabled value="">-- Chọn Size --</option>
-                  <option v-for="size in uniqueSizes" :key="size">{{ size }}</option>
-                </select>
-              </div>
 
+            <!-- Hiển thị giá -->
+            <p class="fs-4 text-danger mb-2">
+              Giá khuyến mãi: {{ formatPrice(selectedDetail?.discountPrice || selectedDetail?.price || 0) }}
+            </p>
+            <p v-if="selectedDetail?.discountPrice && selectedDetail?.discountPrice < selectedDetail?.price"
+              class="text-muted text-decoration-line-through">
+              Giá gốc: {{ formatPrice(selectedDetail.price) }}
+            </p>
+
+            <div class="row mb-3">
               <!-- Chọn Màu -->
               <div class="col-md-3 col-6">
                 <label class="form-label fw-semibold small">Chọn Màu:</label>
-                <select v-model="selectedColor" class="form-select form-select-sm" @change="onColorChange"
-                  :disabled="!selectedSize">
+                <select v-model="selectedColor" class="form-select form-select-sm" @change="onColorChange">
                   <option disabled value="">-- Chọn Màu --</option>
-                  <option v-for="color in filteredColors" :key="color">{{ color }}</option>
+                  <option v-for="color in uniqueColors" :key="color">{{ color }}</option>
+                </select>
+              </div>
+
+              <!-- Chọn Size -->
+              <div class="col-md-3 col-6">
+                <label class="form-label fw-semibold small">Chọn Size:</label>
+                <select v-model="selectedSize" class="form-select form-select-sm" @change="onSizeChange"
+                  :disabled="!selectedColor">
+                  <option disabled value="">-- Chọn Size --</option>
+                  <option v-for="size in filteredSizes" :key="size">{{ size }}</option>
                 </select>
               </div>
             </div>
+
             <!-- Nhập số lượng -->
             <div class="mb-2 w-25">
               <label class="form-label fw-semibold small">Số lượng:</label>
@@ -76,7 +84,7 @@
             <!-- Thông báo trạng thái -->
             <div v-if="!selectedDetail" class="alert alert-warning mt-3" role="alert">
               <i class="bi bi-exclamation-triangle"></i>
-              Vui lòng chọn size và màu sắc sản phẩm để thêm vào giỏ hàng
+              Vui lòng chọn màu sắc và size sản phẩm để thêm vào giỏ hàng
             </div>
           </div>
         </div>
@@ -89,7 +97,6 @@
           </div>
         </div>
       </div>
-
 
       <!-- Đang tải -->
       <div v-else class="text-center py-5">
@@ -116,19 +123,18 @@ export default {
       selectedSize: '',
       selectedColor: '',
       selectedQuantity: 1,
-      selectedImage: '', // ảnh được chọn để hiển thị lớn
-
+      selectedImage: '',
     };
   },
   computed: {
-    uniqueSizes() {
-      const sizes = this.productDetails.map(d => d.size);
-      return [...new Set(sizes)];
+    uniqueColors() {
+      const colors = this.productDetails.map(d => d.color);
+      return [...new Set(colors)];
     },
-    filteredColors() {
+    filteredSizes() {
       return this.productDetails
-        .filter(d => d.size === this.selectedSize)
-        .map(d => d.color)
+        .filter(d => d.color === this.selectedColor)
+        .map(d => d.size)
         .filter((value, index, self) => self.indexOf(value) === index);
     }
   },
@@ -156,29 +162,33 @@ export default {
           };
           this.productDetails = data.productDetails;
           this.selectedImage = this.getImageUrl(data.productDetails[0]?.imageUrl || data.imageUrl);
-          this.selectedSize = this.uniqueSizes[0] || '';
-          this.onSizeChange();
+
+          // ✅ chọn màu đầu tiên mặc định
+          this.selectedColor = this.uniqueColors[0] || '';
+          this.onColorChange();
         })
         .catch(err => {
           console.error(err);
           alert('Lỗi khi tải dữ liệu sản phẩm.');
         });
     },
-    onSizeChange() {
-      this.selectedColor = '';
+    onColorChange() {
+      this.selectedSize = '';
       this.selectedDetail = null;
-      // Nếu chỉ có 1 màu hoặc muốn tự động chọn màu đầu tiên
-      if (this.filteredColors.length > 0) {
-        this.selectedColor = this.filteredColors[0];
-        this.onColorChange(); // cập nhật detail và ảnh luôn
+      if (this.filteredSizes.length > 0) {
+        this.selectedSize = this.filteredSizes[0];
+        this.onSizeChange();
+      }
+      const detailWithColor = this.productDetails.find(d => d.color === this.selectedColor);
+      if (detailWithColor?.imageUrl) {
+        this.selectedImage = this.getImageUrl(detailWithColor.imageUrl);
       }
     },
-    onColorChange() {
+    onSizeChange() {
       this.selectedDetail = this.productDetails.find(
-        d => d.size === this.selectedSize && d.color === this.selectedColor
+        d => d.color === this.selectedColor && d.size === this.selectedSize
       );
-      // ✅ Cập nhật ảnh lớn khi chọn màu
-      if (this.selectedDetail && this.selectedDetail.imageUrl) {
+      if (this.selectedDetail?.imageUrl) {
         this.selectedImage = this.getImageUrl(this.selectedDetail.imageUrl);
       }
     },
@@ -186,7 +196,7 @@ export default {
       if (!path) return require('@/assets/img/default-avatar.png');
       if (path.startsWith('http')) return path;
       if (path.includes('productDetails')) return `http://localhost:8080/images/productDetails/${path}`;
-      return `http://localhost:8080/images/products/${path}`;
+      return `http://localhost:8080/images/productDetails/${path}`;
     },
     formatPrice(value) {
       if (!value || value === 0) return '0 VND';
@@ -194,16 +204,14 @@ export default {
     },
     addToCart() {
       if (!this.selectedDetail) {
-        alert('Vui lòng chọn size và màu sắc sản phẩm!');
+        alert('Vui lòng chọn màu sắc và size sản phẩm!');
         return;
       }
-
       if (this.selectedQuantity <= 0) {
         alert('Số lượng phải lớn hơn 0!');
         return;
       }
 
-      // Kiểm tra đăng nhập
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user || !user.id) {
         alert('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!');
@@ -211,18 +219,9 @@ export default {
         return;
       }
 
-      // Gọi API để thêm vào giỏ hàng
-      console.log('Sending request with data:', {
-        userId: user.id,
-        productDetailId: this.selectedDetail.id,
-        quantity: this.selectedQuantity
-      });
-
       fetch('http://localhost:8080/api/cart', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: parseInt(user.id),
           productDetailId: parseInt(this.selectedDetail.id),
@@ -237,31 +236,24 @@ export default {
           }
           return response.json();
         })
-        .then(data => {
+        .then(() => {
           alert(`🛒 Đã thêm "${this.product.name}" vào giỏ hàng!`);
-          // Thông báo cập nhật giỏ hàng
           localStorage.setItem('cartUpdated', Date.now().toString());
         })
         .catch(error => {
           console.error('Lỗi khi thêm vào giỏ hàng:', error);
-          if (error.message.includes('Failed to fetch')) {
-            alert('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin!');
-          } else {
-            alert(`Lỗi: ${error.message}`);
-          }
+          alert('Không thể thêm vào giỏ. Vui lòng thử lại!');
         });
     },
     async buyNow() {
       if (!this.selectedDetail) {
-        alert('Vui lòng chọn size và màu sắc sản phẩm!');
+        alert('Vui lòng chọn màu sắc và size sản phẩm!');
         return;
       }
-
       if (this.selectedQuantity <= 0) {
         alert('Số lượng phải lớn hơn 0!');
         return;
       }
-
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user || !user.id) {
         alert('Vui lòng đăng nhập để mua sản phẩm!');
@@ -272,9 +264,7 @@ export default {
       try {
         const response = await fetch('http://localhost:8080/api/checkout/review', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: this.selectedDetail.id,
             quantity: this.selectedQuantity
@@ -284,7 +274,6 @@ export default {
         const result = await response.json();
 
         if (result.success) {
-          // Lưu thông tin sản phẩm tạm thời vào localStorage
           localStorage.setItem("buyNowProduct", JSON.stringify({
             productDetailId: this.selectedDetail.id,
             quantity: this.selectedQuantity
@@ -296,7 +285,7 @@ export default {
 
       } catch (error) {
         console.error('Lỗi khi gửi yêu cầu mua hàng:', error);
-        alert('Có lỗi xảy ra trong quá trình kết nối đến máy chủ.');
+        alert('Có lỗi xảy ra khi kết nối đến server.');
       }
     },
     addToWishlist() {
@@ -320,28 +309,21 @@ img {
   max-width: 100%;
   height: auto;
 }
-
 .product-image-large {
   width: 70%;
   max-height: 500px;
-  /* Tăng chiều cao tối đa */
   object-fit: contain;
   margin: auto;
   display: block;
   border-radius: 10px;
 }
-
 select.form-select-sm,
 input.form-control-sm {
   font-size: 0.75rem;
-  /* nhỏ hơn nữa */
   padding: 0.2rem 0.4rem;
-  /* padding mỏng hơn */
 }
-
 label.form-label.small {
   font-size: 0.75rem;
-  /* nhãn nhỏ */
   margin-bottom: 0.25rem;
 }
 </style>

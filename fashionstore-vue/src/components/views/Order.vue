@@ -1,12 +1,11 @@
-<template>
+<template><MainHeader></MainHeader>
   <div class="container py-4">
+    
     <h2 class="h4 fw-bold mb-4">🧾 Đơn hàng của tôi</h2>
 
     <!-- Bộ lọc & điều khiển -->
     <div class="row g-3 align-items-center mb-3">
-      <div class="col-auto">
-        <label class="col-form-label">Trạng thái:</label>
-      </div>
+      <div class="col-auto"><label class="col-form-label">Trạng thái:</label></div>
       <div class="col-auto">
         <select v-model="selectedStatus" @change="onFilterChange" class="form-select form-select-sm">
           <option value="">Tất cả</option>
@@ -32,63 +31,56 @@
             <th style="width: 140px">Mã đơn</th>
             <th style="width: 180px">Ngày đặt</th>
             <th style="width: 160px" class="text-end">Tổng tiền</th>
-            <th style="width: 160px">Trạng thái</th>
+            <th style="width: 180px">Trạng thái</th>
             <th style="width: 120px">Chi tiết</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading">
-            <td colspan="5" class="text-center py-4">Đang tải...</td>
-          </tr>
-          <tr v-else-if="error">
-            <td colspan="5" class="text-danger py-4 text-center">{{ error }}</td>
-          </tr>
-          <tr v-else-if="orders.length === 0">
-            <td colspan="5" class="text-center py-4">Không có đơn hàng</td>
-          </tr>
+          <tr v-if="loading"><td colspan="5" class="text-center py-4">Đang tải...</td></tr>
+          <tr v-else-if="error"><td colspan="5" class="text-danger py-4 text-center">{{ error }}</td></tr>
+          <tr v-else-if="orders.length === 0"><td colspan="5" class="text-center py-4">Không có đơn hàng</td></tr>
           <tr v-else v-for="o in orders" :key="o.id">
             <td>#{{ o.id }}</td>
             <td>{{ formatDate(o.createdAt) }}</td>
             <td class="text-end">{{ formatCurrency(o.totalAmount) }}</td>
             <td>
-              <span :class="['badge', statusBadge(o.status)]">{{ humanStatus(o.status) }}</span>
+              <span :class="['badge', statusBadge(o.status)]">{{ o.statusVi || humanStatus(o.status) }}</span>
             </td>
-            <td>
-              <button class="btn btn-sm btn-outline-primary" @click="viewDetail(o.id)">Xem</button>
-            </td>
+            <td><button class="btn btn-sm btn-outline-primary" @click="viewDetail(o.id)">Xem</button></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Phân trang (server-side) -->
+    <!-- Phân trang -->
     <div class="d-flex align-items-center justify-content-between mt-3">
-      <div class="text-muted small">
-        Trang {{ page + 1 }} / {{ totalPages || 1 }}
-      </div>
+      <div class="text-muted small">Trang {{ page + 1 }} / {{ totalPages || 1 }}</div>
       <div class="btn-group">
         <button class="btn btn-sm btn-outline-secondary" :disabled="page === 0" @click="goToPage(page - 1)">Trước</button>
         <button class="btn btn-sm btn-outline-secondary" :disabled="page + 1 >= totalPages" @click="goToPage(page + 1)">Sau</button>
       </div>
     </div>
 
-    <!-- Chi tiết đơn hàng -->
+    <!-- Chi tiết -->
     <div v-if="detail" class="card mt-4 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
         <h5 class="mb-0">Chi tiết đơn hàng #{{ detail.id }}</h5>
         <button class="btn btn-sm btn-light" @click="detail = null">Đóng</button>
       </div>
       <div class="card-body">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <p><strong>Ngày đặt:</strong> {{ formatDate(detail.createdAt) }}</p>
-            <p><strong>Trạng thái:</strong> {{ humanStatus(detail.status) }}</p>
-          </div>
-          <div class="col-md-6">
-            <p><strong>Người nhận:</strong> {{ detail.receiverName }} - {{ detail.receiverPhone }}</p>
-            <p><strong>Địa chỉ:</strong> {{ detail.receiverAddress }}</p>
-          </div>
-        </div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <p><strong>Ngày đặt:</strong> {{ formatDate(detail.createdAt) }}</p>
+    <p><strong>Trạng thái:</strong> {{ detail.statusVi || humanStatus(detail.status) }}</p>
+    <p><strong>Phương thức thanh toán:</strong> {{ detail.paymentMethodName || '—' }}</p>
+  </div>
+  <div class="col-md-6">
+    <p><strong>Người nhận:</strong> {{ detail.receiverName }} - {{ detail.receiverPhone }}</p>
+    <p><strong>Địa chỉ:</strong> {{ detail.receiverAddress }}</p>
+    <p><strong>Đơn vị vận chuyển:</strong> {{ detail.shippingProviderName || '—' }}</p>
+  </div>
+</div>
+
 
         <h6 class="fw-bold mt-3">🛒 Sản phẩm</h6>
         <div class="table-responsive">
@@ -121,36 +113,55 @@
           <p><strong>Giảm giá:</strong> {{ formatCurrency(detail.discountAmount) }}</p>
           <h5><strong>Tổng tiền:</strong> {{ formatCurrency(detail.totalAmount) }}</h5>
         </div>
+
+        <!-- Hành động của user -->
+        <div class="d-flex gap-2 mt-2 justify-content-end">
+          <button
+            v-if="['PENDING_PAYMENT','Pending Confirmation','CONFIRMED','PROCESSING'].includes(detail.status)"
+            class="btn btn-sm btn-outline-danger"
+            @click="cancelOrder(detail.id)">
+            Huỷ đơn
+          </button>
+          <button
+            v-if="['DELIVERED'].includes(detail.status)"
+            class="btn btn-sm btn-success"
+            @click="markReceived(detail.id)">
+            Đã nhận hàng
+          </button>
+        </div>
       </div>
     </div>
+  
   </div>
+    <MainFooter></MainFooter>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
+import MainFooter from '../MainFooter.vue'
+import MainHeader from '../MainHeader.vue'
 
 const API_BASE = 'http://localhost:8080'
 
 const statuses = [
-  { value: 'PENDING', label: 'Chờ xử lý' },
+  { value: 'Pending Confirmation', label: 'Chờ xác nhận' },
   { value: 'CONFIRMED', label: 'Đã xác nhận' },
   { value: 'PROCESSING', label: 'Đang xử lý' },
   { value: 'SHIPPED', label: 'Đang giao' },
   { value: 'DELIVERED', label: 'Đã giao' },
+  { value: 'COMPLETED', label: 'Hoàn tất' },
   { value: 'CANCELLED', label: 'Đã huỷ' }
 ]
 
-// state
 const loading = ref(false)
 const error = ref('')
 const orders = ref([])
-const page = ref(0)          // zero-based cho backend
+const page = ref(0)
 const pageSize = ref(10)
 const totalPages = ref(0)
 const totalElements = ref(0)
 const selectedStatus = ref('')
-
 const detail = ref(null)
 
 // helpers
@@ -184,28 +195,39 @@ function formatCurrency(v) {
 }
 function formatDate(d) { return d ? new Date(d).toLocaleString('vi-VN') : '—' }
 function humanStatus(s) {
-  const map = { PENDING:'Chờ xử lý', CONFIRMED:'Đã xác nhận', PROCESSING:'Đang xử lý', SHIPPED:'Đang giao', DELIVERED:'Đã giao', CANCELLED:'Đã huỷ' }
+  const map = {
+    PENDING_PAYMENT:'Đang thanh toán',
+    PendingConfirmation:'Chờ xác nhận',
+    CONFIRMED:'Đã xác nhận',
+    PROCESSING:'Đang xử lý',
+    SHIPPED:'Đang giao',
+    DELIVERED:'Đã giao',
+    COMPLETED:'Hoàn tất',
+    CANCELLED:'Đã huỷ'
+  }
   return map[s] || s
 }
 function statusBadge(s) {
-  return { PENDING:'text-bg-secondary', CONFIRMED:'text-bg-info', PROCESSING:'text-bg-warning', SHIPPED:'text-bg-primary', DELIVERED:'text-bg-success', CANCELLED:'text-bg-danger' }[s] || 'text-bg-light'
+  return {
+    PENDING_PAYMENT:'text-bg-secondary',
+    PendingConfirmation:'text-bg-secondary',
+    CONFIRMED:'text-bg-info',
+    PROCESSING:'text-bg-warning',
+    SHIPPED:'text-bg-primary',
+    DELIVERED:'text-bg-success',
+    COMPLETED:'text-bg-success',
+    CANCELLED:'text-bg-danger'
+  }[s] || 'text-bg-light'
 }
-function mul(a, b) {
-  const x = Number(a || 0), y = Number(b || 0)
-  return x * y
-}
+function mul(a, b) { return Number(a || 0) * Number(b || 0) }
 
-// fetch list (server pagination)
+// list
 async function fetchOrders() {
   const userId = getUserId()
-  if (!userId) { error.value = 'Không xác định được người dùng. Vui lòng đăng nhập lại.'; return }
+  if (!userId) { error.value = 'Không xác định được người dùng. Vui lòng đăng nhập.'; return }
   loading.value = true; error.value = ''
   try {
-    const params = {
-      userId,
-      page: page.value,
-      size: pageSize.value
-    }
+    const params = { userId, page: page.value, size: pageSize.value }
     if (selectedStatus.value) params.status = selectedStatus.value
     const { data } = await axios.get(`${API_BASE}/orders/user`, { params })
     orders.value = data?.content || []
@@ -213,22 +235,14 @@ async function fetchOrders() {
     totalElements.value = data?.totalElements || 0
   } catch (e) {
     error.value = e?.response?.data?.message || 'Không tải được danh sách đơn hàng.'
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
-
 function goToPage(p) {
   if (p < 0) p = 0
   if (totalPages.value && p >= totalPages.value) p = totalPages.value - 1
-  page.value = p
-  fetchOrders()
+  page.value = p; fetchOrders()
 }
-
-function onFilterChange() {
-  page.value = 0
-  fetchOrders()
-}
+function onFilterChange() { page.value = 0; fetchOrders() }
 
 // detail
 async function viewDetail(orderId) {
@@ -241,6 +255,33 @@ async function viewDetail(orderId) {
     error.value = e?.response?.data?.message || 'Không tải được chi tiết đơn hàng.'
   }
 }
+
+// actions
+async function cancelOrder(id) {
+  const email = getUserEmail()
+  if (!email) return alert('Thiếu email người dùng')
+  try {
+    await axios.post(`${API_BASE}/orders/${id}/cancel`, null, { params: { email } })
+    await viewDetail(id); await fetchOrders()
+    alert('Huỷ đơn thành công')
+  } catch (e) {
+    alert(e?.response?.data || 'Huỷ đơn thất bại')
+  }
+}
+async function markReceived(id) {
+  const email = getUserEmail()
+  if (!email) return alert('Thiếu email người dùng.')
+  if (!confirm('Xác nhận đã nhận hàng?')) return
+  try {
+    await axios.post(`${API_BASE}/orders/${id}/received`, null, { params: { email } })
+    await viewDetail(id)
+    await fetchOrders()
+    alert('Đơn hàng đã hoàn tất.')
+  } catch (e) {
+    alert(e?.response?.data || 'Thao tác thất bại.')
+  }
+}
+
 
 onMounted(fetchOrders)
 </script>

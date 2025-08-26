@@ -1,6 +1,5 @@
 package com.fashionstore.fashionstore.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -31,7 +30,6 @@ public class ImportInvoiceDetail {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_detail_id", nullable = false)
     @NotNull(message = "Chi tiết sản phẩm không được để trống")
-    // @JsonIgnoreProperties({ "product", "hibernateLazyInitializer", "handler" })
     private ProductDetail productDetail;
 
     @NotNull(message = "Số lượng không được để trống")
@@ -56,5 +54,18 @@ public class ImportInvoiceDetail {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    // ------------------ TRANSIENT FIELD ------------------
+    @Column(name = "imported", nullable = false, columnDefinition = "BIT DEFAULT 0")
+    private boolean imported = false;
+
+    // getter / setter cho imported
+    public boolean isImported() {
+        return imported;
+    }
+
+    public void setImported(boolean imported) {
+        this.imported = imported;
     }
 }

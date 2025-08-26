@@ -6,23 +6,20 @@ import com.fashionstore.fashionstore.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-
-    private final String uploadDir = "uploads/categories/"; // Thư mục lưu ảnh
 
     @Override
     public List<Category> getAllCategories() {
@@ -36,20 +33,36 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category createCategory(Category category, MultipartFile imageFile) {
+        // Bước 1: Lưu tạm để sinh ID
+        Category savedCategory = categoryRepository.save(category);
+
+        // Bước 2: Nếu có ảnh, lưu ảnh theo ID
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = saveImage(imageFile);
-            category.setImageUrl(imageUrl);
+            String imageUrl = storeImageWithId(savedCategory.getId(), imageFile);
+            savedCategory.setImageUrl(imageUrl);
+
+            // Bước 3: Lưu lại để cập nhật imageUrl
+            savedCategory = categoryRepository.save(savedCategory);
         }
-        return categoryRepository.save(category);
+
+        return savedCategory;
     }
 
     @Override
     public Category updateCategory(Category category, MultipartFile imageFile) {
+        // Bước 1: Lưu tạm để sinh ID
+        Category savedCategory = categoryRepository.save(category);
+
+        // Bước 2: Nếu có ảnh, lưu ảnh theo ID
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = saveImage(imageFile);
-            category.setImageUrl(imageUrl);
+            String imageUrl = storeImageWithId(savedCategory.getId(), imageFile);
+            savedCategory.setImageUrl(imageUrl);
+
+            // Bước 3: Lưu lại để cập nhật imageUrl
+            savedCategory = categoryRepository.save(savedCategory);
         }
-        return categoryRepository.save(category);
+
+        return savedCategory;
     }
 
     @Override
@@ -57,37 +70,40 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteById(id);
     }
 
-    /**
-     * Lưu ảnh vào thư mục uploads/categories
-     */
-    private String saveImage(MultipartFile imageFile) {
-        try {
-            // Tạo thư mục nếu chưa có
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            // Tạo tên file duy nhất
-            String fileExtension = getFileExtension(imageFile.getOriginalFilename());
-            String fileName = UUID.randomUUID() + fileExtension;
-
-            Path path = Paths.get(uploadDir + fileName);
-            Files.write(path, imageFile.getBytes());
-
-            return "/images/categories/" + fileName; // Đường dẫn trả về (tuỳ frontend)
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi lưu ảnh: " + e.getMessage());
-        }
+    @Override
+    public Page<Category> getAllCategories(Pageable pageable) {
+        return categoryRepository.findAll(pageable);
     }
 
-    /**
-     * Lấy phần mở rộng của file (vd: .jpg, .png)
-     */
-    private String getFileExtension(String filename) {
-        if (filename != null && filename.contains(".")) {
-            return filename.substring(filename.lastIndexOf("."));
+    private String storeImageWithId(Integer categoryId, MultipartFile file) {
+        try {
+            // Đường dẫn thư mục ảnh trong thư mục gốc dự án
+            String baseDir = System.getProperty("user.dir"); // thư mục project
+            String uploadDir = baseDir + "/upload/images/categories";
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // Lấy phần mở rộng file
+            String originalFileName = file.getOriginalFilename();
+            String extension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+
+            // Đặt tên file theo ID
+            String fileName = categoryId + extension;
+            Path filePath = uploadPath.resolve(fileName);
+
+            file.transferTo(filePath.toFile());
+
+            // Trả về đường dẫn dùng để hiển thị trên frontend
+            return fileName;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Không thể lưu ảnh: " + e.getMessage(), e);
         }
-        return "";
     }
 }

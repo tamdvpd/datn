@@ -56,6 +56,13 @@ public class ImportInvoiceDetailController {
         return ResponseEntity.noContent().build();
     }
 
+    // Nhập kho cho chi tiết phiếu nhập
+    @PostMapping("/import/{detailId}")
+    public ResponseEntity<ImportInvoiceDetail> importStock(@PathVariable Integer detailId) {
+        ImportInvoiceDetail importedDetail = service.importStock(detailId);
+        return ResponseEntity.ok(importedDetail);
+    }
+
     // Lấy tổng tiền của phiếu nhập (nếu cần hiển thị)
     @GetMapping("/total/{invoiceId}")
     public ResponseEntity<Double> getTotalByInvoice(@PathVariable Integer invoiceId) {

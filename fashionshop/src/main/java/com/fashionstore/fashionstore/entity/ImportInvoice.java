@@ -42,6 +42,15 @@ public class ImportInvoice {
     @Builder.Default
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
 
+    public enum Status {
+        PENDING, // Chưa nhập kho
+        COMPLETED // Đã nhập kho
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.PENDING;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

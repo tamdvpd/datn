@@ -1,142 +1,128 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white py-12 px-6 md:px-12 space-y-12 font-sans">
+  <div class="container py-4">
     <!-- Header -->
-    <div class="flex items-center justify-between bg-white p-6 rounded-2xl shadow-xl border border-gray-100">
-      <h1 class="text-3xl font-extrabold text-gray-800 flex items-center space-x-3">
-        <span>🛍️</span>
-        <span>Quản lý Chi tiết Sản phẩm</span>
+    <div class="d-flex justify-content-between align-items-center bg-white p-4 rounded shadow-sm mb-4">
+      <h1 class="h4 fw-bold mb-0 d-flex align-items-center gap-2">
+        🛍️ Quản lý Chi tiết Sản phẩm
       </h1>
-      <span class="text-blue-600 font-semibold text-lg bg-blue-100 px-4 py-2 rounded-full shadow">
+      <span class="badge bg-primary fs-6">
         Product ID: {{ productId }}
       </span>
     </div>
 
-<!-- Minimal Product Form -->
-<div class="card shadow-sm border-0">
-  <div class="card-header bg-primary text-white fw-bold">
-    {{ isEdit ? 'Cập nhật chi tiết sản phẩm' : 'Thêm chi tiết sản phẩm mới' }}
-  </div>
-
-  <div class="card-body">
-    <form @submit.prevent="handleSubmit" class="row g-3">
-
-      <!-- Màu & Size -->
-      <div class="col-md-6">
-        <label class="form-label">Màu sắc</label>
-        <input type="text" class="form-control form-control-sm" v-model="form.color" placeholder="VD: Đỏ, Xanh" />
+    <!-- Form -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white fw-bold">
+        {{ isEdit ? '✏️ Cập nhật chi tiết sản phẩm' : '➕ Thêm chi tiết sản phẩm mới' }}
       </div>
-      <div class="col-md-6">
-        <label class="form-label">Kích cỡ</label>
-        <input type="text" class="form-control form-control-sm" v-model="form.size" placeholder="VD: M, L, XL,..." />
-      </div>
+      <div class="card-body">
+        <form @submit.prevent="handleSubmit" class="row g-3">
 
-      <!-- Số lượng & Giá gốc -->
-      <div class="col-md-6">
-        <label class="form-label">Số lượng</label>
-        <input type="number" class="form-control form-control-sm" v-model="form.quantity" placeholder="VD: 10" />
-      </div>
-      <div class="col-md-6">
-        <label class="form-label">Giá gốc (VNĐ)</label>
-        <input type="number" class="form-control form-control-sm" v-model="form.price" placeholder="VD: 250000" />
-      </div>
+          <!-- Color / Size -->
+          <div class="col-md-6">
+            <label class="form-label">Màu sắc</label>
+            <input type="text" class="form-control form-control-sm" v-model="form.color" placeholder="VD: Đỏ, Xanh">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Kích cỡ</label>
+            <input type="text" class="form-control form-control-sm" v-model="form.size" placeholder="VD: M, L, XL...">
+          </div>
 
-      <!-- Giá giảm & Trọng lượng -->
-      <div class="col-md-6">
-        <label class="form-label">Giá giảm (VNĐ)</label>
-        <input type="number" class="form-control form-control-sm" v-model="form.discountPrice" placeholder="VD: 200000" />
-      </div>
-      <div class="col-md-6">
-        <label class="form-label">Khối lượng (gram)</label>
-        <input type="number" class="form-control form-control-sm" v-model="form.weight" placeholder="VD: 500" />
-      </div>
+          <!-- Quantity / Price -->
+          <div class="col-md-6">
+            <label class="form-label">Số lượng</label>
+            <input type="number" class="form-control form-control-sm" v-model="form.quantity">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Giá gốc (VNĐ)</label>
+            <input type="number" class="form-control form-control-sm" v-model="form.price">
+          </div>
 
-      <!-- Ảnh -->
-      <div class="col-12">
-        <label class="form-label">Ảnh sản phẩm</label>
-        <input
-          type="file"
-          class="form-control form-control-sm"
-          accept="image/*"
-          @change="onFileChange"
-          ref="imageUrl"
-        />
-      </div>
+          <!-- Discount / Weight -->
+          <div class="col-md-6">
+            <label class="form-label">Giá giảm (VNĐ)</label>
+            <input type="number" class="form-control form-control-sm" v-model="form.discountPrice">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Khối lượng (gram)</label>
+            <input type="number" class="form-control form-control-sm" v-model="form.weight">
+          </div>
 
-      <!-- Preview ảnh -->
-      <div v-if="form.imageUrl" class="col-12 text-center mt-2">
-        <img :src="form.imageUrl" alt="Preview" class="img-thumbnail" style="max-width: 160px;">
-      </div>
+          <!-- Image -->
+          <div class="col-12">
+            <label class="form-label">Ảnh sản phẩm</label>
+            <input type="file" class="form-control form-control-sm" accept="image/*" @change="onFileChange" ref="imageUrl">
+          </div>
 
-      <!-- Nút hành động -->
-      <div class="col-12 d-flex justify-content-end gap-2 mt-3">
-        <button type="submit" class="btn btn-sm btn-primary">
-          <i class="bi bi-check-circle me-1"></i>
-          {{ isEdit ? 'Cập nhật' : 'Thêm mới' }}
-        </button>
-        <button
-          v-if="isEdit"
-          type="button"
-          class="btn btn-sm btn-outline-secondary"
-          @click="resetForm"
-        >
-          Hủy
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+          <!-- Preview -->
+          <div v-if="form.imageUrl" class="col-12 text-center">
+            <img :src="form.imageUrl" alt="Preview" class="img-thumbnail mt-2" style="max-width: 160px;">
+          </div>
 
-
-  <!-- Table Section -->
-<div class="overflow-x-auto bg-white shadow-xl rounded-3xl border border-gray-200 max-w-7xl mx-auto">
-  <table class="min-w-full divide-y divide-gray-200 text-sm">
-    <thead class="bg-blue-50 text-blue-700 uppercase text-xs font-semibold sticky top-0 z-10">
-      <tr>
-        <th
-          v-for="header in ['Màu sắc','Kích cỡ','Số lượng','Giá gốc','Giảm giá','Ảnh','Khối lượng','Tạo lúc','Cập nhật','Hành động']"
-          :key="header"
-          :class="['px-4 py-3 border-b border-gray-200 text-left', (header === 'ID' || header === 'Product ID') ? 'hidden' : '']"
-          >
-          {{ header }}
-        </th>
-
-      </tr>
-    </thead>
-    <tbody class="divide-y divide-gray-100 bg-white">
-      <tr v-for="detail in productDetails" :key="detail.id" class="hover:bg-gray-50 transition-all duration-150">
-
-        <td class="px-4 py-2 border-b border-gray-200 capitalize">{{ detail.color }}</td>
-        <td class="px-4 py-2 border-b border-gray-200 uppercase">{{ detail.size }}</td>
-        <td class="px-4 py-2 border-b border-gray-200 text-center">{{ detail.quantity }}</td>
-        <td class="px-4 py-2 border-b border-gray-200 text-green-600 font-medium">{{ detail.price.toLocaleString() }}₫</td>
-        <td class="px-4 py-2 border-b border-gray-200 text-red-500 font-medium">{{ detail.discountPrice.toLocaleString() }}₫</td>
-        <td class="px-4 py-2 border-b border-gray-200 text-center">
-          <img v-if="detail.imageUrl" :src="detail.imageUrl" class="w-6 h-6 object-cover rounded-lg border shadow-md mx-auto" style="width: 48px; height: 48px;"/>
-        </td>
-        <td class="px-4 py-2 border-b border-gray-200 text-center">{{ detail.weight }}g</td>
-        <td class="px-4 py-2 border-b border-gray-200">{{ formatDate(detail.createdAt) }}</td>
-        <td class="px-4 py-2 border-b border-gray-200">{{ formatDate(detail.updatedAt) }}</td>
-        <td class="px-4 py-2 border-b border-gray-200 text-center">
-          <div class="flex justify-center gap-2">
-            <button @click="editDetail(detail)"
-                    class="text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-600 px-2.5 py-1 rounded-md text-xs transition flex items-center gap-1">
-              <i class="bi bi-pencil-square"></i>
-              <span>Sửa</span>
+          <!-- Actions -->
+          <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i class="bi bi-check-circle me-1"></i>{{ isEdit ? 'Cập nhật' : 'Thêm mới' }}
             </button>
-            <button @click="deleteDetail(detail.id)"
-                    class="text-red-600 hover:text-white hover:bg-red-600 border border-red-600 px-2.5 py-1 rounded-md text-xs transition flex items-center gap-1">
-              <i class="bi bi-trash3-fill"></i>
-              <span>Xóa</span>
+            <button v-if="isEdit" type="button" class="btn btn-sm btn-secondary" @click="resetForm">
+              <i class="bi bi-x-circle me-1"></i>Hủy
             </button>
           </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-light fw-semibold">Danh sách chi tiết</div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-primary text-center">
+            <tr>
+              <th>Màu sắc</th>
+              <th>Kích cỡ</th>
+              <th>Số lượng</th>
+              <th>Giá gốc</th>
+              <th>Giảm giá</th>
+              <th>Ảnh</th>
+              <th>Khối lượng</th>
+              <th>Tạo lúc</th>
+              <th>Cập nhật</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="detail in productDetails" :key="detail.id">
+              <td>{{ detail.color }}</td>
+              <td class="text-uppercase">{{ detail.size }}</td>
+              <td class="text-center">{{ detail.quantity }}</td>
+              <td class="text-success fw-semibold">{{ detail.price.toLocaleString() }}₫</td>
+              <td class="text-danger fw-semibold">{{ detail.discountPrice.toLocaleString() }}₫</td>
+              <td class="text-center">
+                <img v-if="detail.imageUrl" :src="detail.imageUrl" class="img-thumbnail" style="max-width: 48px;">
+              </td>
+              <td class="text-center">{{ detail.weight }} g</td>
+              <td>{{ formatDate(detail.createdAt) }}</td>
+              <td>{{ formatDate(detail.updatedAt) }}</td>
+              <td class="text-center">
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-primary" @click="editDetail(detail)">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" @click="deleteDetail(detail.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   </div>
 </template>
+
 
 <script>
 import axios from 'axios';

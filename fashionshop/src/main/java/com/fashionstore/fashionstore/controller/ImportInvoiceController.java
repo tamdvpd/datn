@@ -31,27 +31,24 @@ public class ImportInvoiceController {
         return invoice.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    // Tạo mới phiếu nhập (có chi tiết)
+    // Tạo mới phiếu nhập (có thể kèm nhà cung cấp mới và chi tiết)
     @PostMapping
-    public ResponseEntity<ImportInvoice> create(@Valid @RequestBody ImportInvoice invoice) {
-        // Thiết lập quan hệ 2 chiều
-        if (invoice.getImportInvoiceDetails() != null) {
-            invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(invoice));
-        }
+    public ResponseEntity<ImportInvoice> create(@RequestBody ImportInvoice invoice) {
         ImportInvoice created = importInvoiceService.createImportInvoice(invoice);
-        return ResponseEntity.status(201).body(created);
+        return ResponseEntity.ok(created);
     }
 
     // Cập nhật phiếu nhập
     @PutMapping("/{id}")
     public ResponseEntity<ImportInvoice> update(@PathVariable Integer id, @Valid @RequestBody ImportInvoice invoice) {
-        if (importInvoiceService.getImportInvoiceById(id).isEmpty()) {
+        Optional<ImportInvoice> existing = importInvoiceService.getImportInvoiceById(id);
+        if (existing.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         invoice.setId(id);
 
-        // Thiết lập lại quan hệ 2 chiều
+        // Thiết lập lại quan hệ 2 chiều với chi tiết nếu có
         if (invoice.getImportInvoiceDetails() != null) {
             invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(invoice));
         }
@@ -60,12 +57,21 @@ public class ImportInvoiceController {
         return ResponseEntity.ok(updated);
     }
 
+    // Nhập kho cho phiếu nhập
+    @PostMapping("/{id}/import-stock")
+    public ResponseEntity<?> importStock(@PathVariable Integer id) {
+        importInvoiceService.importStock(id);
+        return ResponseEntity.ok("Nhập kho thành công");
+    }
+
     // Xóa phiếu nhập
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        if (importInvoiceService.getImportInvoiceById(id).isEmpty()) {
+        Optional<ImportInvoice> existing = importInvoiceService.getImportInvoiceById(id);
+        if (existing.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+
         importInvoiceService.deleteImportInvoice(id);
         return ResponseEntity.noContent().build();
     }

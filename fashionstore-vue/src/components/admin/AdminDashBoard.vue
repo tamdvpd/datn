@@ -13,7 +13,7 @@
         </router-link>
       </div>
       <div>
-        <button class="btn btn-outline-secondary me-2">🔐 Tài khoản</button>
+        <!-- <button class="btn btn-outline-secondary me-2">🔐 Tài khoản</button> -->
         <button class="btn btn-outline-danger" @click="handleLogout">⬆️ Đăng xuất</button>
       </div>
     </nav>
@@ -24,7 +24,7 @@
         <div class="col-md-2 d-none d-md-block p-0">
           <div class="bg-light vh-100 admin-sidebar pt-3">
             <ul class="nav flex-column px-2">
-              <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂 DANH MỤC</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕SẢN PHẨM</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 ĐƠN HÀNG</router-link></li>
@@ -33,13 +33,13 @@
               <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 VẬN CHUYỂN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 KHO HÀNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
-                  CHỈNH</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
+                  CHỈNH</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 GIAO DIỆN</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨 GIAO DIỆN</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭 NHÀ CUNG CẤP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
-              </li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
+              </li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link>
               </li>
             </ul>
@@ -54,7 +54,7 @@
           </div>
           <div class="offcanvas-body p-0">
             <ul class="nav flex-column px-2">
-              <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin">🏠 TRANG CHỦ</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/categories">📂DANH MỤC</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/products">👕SẢN PHẨM</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/orders">📦 ĐƠN HÀNG</router-link></li>
@@ -63,13 +63,13 @@
               <li class="nav-item"><router-link class="nav-link" to="/admin/shipping">🚚 VẬN CHUYỂN</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/inventory">📦 KHO HÀNG</router-link></li>
               <li class="nav-item"><router-link class="nav-link" to="/admin/invoice">🧾 PHIẾU NHẬP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
-                  CHỈNH</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/inventory_adjustment">🗂️ PHIẾU ĐIỀU
+                  CHỈNH</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/users">👤 NGƯỜI DÙNG</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨GIAO DIỆN</router-link></li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/ui">🎨GIAO DIỆN</router-link></li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/supplier">🏭NHÀ CUNG CẤP</router-link></li>
-              <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
-              </li>
+              <!-- <li class="nav-item"><router-link class="nav-link" to="/admin/support">💬 HỖ TRỢ KHÁCH HÀNG</router-link>
+              </li> -->
               <li class="nav-item"><router-link class="nav-link" to="/admin/reports">📊 BÁO CÁO & THỐNG KÊ</router-link>
               </li>
             </ul>

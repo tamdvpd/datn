@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fashionstore.fashionstore.entity.Category;
 import com.fashionstore.fashionstore.entity.Product;
-import com.fashionstore.fashionstore.entity.ProductDetail;
 import com.fashionstore.fashionstore.repository.ProductDetailRepository;
 import com.fashionstore.fashionstore.service.ProductService;
 
@@ -37,26 +39,35 @@ public class ProductController {
     private final ProductService productService;
     private final ProductDetailRepository productDetailRepository;
 
+    // ✅ Lấy tất cả sản phẩm (không phân trang)
     @GetMapping
     public ResponseEntity<List<Product>> getAll() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    @GetMapping("/admin")
+    public ResponseEntity<Page<Product>> getAllAdmin(@RequestParam(defaultValue = "0") int page) {
+        int pageSize = 5;
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Product> result = productService.getAllProducts(pageable);
+        return ResponseEntity.ok(result);
+    }
+
+    // ✅ Lấy chi tiết sản phẩm theo ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         try {
             Optional<Product> optionalProduct = productService.getProductById(id);
-            if (optionalProduct.isPresent()) {
-                return ResponseEntity.ok(optionalProduct.get());
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found with id: " + id);
-            }
+            return optionalProduct.<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body("Product not found with id: " + id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving product with id: " + id);
         }
     }
 
+    // ✅ Tạo sản phẩm
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createProduct(
             @RequestParam("name") String name,
@@ -84,6 +95,7 @@ public class ProductController {
         }
     }
 
+    // ✅ Cập nhật sản phẩm
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(
             @PathVariable Integer id,
@@ -104,24 +116,35 @@ public class ProductController {
         }
     }
 
+    // ✅ Xóa sản phẩm
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         try {
             productService.deleteProduct(id);
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok("Đã xóa sản phẩm");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error deleting product with id: " + id);
         }
     }
 
+    // API tìm kiếm + lọc + sắp xếp + phân trang (dùng cho khách hàng)
     @GetMapping("/search")
-    public ResponseEntity<List<ProductDetail>> searchProducts(
-            @RequestParam(required = false) String name,
+    public ResponseEntity<Page<Product>> searchProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.searchProducts(name, categoryId, minPrice, maxPrice));
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "id") String sortBy, // cột sắp xếp
+            @RequestParam(defaultValue = "asc") String order, // asc / desc
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+
+        Page<Product> result = productService.searchProducts(keyword, categoryId, minPrice, maxPrice, sortBy, order,
+                page, size);
+        return ResponseEntity.ok(result);
     }
 
     // API lấy danh sách màu sắc và kích thước distinct từ ProductDetail
@@ -131,5 +154,12 @@ public class ProductController {
         filters.put("colors", productDetailRepository.findDistinctColors());
         filters.put("sizes", productDetailRepository.findDistinctSizes());
         return ResponseEntity.ok(filters);
+    }
+
+    // API sản phẩm bán chạy (best sellers)
+    @GetMapping("/best-sellers")
+    public ResponseEntity<List<Product>> getBestSellers(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(productService.getBestSellers(limit));
     }
 }

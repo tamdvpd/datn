@@ -5,10 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -16,32 +14,29 @@ import lombok.*;
 
 @Data
 @Entity
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "ProductDetails")
-// ✅ tránh vòng lặp, cho phép serialize sâu (productDetail -> product)
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class ProductDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // giữ nguyên để FE đọc product.name
+    // ---------------- Quan hệ chính ----------------
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    @JsonIgnoreProperties("productDetails") // ẩn list ngược bên Product
-    @NotNull(message = "Sản phẩm không được null")
+    @JsonIgnoreProperties({ "productDetails", "hibernateLazyInitializer", "handler" })
     private Product product;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     @NotBlank(message = "Màu sắc không được để trống")
     @Size(max = 50, message = "Màu sắc tối đa 50 ký tự")
     private String color;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     @NotBlank(message = "Kích thước không được để trống")
     @Size(max = 50, message = "Kích thước tối đa 50 ký tự")
     private String size;
@@ -49,7 +44,7 @@ public class ProductDetail {
     @Column(nullable = false)
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 0, message = "Số lượng phải >= 0")
-    private Integer quantity;
+    private Integer quantity; // Dùng quantity làm stock
 
     @Column(nullable = false, precision = 12, scale = 2)
     @NotNull(message = "Giá sản phẩm không được để trống")
@@ -86,7 +81,7 @@ public class ProductDetail {
         updatedAt = LocalDateTime.now();
     }
 
-    // ===== Quan hệ ngược: ẨN đi để tránh vòng lặp & payload nặng =====
+    // ---------------- Quan hệ ngược ----------------
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<ImportInvoiceDetail> importInvoiceDetails = new ArrayList<>();
@@ -110,4 +105,14 @@ public class ProductDetail {
     @OneToMany(mappedBy = "productDetail", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Review> reviews = new ArrayList<>();
-}   
+
+    // ---------------- Stock getter/setter ----------------
+    public Integer getStock() {
+        return this.quantity;
+    }
+
+    public void setStock(Integer stock) {
+        this.quantity = stock;
+    }
+
+}

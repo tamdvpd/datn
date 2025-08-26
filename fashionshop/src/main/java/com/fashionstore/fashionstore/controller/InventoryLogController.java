@@ -144,4 +144,5 @@ public class InventoryLogController {
     public ResponseEntity<Map<String, List<String>>> getWarehouseFilters() {
         return ResponseEntity.ok(inventoryLogService.getFilterOptions());
     }
+    
 }

@@ -12,7 +12,6 @@ import com.fashionstore.fashionstore.service.ImportInvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -39,34 +38,16 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
 
     @Override
     public ImportInvoice createImportInvoice(ImportInvoice invoice) {
-        Supplier supplier = invoice.getSupplier();
-
-        if (supplier == null || supplier.getId() == null) {
-            throw new RuntimeException("❌ Vui lòng chọn nhà cung cấp đã tồn tại");
-        }
-
-        supplier = supplierRepository.findById(supplier.getId())
+        Supplier supplier = supplierRepository.findById(invoice.getSupplier().getId())
                 .orElseThrow(() -> new RuntimeException("❌ Không tìm thấy nhà cung cấp"));
 
         if (!Boolean.TRUE.equals(supplier.getStatus())) {
-            throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể tạo phiếu nhập");
+            throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể tạo phiếu nhập.");
         }
 
-        // Gán lại nhà cung cấp
         invoice.setSupplier(supplier);
-
-        // Thiết lập ngày nhập và trạng thái
-        if (invoice.getImportDate() == null) {
-            invoice.setImportDate(LocalDate.now());
-        }
-        
-        invoice.setStatus(ImportInvoice.Status.PENDING);
-
-        // Thiết lập quan hệ 2 chiều với chi tiết nếu có
-        if (invoice.getImportInvoiceDetails() != null) {
-            invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(invoice));
-        }
-
+        invoice.setImportDate(LocalDate.now());
+        invoice.setStatus(ImportInvoice.Status.PENDING); // trạng thái mặc định
         return importInvoiceRepository.save(invoice);
     }
 
@@ -82,12 +63,6 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
         existing.setSupplier(invoice.getSupplier());
         existing.setImportDate(invoice.getImportDate());
         existing.setNote(invoice.getNote());
-
-        if (invoice.getImportInvoiceDetails() != null) {
-            invoice.getImportInvoiceDetails().forEach(detail -> detail.setImportInvoice(existing));
-            existing.setImportInvoiceDetails(invoice.getImportInvoiceDetails());
-        }
-
         return importInvoiceRepository.save(existing);
     }
 
@@ -183,3 +158,4 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
         importInvoiceRepository.save(invoice);
     }
 }
+

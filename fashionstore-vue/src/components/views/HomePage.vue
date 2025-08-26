@@ -8,12 +8,37 @@
         <!-- Banner -->
         <div class="row">
           <img
-            src="https://file.hstatic.net/1000402464/file/hero_1-100__5_.jpg"
-            style="width: 100%; height: 500px; object-fit: cover;"
+            src="https://bizweb.dktcdn.net/100/462/587/themes/880841/assets/slider_1.jpg?1755556746118"
+            style="width: 100%; height: 400px; object-fit: cover;"
             class="rounded shadow"
             alt="Banner"
           />
         </div>
+<!-- tìm kiếm -->
+      <div class="row mb-3 search-sort-bar mt-5">
+  <div class="col-md-3 mb-2 d-flex justify-content-center">
+    <input
+      type="text"
+      class="form-control search-input"
+      placeholder="Tìm kiếm sản phẩm..."
+      v-model="keyword"
+      @keyup.enter="applyFilters"
+    />
+    <button class="btn btn-primary ms-2" @click="applyFilters">
+      <i class="fas fa-search"></i> Tìm
+    </button>
+  </div>
+  <div class="col-md-3 mb-2">
+    <select class="form-select sort-select" v-model="sortOption" @change="applyFilters">
+      <option value="">Sắp xếp</option>
+      <option value="name-asc">Tên: sản phẩm A → Z</option>
+      <option value="name-desc">Tên: sản phẩm Z → A</option>
+      <option value="price-asc">Giá: Thấp → Cao</option>
+      <option value="price-desc">Giá: Cao → Thấp</option>
+    </select>
+  </div>
+</div>
+
 
         <!-- 🔖 BLOG KHUYẾN MÃI / MÃ GIẢM GIÁ (chỉ hiển thị + copy) -->
         <section class="mt-4">
@@ -193,16 +218,16 @@ export default {
             'https://images.unsplash.com/photo-1520975916090-3105956dac38?q=80&w=1200&auto=format&fit=crop'
         },
         {
-          title: 'Áo Phông',
-          slug: 'ao-phong',
+          title: 'Quần Nam',
+          slug: 'quan-nam',
           image:
-            'https://bizweb.dktcdn.net/100/462/587/products/27-e96667ad-35eb-4733-940a-39ef2d0cd6df.png?v=1719349696667'
+            'https://images.unsplash.com/photo-1520975940400-3af35a6f1a5d?q=80&w=1200&auto=format&fit=crop'
         },
         {
           title: 'Giày Dép',
           slug: 'giay-dep',
           image:
-            'https://hotgirlshop.vn/Uploads/Products/21072021/News/20721610-giay-the-thao-nu-nike-cao-cap-chinh-hang.jpg'
+            'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop'
         },
         {
           title: 'Phụ Kiện',
@@ -220,7 +245,7 @@ export default {
           title: 'Sale Sốc',
           slug: 'sale',
           image:
-            'https://file.hstatic.net/1000253775/file/hoi-trang-nam-tai-ha-noi-360-boutique_279e611939e5435b976f72e211d9178a.jpg'
+            'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?q=80&w=1200&auto=format&fit=crop'
         }
       ]
 

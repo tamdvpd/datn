@@ -106,6 +106,8 @@
 <script>
 import axios from "axios";
 
+const API_BASE = "http://localhost:8080";
+
 export default {
   name: "ImportInvoiceDetail",
   props: { invoiceId: { type: Number, required: true } },
@@ -121,31 +123,31 @@ export default {
   },
   computed: {
     totalAmount() {
-      return this.details.reduce((sum, d) => sum + d.quantity * d.unitPrice, 0);
+      return this.details.reduce((sum, d) => sum + (Number(d.quantity) || 0) * (Number(d.unitPrice) || 0), 0);
     }
   },
   methods: {
     async showOption(productId) {
       if (!productId) return;
       try {
-        const res = await axios.get(`http://localhost:8080/productdetails/product/${productId}`);
-        this.options = res.data;
+        const res = await axios.get(`${API_BASE}/productdetails/product/${productId}`);
+        this.options = Array.isArray(res.data) ? res.data : [];
       } catch (error) {
         console.error("Lỗi load option:", error);
       }
     },
     async fetchDetails() {
       try {
-        const res = await axios.get(`http://localhost:8080/api/import-invoice-details/by-invoice/${this.invoiceId}`);
-        this.details = res.data;
+        const res = await axios.get(`${API_BASE}/api/import-invoice-details/by-invoice/${this.invoiceId}`);
+        this.details = Array.isArray(res.data) ? res.data : [];
       } catch (err) {
         console.error("Lỗi load chi tiết phiếu nhập:", err);
       }
     },
     async fetchProductOptions() {
       try {
-        const res = await axios.get("http://localhost:8080/products");
-        this.productOptions = res.data;
+        const res = await axios.get(`${API_BASE}/products`);
+        this.productOptions = Array.isArray(res.data) ? res.data : [];
       } catch (err) {
         console.error("Lỗi load sản phẩm:", err);
       }
@@ -155,6 +157,11 @@ export default {
         alert("⚠️ Vui lòng nhập đầy đủ thông tin!");
         return;
       }
+      if (Number(this.form.quantity) <= 0) {
+        alert("⚠️ Số lượng phải > 0!");
+        return;
+      }
+
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user?.id) {
         alert("⚠️ Vui lòng đăng nhập!");
@@ -168,21 +175,25 @@ export default {
             id: this.form.id,
             importInvoice: { id: this.invoiceId },
             productDetail: { id: this.form.productDetailId },
-            quantity: this.form.quantity,
-            unitPrice: this.form.unitPrice,
+            quantity: Number(this.form.quantity),
+            unitPrice: Number(this.form.unitPrice),
             user: { id: user.id }
           };
-          await axios.put(`http://localhost:8080/api/import-invoice-details/${this.form.id}`, updatedDetail);
+          await axios.put(`${API_BASE}/api/import-invoice-details/${this.form.id}`, updatedDetail, {
+            headers: { "Content-Type": "application/json" }
+          });
           alert("✅ Cập nhật chi tiết thành công!");
         } else {
           const newDetail = {
             importInvoice: { id: this.invoiceId },
             productDetail: { id: this.form.productDetailId },
             user: { id: user.id },
-            quantity: this.form.quantity,
-            unitPrice: this.form.unitPrice
+            quantity: Number(this.form.quantity),
+            unitPrice: Number(this.form.unitPrice)
           };
-          await axios.post("http://localhost:8080/api/import-invoice-details", newDetail);
+          await axios.post(`${API_BASE}/api/import-invoice-details`, newDetail, {
+            headers: { "Content-Type": "application/json" }
+          });
           alert("✅ Thêm chi tiết mới thành công!");
         }
 
@@ -190,7 +201,8 @@ export default {
         this.resetForm();
       } catch (err) {
         console.error("Lỗi khi lưu chi tiết:", err);
-        alert("❌ Lỗi khi lưu chi tiết!");
+        const msg = err?.response?.data ?? err.message;
+        alert(`❌ Lỗi khi lưu chi tiết: ${msg}`);
       }
     },
     editDetail(detail) {
@@ -200,38 +212,51 @@ export default {
       this.form = {
         id: detail.id,
         productDetailId: detail.productDetail?.id || null,
-        quantity: detail.quantity,
-        unitPrice: detail.unitPrice
+        quantity: Number(detail.quantity) || 1,
+        unitPrice: Number(detail.unitPrice) || 0
       };
     },
     async deleteDetail(id) {
       if (!confirm("Bạn có chắc muốn xóa chi tiết này?")) return;
       try {
-        await axios.delete(`http://localhost:8080/api/import-invoice-details/${id}`);
+        await axios.delete(`${API_BASE}/api/import-invoice-details/${id}`);
         await this.fetchDetails();
         alert("🗑️ Xóa thành công!");
       } catch (err) {
         console.error("Lỗi khi xóa:", err);
-        alert("❌ Không thể xóa chi tiết đã nhập kho!");
+        const msg = err?.response?.data ?? err.message;
+        alert(`❌ Không thể xóa chi tiết: ${msg}`);
       }
     },
     async importToStock(detail) {
-      if (!detail.productDetail?.id) {
-        alert("⚠️ Sản phẩm chưa chọn chi tiết");
-        return;
+      if (!detail?.productDetail?.id) {
+        alert("⚠️ Sản phẩm chưa chọn chi tiết"); return;
       }
-      if (!confirm(`Bạn có chắc muốn nhập ${detail.quantity} sản phẩm này vào kho?`)) return;
+      const qty = Number(detail.quantity);
+      if (!qty || qty <= 0) {
+        alert("⚠️ Số lượng phải > 0"); return;
+      }
+      if (!confirm(`Bạn có chắc muốn nhập ${qty} sản phẩm này vào kho?`)) return;
 
       try {
-        await axios.post(`http://localhost:8080/admin/inventoryLogs/import`, {
-          productDetailId: detail.productDetail.id,
-          quantity: detail.quantity
+        // GỬI DẠNG form-urlencoded cho @RequestParam (Controller hiện tại)
+        const form = new URLSearchParams();
+        form.append("productDetailId", String(detail.productDetail.id));
+        form.append("quantity", String(qty));
+        // 2 field dưới là optional theo Controller:
+        form.append("importInvoiceId", String(this.invoiceId));
+        form.append("note", `Nhập từ phiếu #${this.invoiceId}`);
+
+        await axios.post(`${API_BASE}/admin/inventoryLogs/import`, form, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }
         });
+
         alert("✅ Nhập kho thành công!");
         await this.fetchDetails();
       } catch (err) {
         console.error("Lỗi khi nhập kho:", err);
-        alert("❌ Nhập kho thất bại!");
+        const msg = err?.response?.data ?? err.message;
+        alert(`❌ Nhập kho thất bại: ${msg}`);
       }
     },
     resetForm() {
@@ -241,7 +266,8 @@ export default {
       this.form = { id: null, productDetailId: null, quantity: 1, unitPrice: 0 };
     },
     formatCurrency(value) {
-      return (value || 0).toLocaleString("vi-VN") + "₫";
+      const v = Number(value) || 0;
+      return v.toLocaleString("vi-VN") + "₫";
     }
   },
   watch: {
@@ -254,4 +280,4 @@ export default {
     }
   }
 };
-</script> 
+</script>

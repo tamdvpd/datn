@@ -5,10 +5,13 @@ import com.fashionstore.fashionstore.service.CouponService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:3001/")
 @RestController
@@ -19,8 +22,11 @@ public class CouponController {
     private final CouponService couponService;
 
     @GetMapping
-    public ResponseEntity<List<Coupon>> getAll() {
-        return ResponseEntity.ok(couponService.getAllCoupons());
+    public ResponseEntity<Page<Coupon>> getAll(@RequestParam(defaultValue = "0") int page) {
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Coupon> result = couponService.getAllCoupons(pageable);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")

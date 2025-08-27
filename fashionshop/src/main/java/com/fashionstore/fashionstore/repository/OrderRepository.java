@@ -15,43 +15,112 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findByUser_Email(String email);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findByUser_Email(String email);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findByUser_EmailAndStatus(String email, String status);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findByUser_EmailAndStatus(String email, String status);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findTop5ByUser_EmailOrderByCreatedAtDesc(String email);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findTop5ByUser_EmailOrderByCreatedAtDesc(String email);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findByUser_Id(Integer userId);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findByUser_Id(Integer userId);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findByUser_IdAndStatus(Integer userId, String status);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findByUser_IdAndStatus(Integer userId, String status);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    Page<Order> findByUser_Id(Integer userId, Pageable pageable);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        Page<Order> findByUser_Id(Integer userId, Pageable pageable);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    Page<Order> findByUser_IdAndStatus(Integer userId, String status, Pageable pageable);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        Page<Order> findByUser_IdAndStatus(Integer userId, String status, Pageable pageable);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    Page<Order> findByStatus(String status, Pageable pageable);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        Page<Order> findByStatus(String status, Pageable pageable);
 
-    @EntityGraph(attributePaths = { "user", "orderDetails" })
-    List<Order> findByStatus(String status);
+        @EntityGraph(attributePaths = { "user", "orderDetails" })
+        List<Order> findByStatus(String status);
 
-    @Query("select distinct o from Order o " +
-            "left join fetch o.user " +
-            "left join fetch o.orderDetails od " +
-            "left join fetch od.productDetail pd " +
-            "left join fetch pd.product " +
-            "left join fetch o.shippingProvider " +
-            "left join fetch o.paymentMethod " +
-            "where o.id = :id")
-    Optional<Order> findOneWithDetailsById(@Param("id") Integer id);
+        @Query("select distinct o from Order o " +
+                        "left join fetch o.user " +
+                        "left join fetch o.orderDetails od " +
+                        "left join fetch od.productDetail pd " +
+                        "left join fetch pd.product " +
+                        "left join fetch o.shippingProvider " +
+                        "left join fetch o.paymentMethod " +
+                        "where o.id = :id")
+        Optional<Order> findOneWithDetailsById(@Param("id") Integer id);
 
-    boolean existsById(Integer id);
+        boolean existsById(Integer id);
 
+        // doanh thu hôm nay
+        @Query(value = """
+                        SELECT SUM(total_amount)
+                        FROM Orders
+                        WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)
+                          AND status = 'COMPLETED'
+                        """, nativeQuery = true)
+        long getRevenueToday();
+
+        // doanh thu tuần hiện tại
+        @Query(value = """
+                        SELECT SUM(total_amount)
+                        FROM Orders
+                        WHERE DATEPART(ISO_WEEK, created_at) = DATEPART(ISO_WEEK, GETDATE())
+                          AND YEAR(created_at) = YEAR(GETDATE())
+                          AND status = 'COMPLETED'
+                        """, nativeQuery = true)
+        long getRevenueThisWeek();
+
+        // doanh thu tháng hiện tại
+        @Query(value = """
+                        SELECT SUM(total_amount)
+                        FROM Orders
+                        WHERE MONTH(created_at) = MONTH(GETDATE())
+                          AND YEAR(created_at) = YEAR(GETDATE())
+                          AND status = 'COMPLETED'
+                        """, nativeQuery = true)
+        long getRevenueThisMonth();
+
+        // doanh thu năm hiện tại
+        @Query(value = """
+                        SELECT SUM(total_amount)
+                        FROM Orders
+                        WHERE YEAR(created_at) = YEAR(GETDATE())
+                          AND status = 'COMPLETED'
+                        """, nativeQuery = true)
+        long getRevenueThisYear();
+
+        // tổng số đơn hàng bị hủy
+        @Query(value = """
+                        SELECT COUNT(*)
+                        FROM Orders
+                        WHERE status = 'CANCELLED'
+                        """, nativeQuery = true)
+        long countCancelledOrders();
+
+        // tổng số đơn hàng hoàn thành
+        @Query(value = """
+                        SELECT COUNT(*)
+                        FROM Orders
+                        WHERE status = 'COMPLETED'
+                        """, nativeQuery = true)
+        long countCompletedOrders();
+
+        // tổng số đơn hàng chờ xác nhận
+        @Query(value = """
+                        SELECT COUNT(*)
+                        FROM Orders
+                        WHERE status = 'Pending Confirmation'
+                        """, nativeQuery = true)
+        long countPendingOrders();
+
+        // tổng số đơn hàng đang giao
+        @Query(value = """
+                        SELECT COUNT(*)
+                        FROM Orders
+                        WHERE status = 'SHIPPED'
+                        """, nativeQuery = true)
+        long countSHIPPEDOrders();
 }

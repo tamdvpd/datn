@@ -127,8 +127,7 @@
 
                                 <div class="fw-bold">Sản phẩm đã chọn ({{ cartItems.length }}):</div>
                                 <div class="mb-3">
-                                    <div v-for="(item, index) in cartItems" :key="index"
-                                        class="d-flex mb-3 border-bottom pb-3">
+                                    <div v-for="(item, index) in cartItems" :key="index" class="d-flex mb-3 pb-3">
                                         <img :src="'http://localhost:8080/images/productDetails/' + item.productDetail.imageUrl"
                                             class="img-thumbnail me-3" style="width: 80px" />
                                         <div>

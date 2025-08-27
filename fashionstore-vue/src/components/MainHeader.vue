@@ -7,12 +7,7 @@
       <div class="container">
         <!-- Logo -->
         <router-link to="/" class="navbar-brand">
-          <img
-            src="@/assets/img/LogoChinh.png"
-            alt="Logo"
-            width="200"
-            height="50"
-          />
+          <img src="@/assets/img/LogoChinh.png" alt="Logo" width="200" height="50" />
         </router-link>
 
 
@@ -43,15 +38,9 @@
 
           <!-- Nếu đã đăng nhập -->
           <div v-else class="dropdown">
-            <img
-              :src="currentUser.imageUrl || require('@/assets/img/default-avatar.png')"
-              alt="Avatar"
-              width="36"
-              height="36"
-              class="rounded-circle me-2 dropdown-toggle"
-              data-bs-toggle="dropdown"
-              style="cursor: pointer"
-            />
+            <img :src="currentUser.imageUrl || require('@/assets/img/default-avatar.png')" alt="Avatar" width="36"
+              height="36" class="rounded-circle me-2 dropdown-toggle" data-bs-toggle="dropdown"
+              style="cursor: pointer" />
             <ul class="dropdown-menu dropdown-menu-end">
               <li>
                 <router-link to="/profile" class="dropdown-item">
@@ -63,7 +52,9 @@
                   📦 Đơn hàng
                 </router-link>
               </li>
-              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <hr class="dropdown-divider" />
+              </li>
               <li>
                 <router-link to="/change-password" class="dropdown-item">
                   🔑 Đổi mật khẩu
@@ -73,7 +64,7 @@
                 <a class="dropdown-item" @click="handleLogout">🚪 Đăng xuất</a>
               </li>
               <li v-if="currentUser.role === 'ADMIN'">
-                <router-link to="/admin" class="dropdown-item">
+                <router-link to="/admin/orders" class="dropdown-item">
                   ⚙️ Quản lý Admin
                 </router-link>
               </li>
@@ -119,12 +110,15 @@ export default {
   background-color: #00b0f0;
   font-weight: bold;
 }
+
 .navbar {
   background-color: #00c0f1 !important;
 }
+
 .navbar-brand img {
   filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.1));
 }
+
 /* chỉnh nút sản phẩm nhỏ gọn */
 .btn-warning.btn-sm {
   padding: 0.25rem 0.6rem;

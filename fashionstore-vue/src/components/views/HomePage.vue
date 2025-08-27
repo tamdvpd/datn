@@ -8,37 +8,12 @@
         <!-- Banner -->
         <div class="row">
           <img
-            src="https://bizweb.dktcdn.net/100/462/587/themes/880841/assets/slider_1.jpg?1755556746118"
-            style="width: 100%; height: 400px; object-fit: cover;"
+            src="https://file.hstatic.net/1000402464/file/hero_1-100__5_.jpg"
+            style="width: 100%; height: 500px; object-fit: cover;"
             class="rounded shadow"
             alt="Banner"
           />
         </div>
-<!-- tìm kiếm -->
-      <div class="row mb-3 search-sort-bar mt-5">
-  <div class="col-md-3 mb-2 d-flex justify-content-center">
-    <input
-      type="text"
-      class="form-control search-input"
-      placeholder="Tìm kiếm sản phẩm..."
-      v-model="keyword"
-      @keyup.enter="applyFilters"
-    />
-    <button class="btn btn-primary ms-2" @click="applyFilters">
-      <i class="fas fa-search"></i> Tìm
-    </button>
-  </div>
-  <div class="col-md-3 mb-2">
-    <select class="form-select sort-select" v-model="sortOption" @change="applyFilters">
-      <option value="">Sắp xếp</option>
-      <option value="name-asc">Tên: sản phẩm A → Z</option>
-      <option value="name-desc">Tên: sản phẩm Z → A</option>
-      <option value="price-asc">Giá: Thấp → Cao</option>
-      <option value="price-desc">Giá: Cao → Thấp</option>
-    </select>
-  </div>
-</div>
-
 
         <!-- 🔖 BLOG KHUYẾN MÃI / MÃ GIẢM GIÁ (chỉ hiển thị + copy) -->
         <section class="mt-4">
@@ -99,7 +74,7 @@
         </section>
 
         <!-- SẢN PHẨM BÁN CHẠY (lấy từ DB) -->
-        <div class="section-title mt-4">SẢN PHẨM BÁN CHẠY</div>
+        <div class="section-title mt-4">SẢN PHẨM MỚI NHẤT</div>
         <div class="row g-3">
 
           <div
@@ -150,31 +125,7 @@
           </div>
         </div>
 
-        <!-- KHÁM PHÁ DANH MỤC (thay cho 'TẤT CẢ SẢN PHẨM') -->
-        <div class="section-title">KHÁM PHÁ DANH MỤC</div>
-        <div class="row g-3">
-
-          <div
-            class="col-12 col-sm-6 col-lg-4"
-            v-for="cat in homeCategories"
-            :key="cat.slug"
-          >
-            <router-link
-              class="category-card d-block rounded overflow-hidden shadow-sm"
-              :to="`/product?category=${encodeURIComponent(cat.slug)}`"
-              :aria-label="`Xem danh mục ${cat.title}`"
-            >
-              <div
-                class="category-cover"
-                :style="{ backgroundImage: `url(${cat.image})` }"
-              ></div>
-              <div class="category-info d-flex justify-content-between align-items-center">
-                <h3 class="h6 m-0">{{ cat.title }}</h3>
-                <span class="category-cta">Xem ngay →</span>
-              </div>
-            </router-link>
-          </div>
-        </div>
+        
 
         <!-- CTA: Xem tất cả -->
         <div class="text-center mt-4">

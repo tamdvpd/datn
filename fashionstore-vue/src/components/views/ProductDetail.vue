@@ -68,9 +68,7 @@
                 <i class="bi bi-lightning-fill fs-5"></i>
                 <span>Mua ngay</span>
               </button>
-              <button class="btn btn-outline-secondary" @click="addToWishlist">
-                ❤️ Yêu thích
-              </button>
+             
             </div>
 
             <!-- Thông báo trạng thái -->

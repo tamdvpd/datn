@@ -12,6 +12,7 @@ import com.fashionstore.fashionstore.service.ImportInvoiceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +61,14 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
             throw new RuntimeException("❌ Không thể sửa phiếu nhập đã nhập kho");
         }
 
-        existing.setSupplier(invoice.getSupplier());
+        Supplier supplier = supplierRepository.findById(invoice.getSupplier().getId())
+                .orElseThrow(() -> new RuntimeException("❌ Không tìm thấy nhà cung cấp"));
+
+        if (!Boolean.TRUE.equals(supplier.getStatus())) {
+            throw new RuntimeException("❌ Nhà cung cấp đã ngừng hoạt động. Không thể gán cho phiếu nhập.");
+        }
+
+        existing.setSupplier(supplier);
         existing.setImportDate(invoice.getImportDate());
         existing.setNote(invoice.getNote());
         return importInvoiceRepository.save(existing);
@@ -143,6 +151,11 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
             throw new RuntimeException("❌ Phiếu nhập đã được nhập kho");
         }
 
+        //  Kiểm tra phiếu nhập có ít nhất 1 chi tiết
+        if (invoice.getImportInvoiceDetails() == null || invoice.getImportInvoiceDetails().isEmpty()) {
+            throw new RuntimeException("❌ Phiếu nhập phải có ít nhất một chi tiết để nhập kho");
+        }
+
         for (ImportInvoiceDetail detail : invoice.getImportInvoiceDetails()) {
             if (!detail.isImported()) {
                 ProductDetail product = detail.getProductDetail();
@@ -158,4 +171,3 @@ public class ImportInvoiceServiceImpl implements ImportInvoiceService {
         importInvoiceRepository.save(invoice);
     }
 }
-

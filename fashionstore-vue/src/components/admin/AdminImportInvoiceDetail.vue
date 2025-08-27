@@ -4,8 +4,8 @@
       📄 Chi tiết phiếu nhập: {{ invoiceId }}
     </h2>
 
-    <!-- Form thêm/sửa chi tiết -->
-    <div class="card shadow-sm border-0 mb-6">
+    <!-- Form thêm/sửa chi tiết (disabled nếu phiếu đã nhập kho) -->
+    <div v-if="!isCompleted" class="card shadow-sm border-0 mb-6">
       <div class="card-header bg-primary text-white fw-bold">
         {{ isEdit ? '✏️ Cập nhật chi tiết nhập' : '➕ Thêm chi tiết nhập mới' }}
       </div>
@@ -84,11 +84,27 @@
               {{ formatCurrency(d.quantity * d.unitPrice) }}
             </td>
             <td class="px-3 py-2 text-center">
-              <button @click="editDetail(d)" class="btn btn-sm btn-outline-primary me-2" title="Sửa"><i class="bi bi-pencil-square"></i></button>
-              <button @click="deleteDetail(d.id)" class="btn btn-sm btn-outline-danger" title="Xóa"><i class="bi bi-trash3-fill"></i></button>
+              <button 
+                @click="editDetail(d)" 
+                class="btn btn-sm btn-outline-primary me-2" 
+                title="Sửa"
+                :disabled="isCompleted || d.imported">
+                <i class="bi bi-pencil-square"></i>
+              </button>
+              <button 
+                @click="deleteDetail(d.id)" 
+                class="btn btn-sm btn-outline-danger" 
+                title="Xóa"
+                :disabled="isCompleted || d.imported">
+                <i class="bi bi-trash3-fill"></i>
+              </button>
             </td>
             <td class="px-4 py-2 text-center">
-              <button @click="importToStock(d)" class="btn btn-sm btn-success" title="Nhập kho">
+              <button 
+                @click="importToStock(d)" 
+                class="btn btn-sm btn-success" 
+                title="Nhập kho"
+                :disabled="d.imported || isCompleted">
                 <i class="bi bi-box-seam"></i> Nhập kho
               </button>
             </td>
@@ -108,7 +124,10 @@ import axios from "axios";
 
 export default {
   name: "ImportInvoiceDetail",
-  props: { invoiceId: { type: Number, required: true } },
+  props: { 
+    invoiceId: { type: Number, required: true },
+    isCompleted: { type: Boolean, default: false } // mới: nhận trạng thái phiếu
+  },
   data() {
     return {
       details: [],
@@ -194,6 +213,7 @@ export default {
       }
     },
     editDetail(detail) {
+      if (this.isCompleted || detail.imported) return;
       this.isEdit = true;
       this.selectedProductId = detail.productDetail?.product?.id || null;
       this.showOption(this.selectedProductId);
@@ -205,6 +225,7 @@ export default {
       };
     },
     async deleteDetail(id) {
+      if (this.isCompleted) return;
       if (!confirm("Bạn có chắc muốn xóa chi tiết này?")) return;
       try {
         await axios.delete(`http://localhost:8080/api/import-invoice-details/${id}`);
@@ -216,6 +237,7 @@ export default {
       }
     },
     async importToStock(detail) {
+      if (this.isCompleted || detail.imported) return;
       if (!detail.productDetail?.id) {
         alert("⚠️ Sản phẩm chưa chọn chi tiết");
         return;
@@ -254,4 +276,4 @@ export default {
     }
   }
 };
-</script> 
+</script>

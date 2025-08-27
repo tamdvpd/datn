@@ -13,13 +13,20 @@
     <div v-if="showForm" class="bg-gray-100 p-4 rounded mb-6">
       <h3 class="text-lg font-semibold mb-2">📋 Thông tin phiếu nhập</h3>
       <form @submit.prevent="handleSubmit" class="grid md:grid-cols-2 gap-4">
+        
+        <!-- Chọn nhà cung cấp -->
         <select v-model="form.supplierId" required class="border p-2 rounded">
           <option disabled value="">-- Chọn nhà cung cấp --</option>
           <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
         </select>
 
+        <!-- Ngày nhập -->
+        <input type="date" v-model="form.importDate" required class="border p-2 rounded" />
+
+        <!-- Ghi chú -->
         <input v-model="form.note" placeholder="Ghi chú" class="border p-2 rounded" />
 
+        <!-- Buttons -->
         <div class="md:col-span-2 flex gap-3 mt-2">
           <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
             {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
@@ -58,14 +65,12 @@
             </span>
           </td>
           <td class="p-2 border text-center">
-            <button @click="showFormInvoiceDetail(inv.id)" class="text-blue-600 hover:text-blue-800 underline">
-              🔍
-            </button>
+            <button @click="showFormInvoiceDetail(inv.id)" class="text-blue-600 hover:text-blue-800 underline">🔍</button>
           </td>
           <td class="p-2 border text-center">
             <button
               @click="importStock(inv.id)"
-              :disabled="inv.status === 'COMPLETED'"
+              :disabled="inv.status === 'COMPLETED' || !inv.importInvoiceDetails || inv.importInvoiceDetails.length === 0"
               class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-50">
               📥
             </button>
@@ -91,11 +96,11 @@
     <ImportInvoiceDetail
       v-if="showInvoiceDetail"
       :invoiceId="selectedInvoiceId"
-      @updated="handleCloseInvoiceDetail">
-    </ImportInvoiceDetail>
+      @updated="handleCloseInvoiceDetail" />
 
     <!-- Toast -->
-    <div v-if="toast.show" :class="`fixed bottom-4 right-4 px-4 py-2 rounded shadow ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`">
+    <div v-if="toast.show" 
+      :class="`fixed bottom-4 right-4 px-4 py-2 rounded shadow ${toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`">
       {{ toast.message }}
     </div>
 
@@ -113,7 +118,7 @@ export default {
       suppliers: [],
       showForm: false,
       isEditing: false,
-      form: { id: null, supplierId: '', note: '' },
+      form: { id: null, supplierId: '', note: '', importDate: new Date().toISOString().split('T')[0] },
       showInvoiceDetail: false,
       selectedInvoiceId: null,
       toast: { show: false, message: '', type: 'success' }
@@ -123,7 +128,6 @@ export default {
     totalInvoicesCount() { return this.importInvoices.length; }
   },
   methods: {
-    // ----------------- API -----------------
     async fetchInvoices() {
       try {
         const res = await fetch('http://localhost:8080/api/import-invoices');
@@ -141,9 +145,16 @@ export default {
       }
     },
     async handleSubmit() {
-      const invoiceData = this.isEditing
-        ? { supplier: { id: this.form.supplierId }, note: this.form.note }
-        : { supplier: { id: this.form.supplierId }, note: this.form.note };
+      if (!this.form.supplierId) {
+        this.showToast('⚠️ Vui lòng chọn nhà cung cấp hợp lệ!', 'error');
+        return;
+      }
+
+      const invoiceData = {
+        supplier: { id: this.form.supplierId },
+        note: this.form.note,
+        importDate: this.form.importDate || new Date().toISOString().split('T')[0]
+      };
 
       try {
         const url = this.isEditing
@@ -154,7 +165,12 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(invoiceData)
         });
-        if (!res.ok) throw new Error('Lưu phiếu nhập thất bại');
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || 'Lưu phiếu nhập thất bại');
+        }
+
         await this.fetchInvoices();
         this.resetForm();
         this.showForm = false;
@@ -164,7 +180,12 @@ export default {
       }
     },
     editInvoice(inv) {
-      this.form = { id: inv.id, supplierId: inv.supplier?.id || '', note: inv.note || '' };
+      this.form = { 
+        id: inv.id, 
+        supplierId: inv.supplier?.id || '', 
+        note: inv.note || '', 
+        importDate: inv.importDate || new Date().toISOString().split('T')[0]
+      };
       this.isEditing = true;
       this.showForm = true;
     },
@@ -182,16 +203,18 @@ export default {
     async importStock(id) {
       try {
         const res = await fetch(`http://localhost:8080/api/import-invoices/${id}/import-stock`, { method: 'POST' });
-        if (!res.ok) throw new Error('Nhập kho thất bại');
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || 'Nhập kho thất bại');
+        }
         await this.fetchInvoices();
         this.showToast('✅ Nhập kho thành công', 'success');
       } catch (err) {
         this.showToast('❌ ' + err.message, 'error');
       }
     },
-    // ----------------- Form & UI -----------------
     resetForm() {
-      this.form = { id: null, supplierId: '', note: '' };
+      this.form = { id: null, supplierId: '', note: '', importDate: new Date().toISOString().split('T')[0] };
       this.isEditing = false;
     },
     toggleForm() {
@@ -223,5 +246,5 @@ export default {
 </script>
 
 <style scoped>
-/* Tuỳ chỉnh thêm nếu cần */
+/* Tùy chỉnh thêm nếu cần */
 </style>

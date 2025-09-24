@@ -14,4 +14,15 @@ public interface WishlistService {
     Wishlist createWishlist(Wishlist wishlist);
     Wishlist updateWishlist(Integer id, Wishlist wishlist);
     void deleteWishlist(Integer id);
+    // Lấy tất cả wishlist theo userId
+    List<Wishlist> getWishlistByUser(Integer userId);
+
+    // Thêm sản phẩm vào wishlist (tránh trùng lặp)
+    Wishlist addToWishlist(Integer userId, Integer productId);
+
+    // Xóa sản phẩm khỏi wishlist
+    void removeFromWishlist(Integer userId, Integer productId);
+
+    // Kiểm tra sản phẩm đã có trong wishlist của user chưa
+    boolean existsInWishlist(Integer userId, Integer productId);
 }

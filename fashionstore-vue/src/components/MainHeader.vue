@@ -23,7 +23,9 @@
 
             🛒 Giỏ hàng
           </router-link>
-
+          <router-link to="/wishlist" class="btn btn-outline-danger btn-sm me-2">
+          ❤️
+          </router-link>
           <!-- Nếu chưa đăng nhập -->
           <div v-if="!currentUser">
 

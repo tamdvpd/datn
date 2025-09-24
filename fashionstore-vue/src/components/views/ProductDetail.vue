@@ -288,9 +288,38 @@ export default {
         alert('Có lỗi xảy ra khi kết nối đến server.');
       }
     },
-    addToWishlist() {
-      alert(`❤️ Đã thêm "${this.product.name}" vào danh sách yêu thích!`);
+   async addToWishlist() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || !user.id) {
+    alert("Vui lòng đăng nhập để thêm sản phẩm vào yêu thích!");
+    this.$router.push("/login");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:8080/api/wishlists", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user: { id: user.id },
+        product: { id: this.product.id }
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Lỗi API: ${text}`);
     }
+
+    const result = await res.json();
+    alert(`❤️ Đã thêm "${this.product.name}" vào wishlist!`);
+    console.log("Wishlist saved:", result);
+
+  } catch (err) {
+    console.error("Lỗi khi thêm wishlist:", err);
+    alert("Không thể thêm vào wishlist. Vui lòng thử lại!");
+  }
+}
   },
   mounted() {
     const productId = this.$route.params.id;
